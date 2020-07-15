@@ -1,0 +1,44 @@
+* Dashboard
+On top: Switcher between projects
+
+** Tasks
+
++ Active\Disable toggle
+
+*** Job Triggers 
+
++ Active\Disable toggle
++ Last Run time
++ Buttons for manual triggers
+
+**** Jobs
++ Start time
++ Duration time
+
+***** Logs
+
++ Time
++ Message
+
+** Updates
+
+Logs of DB changes or data transfered
+
+*** Record created/deleted/updated 
++ Link to Job
++ link to record (except deleted records)
++ link to auditlogs for details
+
+*** Data Transfered
+
+Based on ir.logging
+
++ Recipient
++ Data size
++ Data preview
++ Link to Job
++ Link to full information
+
+* Longpolling
+
+Jobs and Logs are updated instantly (adding new records + Job state and duration time )  

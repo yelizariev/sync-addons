@@ -12,7 +12,7 @@ User Access Levels
 
 * ``Sync Studio: User`` -- read-only access
 * ``Sync Studio: Developer`` -- restricted write access
-* ``Sync Studio: Manager`` -- same as Developer, but with access to **Secrets** and **Protected Code**
+* ``Sync Studio: Manager`` -- same as Developer, but with access to **Secrets**, **Protected Code**, **Allow Requests**
 
 Project
 =======
@@ -31,7 +31,8 @@ Project
     and package importing are available in **Protected Code** only. Any variables
     and methods that don't start with underscore symbol will be available in
     task code.
-  * **Python Packages**
+  * **[x] Allow Requests** -- makes ``requests`` lib avaiable for using in Code.
+    It's not recommended to use other libs. If unset, all outgoing connections are blocked.
   * **Tasks**
 
     * **Name**, e.g. *Sync products*
@@ -53,10 +54,10 @@ Project
         * ``user`` -- who clicked the button
         * ``data`` -- data attached to the trigger
 
-    * **Triggers** -- when to execute the Code. See below for further information
+    * **Job Triggers** -- when to execute the Code. See below for further information
 
-Triggers
-========
+Job Triggers
+============
 
 Cron
 ----
@@ -103,14 +104,16 @@ Available variables and methods:
 
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
+* ``make_response`` -- Only for Webhook: data to return to the caller
 
 Execution Logs
 ==============
 
-To see logs open a Project (menu ``[[ Sync Studio ]] >> Projects``) and click ``Logs`` button. You can filter and group logs by following fields:
+In Project, Task and Job Trigger forms you can find ``Logs`` button in top-right
+hand corner. You can filter and group logs by following fields:
 
 * Sync Project
 * Sync Task
-* Trigger
-* DateTime
+* Job Trigger
+* Job Start Time
 * Log Level
