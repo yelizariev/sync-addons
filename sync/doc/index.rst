@@ -106,6 +106,38 @@ Available variables and methods:
 * ``log(message, level='info')``: logging function to record debug information
 * ``make_response`` -- Only for Webhook: data to return to the caller
 
+Running Job
+===========
+
+Depending on Trigger, a job may:
+
+* be added to a queue or runs immediatly
+* be retried in case of failure
+
+Cron
+----
+
+* job is added to queue only if previous job has finished
+* failed job can be retried if failed
+
+DB
+--
+
+* job is always added to the queue before run
+* failed job can be retried if failed
+
+Webhook
+-------
+
+* runs immediatly
+* failed job cannot be retried via backend UI; the webhook should be called again.
+
+Button
+------
+
+* job is always added to the queue before run
+* failed job can be retried if failed, though it's same as new button click
+
 Execution Logs
 ==============
 
@@ -117,3 +149,4 @@ hand corner. You can filter and group logs by following fields:
 * Job Trigger
 * Job Start Time
 * Log Level
+* Status (Success / Fail)
