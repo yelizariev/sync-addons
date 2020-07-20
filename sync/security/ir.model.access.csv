@@ -8,3 +8,6 @@ access_sync_task_manager,sync.task manager,model_sync_task,sync_group_manager,1,
 access_sync_trigger_user,sync.trigger user,model_sync_trigger,sync_group_user,1,0,0,0
 access_sync_trigger_dev,sync.trigger dev,model_sync_trigger,sync_group_dev,1,1,1,1
 access_sync_trigger_manager,sync.trigger manager,model_sync_trigger,sync_group_manager,1,1,1,1
+access_sync_job_user,sync.job user,model_sync_job,sync_group_user,1,0,0,0
+access_sync_job_dev,sync.job dev,model_sync_job,sync_group_dev,1,0,0,0
+access_sync_job_manager,sync.job manager,model_sync_job,sync_group_manager,1,1,1,1
