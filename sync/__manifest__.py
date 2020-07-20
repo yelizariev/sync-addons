@@ -20,6 +20,7 @@
     ],
     "external_dependencies": {"python": [], "bin": []},
     "data": [
+        'views/sync_trigger_views.xml',
         "security/ir.model.access.csv",
         "views/sync_project_views.xml",
         "views/sync_task_views.xml",
