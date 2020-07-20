@@ -15,11 +15,13 @@
     "license": "Other OSI approved licence",  # MIT
 
     "depends": [
-        'base_automation',
-        'base_automation_webhook',
+        "base_automation",
+        "base_automation_webhook",
     ],
     "external_dependencies": {"python": [], "bin": []},
     "data": [
+        "security/ir.model.access.csv",
+        "views/sync_project_views.xml",
     ],
     "demo": [
     ],
