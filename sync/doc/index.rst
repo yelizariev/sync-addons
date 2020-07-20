@@ -12,7 +12,7 @@ User Access Levels
 
 * ``Sync Studio: User`` -- read-only access
 * ``Sync Studio: Developer`` -- restricted write access
-* ``Sync Studio: Manager`` -- same as Developer, but with access to **Secrets**, **Protected Code**, **Allow Requests**
+* ``Sync Studio: Manager`` -- same as Developer, but with access to **Secrets**, **Protected Code**, **Network Access**
 
 Project
 =======
@@ -31,7 +31,7 @@ Project
     and package importing are available in **Protected Code** only. Any variables
     and methods that don't start with underscore symbol will be available in
     task code.
-  * **[x] Allow Requests** -- makes ``requests`` lib avaiable for using in Code.
+  * **[x] Network Access** -- makes ``requests`` lib avaiable for using in Code.
     It's not recommended to use other libs. If unset, all outgoing connections are blocked.
   * **Tasks**
 

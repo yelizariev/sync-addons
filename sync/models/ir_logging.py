@@ -4,9 +4,7 @@
 from odoo import api, fields, models
 
 
-class SyncJob(models.Model):
+class IrLogging(models.Model):
+    _inherit = 'ir.logging'
 
-    _name = "sync.job"
-    _description = "Sync Job"
-
-    trigger_id = fields.Many2one("sync.trigger")
+    sync_job_id = fields.Many2one("sync.job")
