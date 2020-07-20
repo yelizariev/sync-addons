@@ -2,3 +2,6 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sync_project_user,sync.project user,model_sync_project,sync_group_user,1,0,0,0
 access_sync_project_dev,sync.project dev,model_sync_project,sync_group_dev,1,1,0,1
 access_sync_project_manager,sync.project manager,model_sync_project,sync_group_manager,1,1,1,1
+access_sync_task_user,sync.task user,model_sync_task,sync_group_user,1,0,0,0
+access_sync_task_dev,sync.task dev,model_sync_task,sync_group_dev,1,1,1,1
+access_sync_task_manager,sync.task manager,model_sync_task,sync_group_manager,1,1,1,1
