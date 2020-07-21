@@ -2,7 +2,7 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 {
-    "name": """Sync Studio""",
+    "name": """Sync Studio Free""",
     "summary": """Synchronize anything with anything, including Odoo""",
     "category": "Extra Tools",
     "images": [],
