@@ -54,7 +54,8 @@ Project
         * ``user`` -- who clicked the button
         * ``data`` -- data attached to the trigger
 
-    * **Job Triggers** -- when to execute the Code. See below for further information
+    * **Cron Triggers**, **DB Triggers**, **Webhook Triggers**, **Manual
+      Triggers** -- when to execute the Code. See below for further information
 
 Job Triggers
 ============

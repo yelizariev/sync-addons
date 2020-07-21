@@ -12,8 +12,8 @@ Provides a single place to handle synchronization trigered by one of the followi
 
 * **Cron** -- provided by ``ir.cron``
 * **DB Event** -- provided by ``base.automation``
-* **Incoming webhook** -- provided by ``base.automation::action_server_id.website_published`` (search for ``/website/action`` in ``website`` module)
-* **Manual Triggering** -- when user clicks a special button
+* **Incoming webhook** -- provided by ``ir.actions.server::website_published`` (search for ``/website/action`` in ``website`` module)
+* **Manual Triggering** -- provided by ``ir.actions.server``. User needs to click a button to run this action
 
 Allows to add extra imports to eval context.
 
