@@ -6,7 +6,7 @@ from odoo import api, fields, models
 
 class SyncTriggerButton(models.Model):
 
-    _name = "sync.trigger.Button"
+    _name = "sync.trigger.button"
     _description = "Manual Trigger"
 
     name = fields.Char("Name")

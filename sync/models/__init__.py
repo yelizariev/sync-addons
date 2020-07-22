@@ -2,6 +2,9 @@
 
 from . import sync_project
 from . import sync_task
+from . import sync_trigger_cron
+from . import sync_trigger_automation
+from . import sync_trigger_webhook
 from . import sync_trigger_button
 from . import sync_job
 from . import ir_logging
