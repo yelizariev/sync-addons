@@ -1,0 +1,148 @@
+# Copyright 2020 Ivan Yelizariev <https://it-projects.info/team/yelizariev>
+# License MIT (https://opensource.org/licenses/MIT).
+
+import json
+import logging
+
+from odoo.tests.common import TransactionCase
+
+_logger = logging.getLogger(__name__)
+
+BUTTON_DATA = {"button_data_key": "button_data_value"}
+
+class TestBase(TransactionCase):
+
+    def setUp(self):
+        super(TestBase, self).setUp()
+
+    def print_last_logs(self, limit=1):
+        logs = self.env["ir.logging"].search([], limit=limit)
+        for lg in logs:
+            _logger.debug("ir.logging: %s", [lg.name, lg.level, lg.message])
+
+    def create_project_task(self, project_vals, task_vals):
+        project = self.env["sync.project"].create({
+            "name": "Project Eval Test",
+            "param_ids": [
+                (0, 0, {
+                    "key": "KEY1",
+                    "value": "VALUE1"
+                }),
+                (0, 0, {
+                    "key": "KEY2",
+                    "value": "VALUE2"
+                })
+            ],
+            "secret_ids": [
+                (0, 0, {
+                    "key": "SECRET1",
+                    "value": "SECRETVALUE1"
+                }),
+                (0, 0, {
+                    "key": "SECRET2",
+                    "value": "SECRETVALUE2"
+                })
+            ],
+        }.update(**project_vals))
+
+        task = self.env["sync.task"].create({
+            "name": "Task Eval Test",
+            "project_id": project.id,
+            "button_ids": [
+                (0, 0, {
+                    "name": "Webhook Eval Test",
+                    "data": json.dumps(BUTTON_DATA)
+                })
+            ]
+        }.update(**task_vals))
+        return project, task
+
+    def test_imports(self):
+        """imports should be available in Protected Code only"""
+
+        # legal way
+        pvals = {
+            "secret_code": "from odoo import tools",
+            "common_code": "log('imported package in common_code: %s' % tools.config)"
+        }
+        tvals = {
+            "code": "log('imported package in task code: %s' % tools.config)"
+        }
+        p, t = self.create_project_task(pvals, tvals)
+        t.button_ids.ensure_one()
+        t.button_ids.run()
+        self.print_last_logs(2)
+
+        # import in common_code
+        pvals = {
+            "secret_code": "x=2+2",
+            "common_code": \
+            "from odoo import tools \n"
+            "log('imported package in common_code: %s' % tools.config)"
+        }
+        tvals = {
+            "code": "log('imported package in task code: %s' % tools.config)"
+        }
+        with self.assertRaises(ValueError):
+            p, t = self.create_project_task(pvals, tvals)
+            # t.button_ids.ensure_one()
+            # t.button_ids.run()
+
+        # import in task's code
+        pvals = {
+            "secret_code": "x=2+2",
+            "common_code": "x=5",
+        }
+        tvals = {
+            "code": \
+            "from odoo import tools \n"
+            "log('imported package in task code: %s' % tools.config)"
+        }
+        with self.assertRaises(ValueError):
+            p, t = self.create_project_task(pvals, tvals)
+            # t.button_ids.ensure_one()
+            # t.button_ids.run()
+
+    def test_secrets(self):
+        """Secrets  should be available in Protected Code only"""
+
+        pvals = {
+            "secret_code": "\n".join([
+                "import hashlib",
+                "def hash(data):",
+                "    return hashlib.sha224(data).hexdigest()",
+                "xxx = hash(secrets.SECRET1)"
+            ]),
+        }
+        # legal way
+        pvals["common_code"] = "log('xxx in common_code: %s' % xxx)"
+        tvals = {
+            "code": "log('2+2=%s' % (2+2))"
+        }
+        p, t = self.create_project_task(pvals, tvals)
+        t.button_ids.ensure_one()
+        t.button_ids.run()
+        self.print_last_logs(2)
+
+        # using in common_code
+        pvals["common_code"] = "xxx = hash(secrets.SECRET1)"
+        tvals = {
+            "code": "log('xxx in task code: %s' % xxx)"
+        }
+        p, t = self.create_project_task(pvals, tvals)
+        t.button_ids.ensure_one()
+        with self.assertRaises(NameError):
+            t.button_ids.run()
+
+        # using in task's code
+        pvals["common_code"] = "log('xxx in common_code: %s' % xxx)"
+        tvals = {
+            "code": "\n".join([
+                "xxx = hash(secrets.SECRET1)",
+                "log('xxx in task code: %s' % xxx)"
+            ])
+        }
+        p, t = self.create_project_task(pvals, tvals)
+        t.button_ids.ensure_one()
+        with self.assertRaises(NameError):
+            t.button_ids.run()

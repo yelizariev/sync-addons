@@ -6,10 +6,7 @@ from odoo.exceptions import ValidationError
 import uuid
 
 
-class TestMessage(TransactionCase):
-
-    def setUp(self):
-        super(AccountingTestCase, self).setUp()
+class TestBase(TransactionCase):
 
     def create_record(self):
         self.env["res.partner"].create({"name": "Test"})

@@ -12,3 +12,6 @@ class SyncTriggerButton(models.Model):
     name = fields.Char("Name")
     data = fields.Char("Data", help="JSON data to be passed to the handler")
     sync_task_id = fields.Many2one("sync.task")
+
+    def run(self):
+        raise NotImplementedError()

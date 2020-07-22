@@ -10,9 +10,23 @@ class SyncProject(models.Model):
     _description = "Sync Project"
 
     name = fields.Char("Name", help="e.g. Legacy Migration or eCommerce Synchronization")
-    common_code = fields.Text("Common Code")
-    secret_code = fields.Text("Protected Code", groups="sync.sync_group_manager")
+    secret_code = fields.Text(
+        "Protected Code",
+        groups="sync.sync_group_manager",
+        help="""First code to eval.
+
+        Secret Params and package importing are available here only.
+
+        Any variables and functions that don't start with underscore symbol will be available in Common Code and task's code.
+        """)
+
     secret_code_readonly = fields.Text("Protected Code", compute="_compute_secret_code_readonly")
+    common_code = fields.Text(
+        "Common Code", help="""
+        A place for helpers.
+
+        You can add here a function or variable, that don't start with underscore and then reuse it in task's code.
+    """)
     network_access = fields.Boolean("Network Access", groups="sync.sync_group_manager")
     network_access_readonly = fields.Boolean("Network Access", compute="_compute_network_access_readonly")
     param_ids = fields.One2many("sync.project.param", "project_id")
@@ -31,10 +45,15 @@ class SyncProject(models.Model):
 class SyncProjectParam(models.Model):
 
     _name = "sync.project.param"
+    _rec_name = "key"
 
-    name = fields.Char("Key")
+    key = fields.Char("Key")
     value = fields.Char("Value")
     project_id = fields.Many2one("sync.project")
+
+    _sql_constraints = [
+        ("key_uniq", "unique (key)", "Key must be unique.")
+    ]
 
 
 class SyncProjectSecret(models.Model):

@@ -29,14 +29,14 @@ Project
   * **Protected Code**, **Common Code** -- code that is executed before running any
     project's task. Can be used for initialization or for helpers. Secret params
     and package importing are available in **Protected Code** only. Any variables
-    and methods that don't start with underscore symbol will be available in
-    task code.
+    and functions that don't start with underscore symbol will be available in
+    task's code.
   * **[x] Network Access** -- makes ``requests`` lib avaiable for using in Code.
     It's not recommended to use other libs. If unset, all outgoing connections are blocked.
   * **Tasks**
 
     * **Name**, e.g. *Sync products*
-    * **Code** -- code with at least one of the following methods
+    * **Code** -- code with at least one of the following functions
 
       * ``handle_cron()``
       * ``handle_db(records)``
@@ -101,11 +101,12 @@ Button
 Code
 ====
 
-Available variables and methods:
+Available variables and functions:
 
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
 * ``make_response`` -- Only for Webhook: data to return to the caller
+* ``secrets.SECRET_NAME`` -- only in **Protected Code**
 
 Running Job
 ===========
