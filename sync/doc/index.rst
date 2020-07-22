@@ -84,8 +84,8 @@ DB
       1 day after Sale Order is closed
 
 * **Apply on**: records filter
-* **Before Update Domain**: additional records filter for Update event
-* **Watched fields**: fields list for Update event
+* **Before Update Domain**: additional records filter for *On Update* event
+* **Watched fields**: fields list for *On Update* event
 
 Webhook
 -------
@@ -107,6 +107,7 @@ Available variables and functions:
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
 * ``make_response``: Only for Webhook: data to return to the caller
+* ``params.PARAM_NAME``: projects's params.
 * ``secrets.SECRET_NAME``: only in **Protected Code**
 
 Running Job

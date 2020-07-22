@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 
 BUTTON_DATA = {"button_data_key": "button_data_value"}
 
-class TestBase(TransactionCase):
+class TestEval(TransactionCase):
 
     def setUp(self):
         super(TestBase, self).setUp()
@@ -81,7 +81,10 @@ class TestBase(TransactionCase):
             "log('imported package in common_code: %s' % tools.config)"
         }
         tvals = {
-            "code": "log('imported package in task code: %s' % tools.config)"
+            "code": "\n".join([
+                "def handle_button(data, user):",
+                "    log('imported package in task code: %s' % tools.config)"
+            ])
         }
         with self.assertRaises(ValueError):
             p, t = self.create_project_task(pvals, tvals)
@@ -94,9 +97,11 @@ class TestBase(TransactionCase):
             "common_code": "x=5",
         }
         tvals = {
-            "code": \
-            "from odoo import tools \n"
-            "log('imported package in task code: %s' % tools.config)"
+            "code": "\n".join([
+                "from odoo import tools",
+                "def handle_button(data, user):",
+                "    log('imported package in task code: %s' % tools.config)"
+            ])
         }
         with self.assertRaises(ValueError):
             p, t = self.create_project_task(pvals, tvals)
@@ -117,7 +122,10 @@ class TestBase(TransactionCase):
         # legal way
         pvals["common_code"] = "log('xxx in common_code: %s' % xxx)"
         tvals = {
-            "code": "log('2+2=%s' % (2+2))"
+            "code": "\n".join([
+                "def handle_button(data, user):",
+                "    log('2+2=%s' % (2+2))"
+            ])
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
@@ -127,7 +135,10 @@ class TestBase(TransactionCase):
         # using in common_code
         pvals["common_code"] = "xxx = hash(secrets.SECRET1)"
         tvals = {
-            "code": "log('xxx in task code: %s' % xxx)"
+            "code": "\n".join([
+                "def handle_button(data, user):",
+                "    log('xxx in task code: %s' % xxx)"
+            ])
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
@@ -138,8 +149,9 @@ class TestBase(TransactionCase):
         pvals["common_code"] = "log('xxx in common_code: %s' % xxx)"
         tvals = {
             "code": "\n".join([
-                "xxx = hash(secrets.SECRET1)",
-                "log('xxx in task code: %s' % xxx)"
+                "def handle_button(data, user):",
+                "    xxx = hash(secrets.SECRET1)",
+                "    log('xxx in task code: %s' % xxx)"
             ])
         }
         p, t = self.create_project_task(pvals, tvals)

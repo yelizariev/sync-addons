@@ -27,6 +27,7 @@
         "views/sync_task_views.xml",
     ],
     "demo": [
+        "data/sync_demo.xml",
     ],
     "qweb": [
     ],
