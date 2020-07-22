@@ -10,9 +10,9 @@ Installation
 User Access Levels
 ==================
 
-* ``Sync Studio: User`` -- read-only access
-* ``Sync Studio: Developer`` -- restricted write access
-* ``Sync Studio: Manager`` -- same as Developer, but with access to **Secrets**, **Protected Code**, **Network Access**
+* ``Sync Studio: User``: read-only access
+* ``Sync Studio: Developer``: restricted write access
+* ``Sync Studio: Manager``: same as Developer, but with access to **Secrets**, **Protected Code**, **Network Access**
 
 Project
 =======
@@ -25,37 +25,37 @@ Project
 
     * **Key**
     * **Value**
-  * **Secrets** -- Params with restricted access: key values are visiable for Managers only
-  * **Protected Code**, **Common Code** -- code that is executed before running any
+  * **Secrets**: Params with restricted access: key values are visiable for Managers only
+  * **Protected Code**, **Common Code**: code that is executed before running any
     project's task. Can be used for initialization or for helpers. Secret params
     and package importing are available in **Protected Code** only. Any variables
     and functions that don't start with underscore symbol will be available in
     task's code.
-  * **[x] Network Access** -- makes ``requests`` lib avaiable for using in Code.
+  * **[x] Network Access**: makes ``requests`` lib avaiable for using in Code.
     It's not recommended to use other libs. If unset, all outgoing connections are blocked.
   * **Tasks**
 
     * **Name**, e.g. *Sync products*
-    * **Code** -- code with at least one of the following functions
+    * **Code**: code with at least one of the following functions
 
       * ``handle_cron()``
       * ``handle_db(records)``
-        * ``records`` -- all records on which this task is triggered
+        * ``records``: all records on which this task is triggered
       * ``handle_webhook(httprequest)``
-        * ``httprequest`` -- contains information about request. E.g.
-          * `httprequest.form <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.form>`__ -- request args
-          * `httprequest.files <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.files>`__ -- uploaded files
-          * `httprequest.remote_addr <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.remote_addr>`__ -- ip address of the caller.
+        * ``httprequest``: contains information about request. E.g.
+          * `httprequest.form <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.form>`__: request args
+          * `httprequest.files <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.files>`__: uploaded files
+          * `httprequest.remote_addr <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.remote_addr>`__: ip address of the caller.
           * See `Werkzeug doc
             <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest>`__
             for more information.
       * ``handle_button(data, user)``
 
-        * ``user`` -- who clicked the button
-        * ``data`` -- data attached to the trigger
+        * ``user``: who clicked the button
+        * ``data``: data attached to the trigger
 
     * **Cron Triggers**, **DB Triggers**, **Webhook Triggers**, **Manual
-      Triggers** -- when to execute the Code. See below for further information
+      Triggers**: when to execute the Code. See below for further information
 
 Job Triggers
 ============
@@ -63,13 +63,14 @@ Job Triggers
 Cron
 ----
 
-* **Execute Every** -- every 2 hours, every 1 week, etc.
+* **Execute Every**: every 2 hours, every 1 week, etc.
 * **Next Execution Date**
 * **Scheduler User**
 
 DB
 --
 
+* **Name**, e.g. *On Product price changed*
 * **Model**
 * **Trigger Condition**
 
@@ -82,21 +83,21 @@ DB
     * Allows to trigger task before, after on in time of Date/Time fields, e.g.
       1 day after Sale Order is closed
 
-* **Apply on** -- records filter
-* **Before Update Domain** -- additional records filter for Update event
-* **Watched fields** -- fields list for Update event
+* **Apply on**: records filter
+* **Before Update Domain**: additional records filter for Update event
+* **Watched fields**: fields list for Update event
 
 Webhook
 -------
 
 * **Name**
-* **Webhook URL** -- readonly.
+* **Webhook URL**: readonly.
 
 Button
 ------
 
 * **Name**, e.g. "Sync all Products"
-* **Data** -- json/yaml data to be passed to handler
+* **Data**: json/yaml data to be passed to handler
 
 Code
 ====
@@ -105,8 +106,8 @@ Available variables and functions:
 
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
-* ``make_response`` -- Only for Webhook: data to return to the caller
-* ``secrets.SECRET_NAME`` -- only in **Protected Code**
+* ``make_response``: Only for Webhook: data to return to the caller
+* ``secrets.SECRET_NAME``: only in **Protected Code**
 
 Running Job
 ===========
