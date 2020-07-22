@@ -6,7 +6,7 @@
  Sync Studio Free
 ==================
 
-Synchronize anything with anything, including Odoo
+Synchronize anything with anything, including Odoo.
 
 Provides a single place to handle synchronization trigered by one of the following events:
 
@@ -19,7 +19,7 @@ Allows to add extra imports to eval context.
 
 Adds helpers to all models:
 
-* ``get_ref`` -- search or create reference for current record
+* ``make_ref(self, ref=None, raise_if_exists=True)`` -- search or create reference for current record
 
 Credits
 =======
