@@ -253,7 +253,7 @@ To sync changes on external Odoo we use *Cron trigger*. It runs every 15 minutes
 * request to the external Odoo for the partners, but filtered by update time (to don't load partner with old updates only)
 * for each of the fetched partner compare its update time with information saved in ``ir.model.data``
 
-  * if a partner is updated sync last sync, then update partner
+  * if a partner is updated since last sync, then update partner
 
 Configuration
 -------------
