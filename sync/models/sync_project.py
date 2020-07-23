@@ -49,6 +49,7 @@ class SyncProjectParam(models.Model):
 
     key = fields.Char("Key")
     value = fields.Char("Value")
+    description = fields.Char("Description")
     project_id = fields.Many2one("sync.project")
 
     _sql_constraints = [
