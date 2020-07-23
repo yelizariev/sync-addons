@@ -19,7 +19,7 @@ Allows to add extra imports to eval context.
 
 Adds helpers to all models:
 
-* ``make_ref(self, ref=None, raise_if_exists=True)`` -- search or create reference for current record
+* ``make_ref(self, ref=None, date_update=None)`` -- search, create or update reference for current record
 
 Credits
 =======

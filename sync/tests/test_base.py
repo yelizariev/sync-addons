@@ -47,9 +47,7 @@ class TestBase(TransactionCase):
 
         # Multiple refs
         ref2 = str(uuid.uuid4())
-        with self.assertRaises(ValidationError):
-            ref_response = r.make_ref(ref2)
-        ref_response = r.make_ref(ref2, raise_if_exists=False)
+        ref_response = r.make_ref(ref2)
         self.assertEqual(ref2, ref_response)
         r_by_ref = self.env.ref(ref2)
         self.assertEqual(r, r_by_ref)
