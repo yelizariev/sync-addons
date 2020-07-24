@@ -186,6 +186,7 @@ How it works
 
 Configuration
 -------------
+
 In Telegram:
 
 * send message ``/new`` to @BotFather and follow further instructions to create bot and get the bot token
@@ -198,6 +199,7 @@ In Odoo:
 
   * TELEGRAM_BOT_TOKEN
 
+* Select task *Setup*
 * Select Button Trigger *Setup webhook*
 * Click button ``[Run Now]``
 
