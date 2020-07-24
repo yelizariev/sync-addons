@@ -27,8 +27,6 @@ class SyncProject(models.Model):
 
         You can add here a function or variable, that don't start with underscore and then reuse it in task's code.
     """)
-    network_access = fields.Boolean("Network Access", default=False, groups="sync.sync_group_manager", help="When unset, data transfer to outside of odoo is not possible")
-    network_access_readonly = fields.Boolean("Network Access", compute="_compute_network_access_readonly")
     param_ids = fields.One2many("sync.project.param", "project_id")
     secret_ids = fields.One2many("sync.project.secret", "project_id")
     task_ids = fields.One2many("sync.task", "project_id")

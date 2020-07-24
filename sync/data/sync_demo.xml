@@ -11,12 +11,16 @@ from odoo.tools import html2plaintext
 from lxml.html import clean
 
 # https://github.com/python-telegram-bot/python-telegram-bot
-from telegram import Bot, Update
-bot = None
+from telegram import Bot as _Bot, Update
+_bot = None
 if secrets.TELEGRAM_BOT_TOKEN:
-    bot = Bot(token=secrets.TELEGRAM_BOT_TOKEN)
+    _bot = _Bot(token=secrets.TELEGRAM_BOT_TOKEN)
 else:
     raise Exception("bot token is not set")
+
+def sendMessage(chat_id, *args, **kwargs):
+    log_outgoing_data("%s@telegram" % chat_id, json.dumps([args, kwargs])
+    _bot.sendMessage(chat_id, *args, **kwargs)
 
         </field>
         <field name="common_code">
@@ -101,7 +105,7 @@ def handle_webhook(httprequest):
     odoo_message_text = "From Telegram:"
 
     if message.text == "/start":
-        bot.sendMessage(message.chat.id, params.TELEGRAM_WELCOME_MESSAGE)
+        sendMessage(message.chat.id, params.TELEGRAM_WELCOME_MESSAGE)
     elif is_edit:
         odoo_message_text = "Contact has updated his message:"
 
@@ -122,7 +126,7 @@ def handle_db(records):
         telegram_user_id = user_ref.split("@telegram")[0]
         telegram_message_html = html_sanitize_telegram(r.body)
         telegram_message_html = telegram_message_html.replace("/telegram", "")
-        bot.sendMessage(telegram_user_id, telegram_message_html)
+        sendMessage(telegram_user_id, telegram_message_html)
 
         odoo_message_text = "%s:\n\n%s" % (params.TELEGRAM_MESSAGE_SENT, telegram_message_html)
         partner.message_post(body=odoo_message_text)

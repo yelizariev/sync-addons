@@ -18,7 +18,7 @@ User Access Levels
 
 * ``Sync Studio: User``: read-only access
 * ``Sync Studio: Developer``: restricted write access
-* ``Sync Studio: Manager``: same as Developer, but with access to **Secrets**, **Protected Code**, **Network Access**
+* ``Sync Studio: Manager``: same as Developer, but with access to **Secrets** and **Protected Code**
 
 Project
 =======
@@ -37,8 +37,6 @@ Project
     and package importing are available in **Protected Code** only. Any variables
     and functions that don't start with underscore symbol will be available in
     task's code.
-  * **[x] Network Access**: makes ``requests`` lib avaiable for using in Code.
-    It's not recommended to use other libs. If unset, all outgoing connections are blocked.
   * **Tasks**
 
     * **Name**, e.g. *Sync products*
@@ -48,13 +46,19 @@ Project
       * ``handle_db(records)``
         * ``records``: all records on which this task is triggered
       * ``handle_webhook(httprequest)``
-        * ``httprequest``: contains information about request. E.g.
+        * ``httprequest``: contains information about request, e.g.
           * `httprequest.form <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.form>`__: request args
           * `httprequest.files <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.files>`__: uploaded files
           * `httprequest.remote_addr <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.remote_addr>`__: ip address of the caller.
-          * See `Werkzeug doc
+          * see `Werkzeug doc
             <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest>`__
             for more information.
+        * optionally can return data as a response to the webhook request; any data transferred in this way are logged via ``log_outgoing_data`` function:
+
+          * ``return data_str``
+          * ``return data, headers``
+
+            * ``headers`` is a list of key-value turples, e.g. ``[('Content-Type', 'text/html')]``
       * ``handle_button()``
 
     * **Cron Triggers**, **DB Triggers**, **Webhook Triggers**, **Manual
@@ -106,14 +110,57 @@ Code
 ====
 
 Available variables and functions:
+----------------------------------
+
+Base:
 
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
-* ``make_response``: Only for Webhook: data to return to the caller
-* ``params.<PARAM_NAME>``: project params.
+
+Network:
+
+* ``log_outgoing_data(recipient_str, data_str)``: report on data transfer to external recipients
+
+  * available in **Protected Code** only; examples:
+
+    * allow single request to specific server:
+
+          import requests as _requests
+          def notifyMyServer():
+              url = "https://my-server.example/api/on-update"
+              log_outgoing_data(url, "")
+              r = _requests.get(url)
+              return r.json()
+
+    * allow POST requests only
+
+          import requests as _requests
+          def httpPOST(url, *args, **kwargs):
+              log_outgoing_data(url, json.dumps([args, kwargs]))
+              r = _requests.post(url, *args, **kwargs)
+              return r.text
+
+    * allow any requests
+
+          import requests as _requests
+          def make_request(method, url, *args, **kwargs):
+              log_outgoing_data(url, json.dumps([method, args, kwargs]))
+              return _requests.request(url, *args, **kwargs)
+
+
+Project Values:
+
+* ``params.<PARAM_NAME>``: project params
 * ``secrets.<SECRET_NAME>``: available in **Protected Code** only
 * ``webhooks.<WEBHOOK_NAME>``: contains webhook url; only in tasks' code
+
+Event:
+
 * ``TRIGGER_NAME``: available in tasks' code only
+
+Libs:
+
+* ``json``
 
 Running Job
 ===========
