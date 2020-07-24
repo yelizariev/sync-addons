@@ -7,6 +7,7 @@ from odoo import api, fields, models
 class SyncTriggerWebhook(models.Model):
 
     _name = "sync.trigger.webhook"
+    _inherit = "sync.trigger.mixin"
     _description = "Webhook Trigger"
 
     action_server_id = fields.Many2one('ir.actions.server', delegate=True, required=True, ondelete='cascade')

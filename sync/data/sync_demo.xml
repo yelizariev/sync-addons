@@ -2,6 +2,153 @@
 <!-- Copyright 2020 Ivan Yelizariev <https://it-projects.info/team/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
+    <!-- Telegram -->
+    <record id="telegram_project" model="sync.project">
+        <field name="name">Demo Telegram Integration</field>
+        <field name="network_access" eval="True"/>
+        <field name="secret_code">
+from odoo.tools import html2plaintext
+from lxml.html import clean
+
+# https://github.com/python-telegram-bot/python-telegram-bot
+from telegram import Bot, Update
+bot = None
+if secrets.TELEGRAM_BOT_TOKEN:
+    bot = Bot(token=secrets.TELEGRAM_BOT_TOKEN)
+else:
+    raise Exception("bot token is not set")
+
+        </field>
+        <field name="common_code">
+def user2name(user):
+    if user.get('username'):
+        return '@%s' % (user.get('username'))
+
+    name = user.get('first_name')
+    if user.get('last_name'):
+        name += ' %s' % user.get('last_name')
+
+    return name
+
+def html_sanitize_telegram(html):
+    allowed_tags = frozenset({"b", "i", "u", "s", "a", "code", "pre"})
+    cleaner = clean.Cleaner(safe_attrs_only=True, safe_attrs=frozenset(), allow_tags=allowed_tags)
+    html = cleaner.clean_html(html)
+    return html
+
+        </field>
+    </record>
+
+    <record id="telegram_project_param_welcome" model="sync.project.param">
+        <field name="key">TELEGRAM_WELCOME_MESSAGE</field>
+        <field name="value">Hello! How can I help you?</field>
+        <field name="description">Message that is sent to a user on first bot usage</field>
+        <field name="project_id" ref="sync.telegram_project"/>
+    </record>
+
+    <record id="telegram_project_param_message_sent" model="sync.project.param">
+        <field name="key">TELEGRAM_MESSAGE_SENT</field>
+        <field name="value">The message has sent in telegram:</field>
+        <field name="description">When Odoo Bot reports on successfully sent telegram message</field>
+        <field name="project_id" ref="sync.telegram_project"/>
+    </record>
+
+    <record id="telegram_project_param_prefix" model="sync.project.param">
+        <field name="key">PARTNER_NAME_PREFIX</field>
+        <field name="value">Telegram: </field>
+        <field name="description">Prefix for new partner name</field>
+        <field name="project_id" ref="sync.telegram_project"/>
+    </record>
+
+    <record id="telegram_project_secret" model="sync.project.secret">
+        <field name="key">TELEGRAM_BOT_TOKEN</field>
+        <field name="description">Authentication token provided by https://t.me/BotFather</field>
+        <field name="project_id" ref="sync.telegram_project"/>
+    </record>
+
+    <!-- telegram: task setup -->
+    <record id="telegram_task_setup" model="sync.task">
+        <field name="name">Setup</field>
+        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="code">
+def handle_button():
+    bot.setWebhook(webhooks.TELEGRAM, allowed_updates=["message", "edited_message"])
+        </field>
+    </record>
+
+    <record id="telegram_trigger_button" model="sync.trigger.button">
+        <field name="name">Setup Webhook</field>
+        <field name="sync_task_id" ref="sync.telegram_task_setup"/>
+        <field name="code">TELEGRAM</field>
+    </record>
+
+    <!-- telegram: task setup -->
+    <record id="telegram_task_main" model="sync.task">
+        <field name="name">Setup</field>
+        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="code">
+def handle_webhook(httprequest):
+    telegram_payload = httprequest.form
+    update = Update.de_json(telegram_payload, bot)
+    message = update.message or update.edited_message
+    is_edit = bool(update.edited_message)
+    user_ref = "%s@telegram" % message.user.id
+    partner = env["res.partner"].search([("ref", "=", user_ref)])
+    if not partner:
+        name = "%s%s" % (params.PARTNER_NAME_PREFIX, user2name(message.user))
+        partner = env["res.partner"].create({"name": name, "ref": user_ref})
+
+    odoo_message_text = "From Telegram:"
+
+    if message.text == "/start":
+        bot.sendMessage(message.chat.id, params.TELEGRAM_WELCOME_MESSAGE)
+    elif is_edit:
+        odoo_message_text = "Contact has updated his message:"
+
+    odoo_message_text = "%s\n\n%s" % (odoo_message_text, message.text)
+
+    partner.message_post(body=odoo_message_text)
+
+
+def handle_db(records):
+    # records are instances of mail.message
+    for r in records:
+        if not html2plaintext(r.body or "").startswith("/telegram"):
+            continue
+        partner = env["res.partner"].browse(r.res_id)
+        user_ref = partner.ref or ""
+        if not user_ref.endswith("@telegram"):
+            continue
+        telegram_user_id = user_ref.split("@telegram")[0]
+        telegram_message_html = html_sanitize_telegram(r.body)
+        telegram_message_html = telegram_message_html.replace("/telegram", "")
+        bot.sendMessage(telegram_user_id, telegram_message_html)
+
+        odoo_message_text = "%s:\n\n%s" % (params.TELEGRAM_MESSAGE_SENT, telegram_message_html)
+        partner.message_post(body=odoo_message_text)
+
+        </field>
+    </record>
+
+
+    <record id="telegram_trigger_webhook" model="sync.trigger.webhook">
+        <field name="name">Telegram updates</field>
+        <field name="sync_task_id" ref="sync.telegram_task_main"/>
+        <field name="code">TELEGRAM</field>
+    </record>
+
+    <record id="telegram_trigger_automation" model="sync.trigger.automation">
+        <field name="name">On new message posted</field>
+        <field name="sync_task_id" ref="sync.telegram_task"/>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="trigger">on_create</field>
+        <field name="filter_domain">[["model","=","res.partner"],["body","ilike","/telegram"]]</field>
+    </record>
+
+    <!-- Odoo2odoo -->
+
+
+    <!-- unittest -->
     <record id="test_project" model="sync.project">
         <field name="name">Project For Unittests</field>
         <!-- disable to hide from UI -->

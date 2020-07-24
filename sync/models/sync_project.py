@@ -27,7 +27,7 @@ class SyncProject(models.Model):
 
         You can add here a function or variable, that don't start with underscore and then reuse it in task's code.
     """)
-    network_access = fields.Boolean("Network Access", groups="sync.sync_group_manager")
+    network_access = fields.Boolean("Network Access", default=False, groups="sync.sync_group_manager", help="When unset, data transfer to outside of odoo is not possible")
     network_access_readonly = fields.Boolean("Network Access", compute="_compute_network_access_readonly")
     param_ids = fields.One2many("sync.project.param", "project_id")
     secret_ids = fields.One2many("sync.project.secret", "project_id")
@@ -42,14 +42,14 @@ class SyncProject(models.Model):
             r.network_access_readonly = r.sudo().network_access
 
 
-class SyncProjectParam(models.Model):
+class SyncProjectParamMixin(models.AbstractModel):
 
-    _name = "sync.project.param"
+    _name = "sync.project.param.mixin"
     _rec_name = "key"
 
     key = fields.Char("Key")
     value = fields.Char("Value")
-    description = fields.Char("Description")
+    description = fields.Char("Description", translate=True)
     project_id = fields.Many2one("sync.project")
 
     _sql_constraints = [
@@ -57,9 +57,17 @@ class SyncProjectParam(models.Model):
     ]
 
 
+class SyncProjectParam(models.Model):
+
+    _name = "sync.project.param"
+    _inherit = "sync.project.param.mixin"
+
+    value = fields.Char("Value", translate=True)
+
+
 class SyncProjectSecret(models.Model):
 
     _name = "sync.project.secret"
-    _inherit = "sync.project.param"
+    _inherit = "sync.project.param.mixin"
 
     value = fields.Char(groups="sync.sync_group_manager")

@@ -14,5 +14,5 @@ class SyncTask(models.Model):
     code = fields.Text("Code")
     cron_ids = fields.One2many("sync.trigger.cron", "sync_task_id")
     automation_ids = fields.One2many("sync.trigger.automation", "sync_task_id")
-    webhook_ids = fields.One2many("sync.trigger.server", "sync_task_id")
+    webhook_ids = fields.One2many("sync.trigger.webhook", "sync_task_id")
     button_ids = fields.One2many("sync.trigger.button", "sync_task_id")

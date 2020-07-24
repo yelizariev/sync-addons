@@ -7,6 +7,7 @@ from odoo import api, fields, models
 class SyncTriggerCron(models.Model):
 
     _name = "sync.trigger.cron"
+    _inherit = "sync.trigger.mixin"
     _description = "Cron Trigger"
 
     cron_id = fields.Many2one('ir.cron', delegate=True, required=True, ondelete='cascade')

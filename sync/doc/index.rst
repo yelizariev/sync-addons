@@ -55,10 +55,7 @@ Project
           * See `Werkzeug doc
             <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest>`__
             for more information.
-      * ``handle_button(data, user)``
-
-        * ``user``: who clicked the button
-        * ``data``: data attached to the trigger
+      * ``handle_button()``
 
     * **Cron Triggers**, **DB Triggers**, **Webhook Triggers**, **Manual
       Triggers**: when to execute the Code. See below for further information
@@ -113,8 +110,10 @@ Available variables and functions:
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
 * ``make_response``: Only for Webhook: data to return to the caller
-* ``params.PARAM_NAME``: projects's params.
-* ``secrets.SECRET_NAME``: only in **Protected Code**
+* ``params.<PARAM_NAME>``: project params.
+* ``secrets.<SECRET_NAME>``: available in **Protected Code** only
+* ``webhooks.<WEBHOOK_NAME>``: contains webhook url; only in tasks' code
+* ``TRIGGER_NAME``: available in tasks' code only
 
 Running Job
 ===========
@@ -164,9 +163,10 @@ hand corner. You can filter and group logs by following fields:
 Demo Project: Telegram support
 ==============================
 
-In this project we create new partners and attaches messages sent to telegram bot.
+In this project we create new partners and attache messages sent to telegram bot.
 
-To try it, you need to install this module in demo mode.
+To try it, you need to install this module in demo mode. Also, your odoo
+instance must be accessable over internet to receive telegram webhooks.
 
 How it works
 ------------
@@ -193,8 +193,12 @@ In Telegram:
 
 In Odoo:
 
+* `Activate Developer Mode <https://odoo-development.readthedocs.io/en/latest/odoo/usage/debug-mode.html>`__
+* Open menu ``[[ Settings ]] >> Parameters >> System Parameters``
+* Check that parameter ``web.base.url`` is properly set and it's accessable over
+  internet (it should not localhost)
 * Open menu ``[[ Sync Studio ]] >> Projects``
-* Select *Demo Telegram* project
+* Select *Demo Telegram Integration* project
 * Set **Secrets**:
 
   * TELEGRAM_BOT_TOKEN
@@ -261,7 +265,7 @@ Configuration
 -------------
 
 * Open menu ``[[ Sync Studio ]] >> Projects``
-* Select *Demo Odoo2odoo* project
+* Select *Demo Odoo2odoo integration* project
 * Set **Secrets**:
 
   * URL, e.g. ``https://3674665-12-0.runbot41.odoo.com``

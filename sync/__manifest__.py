@@ -17,6 +17,7 @@
     "depends": [
         "base_automation",
         "base_automation_webhook",
+        "mail",
     ],
     "external_dependencies": {"python": [], "bin": []},
     "data": [
