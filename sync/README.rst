@@ -15,14 +15,18 @@ Provides a single place to handle synchronization trigered by one of the followi
 * **Incoming webhook** -- provided by ``ir.actions.server::website_published`` (search for ``/website/action`` in ``website`` module)
 * **Manual Triggering** -- provided by ``ir.actions.server``. User needs to click a button to run this action
 
-Difference from built-in code evaluation:
+Difference with built-in code evaluation:
 
 * Allows to add extra imports to eval context
 * Allows to use json format for incomming webhooks
+* Provides helpers for resource linking. See *Links* section in `<doc/index.rst>`__
 
-Adds helpers to all models:
+Roadmap
+=======
 
-* ``make_ref(self, ref=None, date_update=None)`` -- search, create or update reference for current record
+* Odoo2odoo: split cron task for batch of records (e.g. 10 partners in a batch)
+* Odoo2odoo: use new link API
+* Github<->Trello
 
 Credits
 =======
@@ -56,7 +60,7 @@ Demo: http://runbot.it-projects.info/demo/sync-addons/12.0
 
 HTML Description: https://apps.odoo.com/apps/modules/12.0/sync/
 
-Usage instructions: `<doc/index.rst>`_
+Usage instructions: `<doc/index.rst>`__
 
 Changelog: `<doc/changelog.rst>`_
 

@@ -112,16 +112,47 @@ Code
 Available variables and functions:
 ----------------------------------
 
-Base:
+Base
+~~~~
 
-* ``env``: Odoo Environment on which the action is triggered
+* ``env``: Odoo Environment
 * ``log(message, level='info')``: logging function to record debug information
-* ``<record>.make_ref(self, ref=None, date_update=None)``: method available for
-  all models; saves relations between current record and external resources as
-  well as date of updates; see see demo projects described below for examples of
-  usage
 
-Network:
+Links
+~~~~~
+
+* ``<record>.set_odoo_link(self, sync_group, external, sync_date=None)``: makes link between local and external resource
+* ``<records>.search_odoo_links(self, sync_group) -> link``: allows to filter records with linked resources
+* ``search_odoo_links(sync_group, external_id=None) -> links``
+
+Odoo Link usage:
+
+* ``link.odoo`` -- normal Odoo record
+
+  * ``link.odoo._name`` -- model name, e.g. ``res.partner``
+  * ``link.odoo.id`` -- odoo record id
+  * ``link.odoo.<field>`` -- some field of the record, e.g. ``link.odoo.email`` -- partner email
+
+* ``link.external`` -- external reference, e.g. external id of a partner
+* ``link.sync_date`` -- last saved date-time information
+* ``links.sync_date`` -- minimal data-time among links
+
+You can also link external data with external data, e.g. on syncing two different system (e.g. github and trello)
+
+* ``set_external_link(self, sync_group, github=github_ref, trello=trello_ref, sync_date=None)``
+* ``search_external_links(self, sync_group, github=None, trello=None)``
+
+In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
+
+External Link usage:
+
+* ``elink.github``
+* ``elink.trello``
+* ``link.sync_date`` -- last saved date-time information
+* ``links.sync_date`` -- minimal data-time among links
+
+Network
+~~~~~~~
 
 * ``log_outgoing_data(recipient_str, data_str)``: report on data transfer to external recipients
 
@@ -152,18 +183,21 @@ Network:
               return _requests.request(url, *args, **kwargs)
 
 
-Project Values:
+Project Values
+~~~~~~~~~~~~~~
 
 * ``params.<PARAM_NAME>``: project params
 * ``secrets.<SECRET_NAME>``: available in **Protected Code** only
 * ``webhooks.<WEBHOOK_NAME>``: contains webhook url; only in tasks' code
 
-Event:
+Event
+~~~~~
 
 * ``TRIGGER_NAME``: available in tasks' code only
 * ``user``: user related to the event, e.g. who clicked a button
 
-Libs:
+Libs
+~~~~
 
 * ``json``
 
@@ -212,10 +246,11 @@ hand corner. You can filter and group logs by following fields:
 * Log Level
 * Status (Success / Fail)
 
-Demo Project: Telegram support
-==============================
+Demo Project: Odoo <-> Telegram
+===============================
 
-In this project we create new partners and attache messages sent to telegram bot.
+In this project we create new partners and attach messages sent to telegram bot.
+Odoo Messages prefixed with ``/telegram`` are sent back to telegram.
 
 To try it, you need to install this module in demo mode. Also, your odoo
 instance must be accessable over internet to receive telegram webhooks.
@@ -362,3 +397,19 @@ Usage
 * Open the external Odoo
 
   * RESULT: copies of all our partners are on the external Odoo; they have *Sync Studio:* prefix (can be configured in project parameter UPLOAD_ALL_PARTNER_PREFIX)
+
+Demo project: GitHub <-> Trello
+===============================
+
+In this project we create copies of github issues/pull requests and their
+messages in trello tasks. It's one side syncronization: new tasks and message in
+trello are not published in github. Trello tags and Github labels are
+synchronized in both directions.
+
+To try it, you need to install this module in demo mode. Also, your odoo
+instance must be accessable over internet to receive github and trello webhooks.
+
+How it works
+------------
+
+TODO

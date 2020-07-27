@@ -244,7 +244,7 @@ def handle_cron(records):
         fields=["write_date", IMAGE_FIELD]
     )
     for ep in external_partners:
-        ref = "%s.%s" % (REF_PREFIX, external_partner_id)
+        ref = "%s.%s" % (REF_PREFIX, ep["id"])
         p = env.ref(ref)
         ref_id = env["ir.model.data"].xmlid_lookup(ref)[0]
         ref_data = env["ir.model.data"].browse(ref_id)
