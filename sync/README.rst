@@ -15,7 +15,10 @@ Provides a single place to handle synchronization trigered by one of the followi
 * **Incoming webhook** -- provided by ``ir.actions.server::website_published`` (search for ``/website/action`` in ``website`` module)
 * **Manual Triggering** -- provided by ``ir.actions.server``. User needs to click a button to run this action
 
-Allows to add extra imports to eval context.
+Difference from built-in code evaluation:
+
+* Allows to add extra imports to eval context
+* Allows to use json format for incomming webhooks
 
 Adds helpers to all models:
 

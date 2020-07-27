@@ -116,6 +116,10 @@ Base:
 
 * ``env``: Odoo Environment on which the action is triggered
 * ``log(message, level='info')``: logging function to record debug information
+* ``<record>.make_ref(self, ref=None, date_update=None)``: method available for
+  all models; saves relations between current record and external resources as
+  well as date of updates; see see demo projects described below for examples of
+  usage
 
 Network:
 
@@ -157,6 +161,7 @@ Project Values:
 Event:
 
 * ``TRIGGER_NAME``: available in tasks' code only
+* ``user``: user related to the event, e.g. who clicked a button
 
 Libs:
 
@@ -278,7 +283,7 @@ You can continue chatting in this way
 Demo Project: Odoo2odoo
 =======================
 
-In this project we push partners to external Odoo and sync back avatar changes.
+In this project we push partners to external Odoo 12.0  and sync back avatar changes.
 
 To try it, you need to install this module in demo mode.
 
@@ -303,19 +308,21 @@ How it works
 To sync changes on external Odoo we use *Cron trigger*. It runs every 15 minutes. You can also run it manually. The code works as following:
 
 * search ``ir.model.data`` for references with prefix ``odoo2odoo_partner`` (field with the prefix is called ``module``, don't be confused) to collect ids to sync and the oldest update time
-* request to the external Odoo for the partners, but filtered by update time (to don't load partner with old updates only)
+* request to the external Odoo for the partners, but filtered by update time (to don't load partner without new updates)
 * for each of the fetched partner compare its update time with information saved in ``ir.model.data``
 
-  * if a partner is updated since last sync, then update partner
+  * if a partner is updated since last sync, then update partner and ``date_update`` field
 
 Configuration
 -------------
 
 * Open menu ``[[ Sync Studio ]] >> Projects``
 * Select *Demo Odoo2odoo integration* project
+* Set **Params**:
+  * URL, e.g. ``https://3674665-12-0.runbot41.odoo.com``
+  * DB, e.g. ``odoo``
 * Set **Secrets**:
 
-  * URL, e.g. ``https://3674665-12-0.runbot41.odoo.com``
   * USERNAME, e.g. ``admin``
   * PASSWORD, e.g. ``admin``
 
@@ -346,12 +353,12 @@ Usage
 * RESULT: avatar is synced from external Odoo
 * You can try to change avatar on external Odoo again and should get the same results
 
-**Syncing all partners.**
+**Uploading all existing partners.**
 
 * Open menu ``[[ Sync Studio ]] >> Projects``
 * Select *Demo Odoo2odoo* project
-* Choose Button Trigger *Sync All Partners*
+* Choose Button Trigger *Upload All Partners*
 * Click button ``[Run Now]``
 * Open the external Odoo
 
-  * RESULT: copies of all our partners are on the external Odoo; they have *Sync Studio:* prefix (can be configured in project parameter SYNC_ALL_PARTNER_PREFIX)
+  * RESULT: copies of all our partners are on the external Odoo; they have *Sync Studio:* prefix (can be configured in project parameter UPLOAD_ALL_PARTNER_PREFIX)
