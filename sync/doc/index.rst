@@ -418,4 +418,48 @@ instance must be accessable over internet to receive github and trello webhooks.
 How it works
 ------------
 
-TODO
+*Github Webhook Trigger* waits from GitHub for issue creation and new messages:
+
+* if there is no trello task linked to the issue, then create trello task and link it with the issue
+* if new message is posted in github issue, then post message copy in trello task
+
+*Github Webhook Trigger* waits from GitHub for label attaching/detaching (*Trello Webhook Trigger* works in the same way)
+
+* if label is attached in GitHub issue , then check for github label and trello
+  tag links and create trello tag if there is no such link yet
+* if label is attached in github issue, then attach corresponding tag in trello task
+* if label is detached in github issue, then detach corresponding tag in trello task
+
+*Github Webhook Trigger* waits from GitHub for label updating/deleting (*Trello Webhook Trigger* works in the same way):
+
+* if label is changed and there is trello tag linked to it, then update the tag
+* if label is changed and there is trello tag linked to it, then delete the tag
+
+There is still possibility that labels/tags are mismatch, e.g. due to github api
+temporary unavailability or misfunction (e.g. api request to add label responded
+with success, but label was not attached). If api request is failed, that the
+system will try few times to repeat label/tag attaching/detaching. As an ultimate
+conflict resolving, we run a *Cron Trigger* at night to check for labels/tags
+mismatch and synchronize them. In ``LABEL_TAG_MERGE_STRATEGY`` you can choose which
+strategy to use:
+
+* ``USE_TRELLO`` -- ignore github labels and override them with trello tags
+* ``USE_GITHUB`` -- ignore trello tags and  override them with push github labels
+* ``UNION`` -- add missed labels and tags from both side
+* ``INTERSECTION`` -- remove labels/tags that are not attached on both side
+
+
+Configuration
+-------------
+
+* Open menu ``[[ Sync Studio ]] >> Projects``
+* Select *Demo Github <-> Trello integration* project
+* Set **Params**:
+  * TODO
+* Set **Secrets**:
+  * TODO
+* Change **Next Execution Date** in *Conflict resolving* webhook to night time
+
+Usage
+-----
+
