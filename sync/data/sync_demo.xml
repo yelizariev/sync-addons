@@ -168,7 +168,7 @@ def odoo_execute_kw(model, method, *args, **kwargs):
     return res
         </field>
         <field name="common_code">
-REF_PARTNER_PREFIX = "odoo2odoo_partner"
+PARTNER_REL = "odoo2odoo_partner"
 IMAGE_FIELD = "image"
 def partner2vals(partner):
     FIELDS = ["name", IMAGE_FIELD]
@@ -222,8 +222,7 @@ def create_external_partner(partner, name_prefix=""):
     vals["name"] = name_prefix + vals["name"]
     external_partner_id = odoo_execute_kw("res.partner", "create", vals)
     date_update = odoo_execute_kw("res.partner", "read", [external_partner_id], fields=["create_date"])
-    ref = "%s.%s" % (REF_PREFIX, external_partner_id)
-    partner.make_ref(ref, date_update)
+    partner.set_link(PARTNER_REL, external_partner_id, date_update)
 
 def handle_db(records):
     # records are instances of created res.partner
@@ -231,32 +230,28 @@ def handle_db(records):
         create_external_partner(r)
 
 def handle_cron(records):
-    refs = env["ir.model.data"].search([("module", "=", REF_PREFIX)], order="date_update asc")
-    if not refs:
+    links = search_links(PARTNER_REL)
+    if not links:
         log("Cron: there are no associated partners")
         return
-    external_ids = refs.mapped(lambda r: int(r.name))
-    min_date = refs[0].date_update
     external_partners = odoo_execute_kw(
         "res.partner",
         "search_read",
-        [["write_date", ">", min_date]],
+        [["id", "in", links.external], ["write_date", ">", links.sync_date]],
         fields=["write_date", IMAGE_FIELD]
     )
     for ep in external_partners:
-        ref = "%s.%s" % (REF_PREFIX, ep["id"])
-        p = env.ref(ref)
-        ref_id = env["ir.model.data"].xmlid_lookup(ref)[0]
-        ref_data = env["ir.model.data"].browse(ref_id)
-        if parse_date(ep["write_date"]) > ref_data.date_update:
+        link = get_link(PARTNER,  ep["id"])
+        p = link.odoo
+        if parse_date(ep["write_date"]) > link.sync_date:
             p.write({IMAGE_FIELD: ep[IMAGE_FIELD]})
-            p.make_ref(ref, date_update)
+            link.update(date_update)
 
 def handle_button():
     for r in env["res.partner"].search([]):
         # check that record is not created yet
-        ref_data = env["ir.model.data"].search([("model", "=", "res.partner"), ("res_id", "=", r.id)])
-        if ref_data:
+        link = r.get_link(PARTNER_REL)
+        if link:
             # object already exist
             continue
 

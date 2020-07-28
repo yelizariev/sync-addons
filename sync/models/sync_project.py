@@ -18,12 +18,14 @@ class SyncProject(models.Model):
         Secret Params and package importing are available here only.
 
         Any variables and functions that don't start with underscore symbol will be available in Common Code and task's code.
+
+        To log transmitted data, use log_transmission(receiver, data) function.
         """)
 
     secret_code_readonly = fields.Text("Protected Code", compute="_compute_secret_code_readonly")
     common_code = fields.Text(
         "Common Code", help="""
-        A place for helpers.
+        A place for helpers and constants.
 
         You can add here a function or variable, that don't start with underscore and then reuse it in task's code.
     """)

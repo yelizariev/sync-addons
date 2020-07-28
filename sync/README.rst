@@ -25,7 +25,6 @@ Roadmap
 =======
 
 * Odoo2odoo: split cron task for batch of records (e.g. 10 partners in a batch)
-* Odoo2odoo: use new link API
 * Github<->Trello
 
 Credits

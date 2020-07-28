@@ -121,35 +121,47 @@ Base
 Links
 ~~~~~
 
-* ``<record>.set_link(self, relation_name, external, sync_date=None)``: makes link between Odoo and external resource
-* ``<records>.search_links(self, relation_name) -> link``: allows to filter records that have linked resources
-* ``search_links(relation_name, external_id=None) -> links``
+* ``<record>.set_link(relation_name, external, sync_date=None) -> link``: makes link between Odoo and external resource
+* ``<record>.get_link(relation_name) -> link``
+* ``get_link(relation_name, external_ref) -> link``
+* ``search_links(relation_name) -> links``: all links for the relation
 
 Odoo Link usage:
 
-* ``link.odoo`` -- normal Odoo record
+* ``link.odoo``: normal Odoo record
 
-  * ``link.odoo._name`` -- model name, e.g. ``res.partner``
-  * ``link.odoo.id`` -- odoo record id
-  * ``link.odoo.<field>`` -- some field of the record, e.g. ``link.odoo.email`` -- partner email
+  * ``link.odoo._name``: model name, e.g. ``res.partner``
+  * ``link.odoo.id``: odoo record id
+  * ``link.odoo.<field>``: some field of the record, e.g. ``link.odoo.email``: partner email
 
-* ``link.external`` -- external reference, e.g. external id of a partner
-* ``link.sync_date`` -- last saved date-time information
-* ``links.sync_date`` -- minimal data-time among links
+* ``link.external``: external reference, e.g. external id of a partner
+* ``link.sync_date``: last saved date-time information
+* ``links.odoo``: normal Odoo RecordSet
+* ``links.external``: list of all external references
+* ``links.sync_date``: minimal data-time among links
+* ``links.update(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
+* ``links.delete()``: delete link
 
-You can also link external data with external data on syncing two different system (e.g. github and trello)
+You can also link external data with external data on syncing two different system (e.g. github and trello).
 
-* ``set_link_external(self, relation_name, github=github_ref, trello=trello_ref, sync_date=None)``
-* ``search_links_external(relation_name, github=None, trello=None)``
+* ``set_link(relation_name, github=github_issue_num, trello=trello_task_num, sync_date=None) -> elink``
+* ``get_link(relation_name, github=github_issue_num, trello=trello_task_num) -> elink``
+* ``search_links(relation_name, <system1>=None, <system2>=None) -> elinks``:
+  pass relation_name and system names; use None values to don't filter by
+  referece value of that system
 
 In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
 
 External Link usage:
 
-* ``elink.<system1>``, e.g. ``elink.github`` -- reference value for system1
-* ``elink.<system2>``, e.g. ``elink.trello`` -- reference value for system2
-* ``link.sync_date`` -- last saved date-time information
-* ``links.sync_date`` -- minimal data-time among links
+* ``elink.<system1>``, e.g. ``elink.github``: reference value for system1
+* ``elink.<system2>``, e.g. ``elink.trello``: reference value for system2
+* ``elink.sync_date``: last saved date-time information
+* ``elinks.<system1>``: list of references for system1
+* ``elinks.<system2>``: list of references for system2
+* ``elinks.sync_date``: minimal data-time among links
+* ``elinks.update(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
+* ``elinks.delete()``: delete links
 
 Network
 ~~~~~~~
@@ -332,21 +344,15 @@ How it works
   * XMLRPC is used as API
 
 * gets back id of the partner copy on external Odoo
-* attaches the id to the partner of our Odoo
-
-  * the ``make_ref`` method is used to save the relation in ``ir.model.data`` model
-  * for reference name we use a prefix ``odoo2odoo_partner.``
-    followed partner copy id, e.g.
-    ``odoo2odoo_partner.123``, where 123 is id in external
-    Odoo
+* attaches the id to the partner of our Odoo via ``set_link`` method
 
 To sync changes on external Odoo we use *Cron trigger*. It runs every 15 minutes. You can also run it manually. The code works as following:
 
-* search ``ir.model.data`` for references with prefix ``odoo2odoo_partner`` (field with the prefix is called ``module``, don't be confused) to collect ids to sync and the oldest update time
-* request to the external Odoo for the partners, but filtered by update time (to don't load partner without new updates)
-* for each of the fetched partner compare its update time with information saved in ``ir.model.data``
+* call ``search_links`` function to get ids to sync and the oldest sync date
+* request to the external Odoo for the partners, but filtered by sync time to don't load partner without new updates
+* for each of the fetched partner compare its update time with sync date saved in the link
 
-  * if a partner is updated since last sync, then update partner and ``date_update`` field
+  * if a partner is updated since last sync, then update partner and sync date
 
 Configuration
 -------------
