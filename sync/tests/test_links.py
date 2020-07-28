@@ -6,12 +6,14 @@ from odoo.exceptions import ValidationError
 import uuid
 
 
-class TestBase(TransactionCase):
+class TestLink(TransactionCase):
 
     def create_record(self):
         self.env["res.partner"].create({"name": "Test"})
 
-    def test_make_ref(self):
+    def test_odoo_link(self):
+        # TODO: update accroding to new api
+
         # Simplest scenario
         r = self.create_record()
         ref = r.make_ref()
