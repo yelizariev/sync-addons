@@ -19,7 +19,7 @@ else:
     raise Exception("bot token is not set")
 
 def sendMessage(chat_id, *args, **kwargs):
-    log_outgoing_data("%s@telegram" % chat_id, json.dumps([args, kwargs]))
+    log_transmission("%s@telegram" % chat_id, json.dumps([args, kwargs]))
     _bot.sendMessage(chat_id, *args, **kwargs)
 
         </field>
@@ -159,7 +159,7 @@ if not all([params.URL, params.DB, secrets.USERNAME, secrets.PASSWORD]):
     raise Exception("External Odoo Credentials are not set")
 
 def odoo_execute_kw(model, method, *args, **kwargs):
-    log_outgoing_data("%s::%s" % (params.URL, params.DB), json.dumps([method, args, kwargs]))
+    log_transmission("%s::%s" % (params.URL, params.DB), json.dumps([method, args, kwargs]))
     common = _client.ServerProxy('{}/xmlrpc/2/common'.format(params.URL))
     uid = common.authenticate(db, secrets.USERNAME, secrets.PASSWORD, {})
     models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(params.URL))

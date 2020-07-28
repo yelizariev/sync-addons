@@ -121,9 +121,9 @@ Base
 Links
 ~~~~~
 
-* ``<record>.set_odoo_link(self, sync_group, external, sync_date=None)``: makes link between local and external resource
-* ``<records>.search_odoo_links(self, sync_group) -> link``: allows to filter records with linked resources
-* ``search_odoo_links(sync_group, external_id=None) -> links``
+* ``<record>.set_link(self, relation_name, external, sync_date=None)``: makes link between Odoo and external resource
+* ``<records>.search_links(self, relation_name) -> link``: allows to filter records that have linked resources
+* ``search_links(relation_name, external_id=None) -> links``
 
 Odoo Link usage:
 
@@ -137,24 +137,24 @@ Odoo Link usage:
 * ``link.sync_date`` -- last saved date-time information
 * ``links.sync_date`` -- minimal data-time among links
 
-You can also link external data with external data, e.g. on syncing two different system (e.g. github and trello)
+You can also link external data with external data on syncing two different system (e.g. github and trello)
 
-* ``set_external_link(self, sync_group, github=github_ref, trello=trello_ref, sync_date=None)``
-* ``search_external_links(self, sync_group, github=None, trello=None)``
+* ``set_link_external(self, relation_name, github=github_ref, trello=trello_ref, sync_date=None)``
+* ``search_links_external(relation_name, github=None, trello=None)``
 
 In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
 
 External Link usage:
 
-* ``elink.github``
-* ``elink.trello``
+* ``elink.<system1>``, e.g. ``elink.github`` -- reference value for system1
+* ``elink.<system2>``, e.g. ``elink.trello`` -- reference value for system2
 * ``link.sync_date`` -- last saved date-time information
 * ``links.sync_date`` -- minimal data-time among links
 
 Network
 ~~~~~~~
 
-* ``log_outgoing_data(recipient_str, data_str)``: report on data transfer to external recipients
+* ``log_transmission(recipient_str, data_str)``: report on data transfer to external recipients
 
   * available in **Protected Code** only; examples:
 
@@ -163,7 +163,7 @@ Network
           import requests as _requests
           def notifyMyServer():
               url = "https://my-server.example/api/on-update"
-              log_outgoing_data(url, "")
+              log_transmission(url, "")
               r = _requests.get(url)
               return r.json()
 
@@ -171,7 +171,7 @@ Network
 
           import requests as _requests
           def httpPOST(url, *args, **kwargs):
-              log_outgoing_data(url, json.dumps([args, kwargs]))
+              log_transmission(url, json.dumps([args, kwargs]))
               r = _requests.post(url, *args, **kwargs)
               return r.text
 
@@ -179,7 +179,7 @@ Network
 
           import requests as _requests
           def make_request(method, url, *args, **kwargs):
-              log_outgoing_data(url, json.dumps([method, args, kwargs]))
+              log_transmission(url, json.dumps([method, args, kwargs]))
               return _requests.request(url, *args, **kwargs)
 
 
