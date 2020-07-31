@@ -12,6 +12,7 @@ Installation
 * Install python package that you need to use. For example, to try demo projects install following packages:
 
     sudo pip3 install python-telegram-bot
+    sudo pip3 install PyGithub
 
 User Access Levels
 ==================
@@ -144,21 +145,20 @@ Odoo Link usage:
 
 You can also link external data with external data on syncing two different system (e.g. github and trello).
 
-* ``set_link(relation_name, github=github_issue_num, trello=trello_task_num, sync_date=None) -> elink``
-* ``get_link(relation_name, github=github_issue_num, trello=trello_task_num) -> elink``
-* ``search_links(relation_name, <system1>=None, <system2>=None) -> elinks``:
-  pass relation_name and system names; use None values to don't filter by
+* ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_task_num)], sync_date=None) -> elink``
+* ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_task_num)]) -> elink``
+  At least one of the reference should be not Falsy
+* ``search_links(relation_name, [("github", None), ("trello", None)]) -> elinks``:
+  pass relation_name and system names with references; use None values to don't filter by
   referece value of that system
 
 In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
 
 External Link usage:
 
-* ``elink.<system1>``, e.g. ``elink.github``: reference value for system1
-* ``elink.<system2>``, e.g. ``elink.trello``: reference value for system2
+* ``elink.get(<system>)``, e.g. ``elink.get("github")``: reference value for system1
 * ``elink.sync_date``: last saved date-time information
-* ``elinks.<system1>``: list of references for system1
-* ``elinks.<system2>``: list of references for system2
+* ``elinks.get(<system>)``: list of references for system
 * ``elinks.sync_date``: minimal data-time among links
 * ``elinks.update(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
 * ``elinks.delete()``: delete links
@@ -402,13 +402,13 @@ Usage
 * Click button ``[Run Now]``
 * Open the external Odoo
 
-  * RESULT: copies of all our partners are on the external Odoo; they have *Sync Studio:* prefix (can be configured in project parameter UPLOAD_ALL_PARTNER_PREFIX)
+  * RESULT: copies of all our partners are in the external Odoo; they have *Sync Studio:* prefix (can be configured in project parameter UPLOAD_ALL_PARTNER_PREFIX)
 
 Demo project: GitHub <-> Trello
 ===============================
 
 In this project we create copies of github issues/pull requests and their
-messages in trello tasks. It's one side syncronization: new tasks and message in
+messages in trello cards. It's one side syncronization: new cards and message in
 trello are not published in github. Trello tags and Github labels are
 synchronized in both directions.
 
@@ -418,17 +418,18 @@ instance must be accessable over internet to receive github and trello webhooks.
 How it works
 ------------
 
+
 *Github Webhook Trigger* waits from GitHub for issue creation and new messages:
 
-* if there is no trello task linked to the issue, then create trello task and link it with the issue
-* if new message is posted in github issue, then post message copy in trello task
+* if there is no trello card linked to the issue, then create trello card and link it with the issue
+* if new message is posted in github issue, then post message copy in trello card
 
 *Github Webhook Trigger* waits from GitHub for label attaching/detaching (*Trello Webhook Trigger* works in the same way)
 
 * if label is attached in GitHub issue , then check for github label and trello
   tag links and create trello tag if there is no such link yet
-* if label is attached in github issue, then attach corresponding tag in trello task
-* if label is detached in github issue, then detach corresponding tag in trello task
+* if label is attached in github issue, then attach corresponding tag in trello card
+* if label is detached in github issue, then detach corresponding tag in trello card
 
 *Github Webhook Trigger* waits from GitHub for label updating/deleting (*Trello Webhook Trigger* works in the same way):
 
@@ -463,3 +464,49 @@ Configuration
 Usage
 -----
 
+**Syncing new Github issue**
+
+* Open Github
+* Create issue
+* Open trello
+* RESULT: you see a copy of the Github issue
+* Go back to the Github issue
+* Post a message
+* Now go back to the trello card
+* RESULT: you see a copy of the message
+* You can also add/remove github issue labels or trello card tags.
+
+  * RESULT: once you change them on one side, after short time, you will see the changes on another side
+
+**Conflict resolving**
+
+* Create a github issue and check that it's syncing to trello
+* Stop Odoo
+* Make *different* changes of labels/tags both in github issue and trello card
+* Start Odoo
+* Open menu ``[[ Sync Studio ]] >> Projects``
+* Select *Demo Github <-> Trello integration* project
+* Make Cron Trigger run in one of the following ways
+
+  1. Choose Cron Trigger and click ``[Run Manually]``
+
+  2. Change **Next Execution Date** to a past time and wait up to 1 minute
+
+* RESULT: the github issue and corresponding trello card the same set of labes/tags. The merging is done according to selected stragegy in ``LABEL_TAG_MERGE_STRATEGY`` parameter.
+
+
+**Syncing all existing Github issues.**
+
+* Open menu ``[[ Sync Studio ]] >> Projects``
+* Select *Demo Tello-Github Integration* project
+* Choose Button Trigger *Sync all issues*
+* Click button ``[Run Now]``
+* Open Trello
+
+  * RESULT: copies of all *open* github issues are in trello; they have *GITHUB:* prefix (can be configured in project parameter ISSUE_FROM_GITHUB_PREFIX)
+
+Custom Integration
+==================
+
+If you made a custom integration via UI and want to package it into a module,
+open the Sync Project and click ``[Actions] -> Export to xml`` button.

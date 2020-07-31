@@ -8,3 +8,14 @@ class IrActionsServer(models.Model):
     _inherit = 'ir.actions.server'
 
     sync_task_id = fields.Many2one("sync.task")
+
+    @api.model
+    def _get_links_functions(self):
+        TODO
+
+
+class Link():
+
+    def __len__(self):
+        # Is used for ``elinks.length`` and for ``bool(elinks)``
+        TODO
