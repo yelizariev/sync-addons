@@ -534,9 +534,10 @@ Usage
 * Select *Demo Tello-Github Integration* project
 * Choose Button Trigger *Sync all issues*
 * Click button ``[Run Now]``
-* Open Trello
+* It will start asyncronious jobs. You can check progress via button *Jobs*
+* After some time open Trello
 
-  * RESULT: copies of all *open* github issues (but no more than 100) are in trello; they have *GITHUB:* prefix (can be configured in project parameter ISSUE_FROM_GITHUB_PREFIX)
+  * RESULT: copies of all *open* github issues are in trello; they have *GITHUB:* prefix (can be configured in project parameter ISSUE_FROM_GITHUB_PREFIX)
 
 Custom Integration
 ==================

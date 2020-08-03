@@ -476,6 +476,27 @@ def handle_webhook(httprequest):
 
     if tlabel_ids:
         trello_card_remove_labels(elink.get(TRELLO), tlabel_ids)
+
+def handle_button():
+    # Sync all existing open github issues to trello
+    fetch_github_issues()
+
+def fetch_github_issues(page=0):
+    CHUNK_SIZE=10
+    # fetch page
+    TODO
+    if not issues:
+        return
+    # split issues into chunks
+    for TODO in TODO:
+        chunk = TODO
+        async(process_github_issues)(chunk)
+    # fetch next page
+    fetch_github_issues(page+1)
+
+def process_github_issues():
+    TODO
+
 ]]>
         </field>
     </record>
