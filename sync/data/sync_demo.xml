@@ -291,6 +291,9 @@ def handle_button():
 GITHUB="github"
 TRELLO="trello"
 
+from github import Github as _Github
+_github = _Github(secrets.GITHUB_TOKEN)
+
 # Trello cards
 def trello_card_create(name, issue_id):
     log_transmission(TRELLO, "create: %s" % name)
@@ -367,6 +370,18 @@ def github2trello_labels(labels)
         </field>
     </record>
 
+    <record id="trello-github_project_secret_github_token" model="sync.project.secret">
+        <field name="key">GITHUB_TOKEN</field>
+        <field name="description">Token with access to read issues and create webhooks. See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token</field>
+        <field name="project_id" ref="sync.trello-github_project"/>
+    </record>
+
+    <record id="trello-github_project_secret_github_repo" model="sync.project.secret">
+        <field name="key">GITHUB_REPO</field>
+        <field name="description">owner/repo_name</field>
+        <field name="project_id" ref="sync.trello-github_project"/>
+    </record>
+
     <record id="trello-github_project_param_prefix_name" model="sync.project.param">
         <field name="key">ISSUE_FROM_GITHUB_PREFIX</field>
         <field name="value">GITHUB: </field>
@@ -387,6 +402,32 @@ UNION: add missed labels to each side
 INTERSECTION: remove labes that are not attached on another side
         </field>
         <field name="project_id" ref="sync.trello-github_project"/>
+    </record>
+
+    <record id="trello-github_task_setup" model="sync.task">
+        <field name="name">Setup</field>
+        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="code">
+<![CDATA[
+def handle_button():
+    if TRIGGER_NAME == "SETUP_GITHUB":
+        _github. STOPHERE
+    elif TRIGGER_NAME == "SETUP_TRELLO":
+        TODO
+    else:
+        raise Exception("Unknown button event: %s" % TRIGGER_NAME)
+]]>
+        </field>
+    </record>
+    <record id="trello-github_task_setup_trigger_button_github" model="sync.trigger.button">
+        <field name="name">Setup Github Webhook</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_setup"/>
+        <field name="trigger_name">SETUP_GITHUB</field>
+    </record>
+    <record id="trello-github_task_setup_trigger_button_trello" model="sync.trigger.button">
+        <field name="name">Setup Trello Webhook</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_setup"/>
+        <field name="trigger_name">SETUP_TRELLO</field>
     </record>
 
     <record id="trello-github_task_issues" model="sync.task">
