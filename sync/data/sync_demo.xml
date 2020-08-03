@@ -287,27 +287,38 @@ def handle_button():
         <field name="network_access" eval="True"/>
         <field name="secret_code">
 <![CDATA[
+# consts
+GITHUB="github"
+TRELLO="trello"
+
 # Trello cards
 def trello_card_create(name, issue_id):
+    log_transmission(TRELLO, "create: %s" % name)
     return card_id
 
 def trello_card_add_labels(card_id, tlabel_ids):
+    log_transmission(TRELLO, "add labels to card#%s: %s" % (card_id, tlabel_ids))
     pass
 
 def trello_card_remove_labels(card_id, tlabel_ids):
+    log_transmission(TRELLO, "remove labels from card#%s: %s" % (card_id, tlabel_ids))
     pass
 
-def trello_card_add_message(card_id, tlabel_ids):
+def trello_card_add_message(card_id, message):
+    log_transmission(TRELLO, "add message to card#%s: %s" % (card_id, message))
     pass
 
 # Trello labels
 def trello_label_create(name):
+    log_transmission(TRELLO, "create label: %s" % (name))
     return label_id
 
 def trello_label_delete(tlabel_id):
+    log_transmission(TRELLO, "delete label: %s" % (tlabel_id))
     pass
 
-def trello_label_update(tlabel_id):
+def trello_label_update(tlabel_id, new_name):
+    log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
     pass
 
 # Github issues
@@ -324,7 +335,7 @@ def github_label_create(name):
 def github_label_delete(glabel_id):
     pass
 
-def github_label_update(glabel_id):
+def github_label_update(glabel_id, new_name):
     pass
 ]]>
         </field>
@@ -332,9 +343,6 @@ def github_label_update(glabel_id):
 <![CDATA[
 ISSUES_REL="TRELLO_GITHUB_ISSUES_REL"
 LABELS_REL="TRELLO_GITHUB_LABELS_REL"
-# codes for links
-GITHUB="github"
-TRELLO="trello"
 
 def get_related_label(from_id, name, from, to)
     elink = get_link(LABELS_REL, [(from, from_id), (to, None)])
@@ -364,9 +372,20 @@ def github2trello_labels(labels)
         <field name="value">GITHUB: </field>
         <field name="project_id" ref="sync.trello-github_project"/>
     </record>
+
     <record id="trello-github_project_param_prefix_message" model="sync.project.param">
         <field name="key">MESSAGE_PREFIX</field>
         <field name="value">A Message posted on GitHub: </field>
+        <field name="project_id" ref="sync.trello-github_project"/>
+    </record>
+
+    <record id="trello-github_project_param_labels_merge_strategy" model="sync.project.param">
+        <field name="key">LABELS_MERGE_STRATEGY</field>
+        <field name="description">Possible values:
+USE_TRELLO, USE_GITHUB: use version from one side and override values from another
+UNION: add missed labels to each side
+INTERSECTION: remove labes that are not attached on another side
+        </field>
         <field name="project_id" ref="sync.trello-github_project"/>
     </record>
 
@@ -381,7 +400,7 @@ def handle_webhook(httprequest):
     elink = get_link(ISSUES_REL, [(GITHUB, issue_id), (TRELLO, None)])
     if not elink:
         card_id = trello_card_create(issue_name, issue_id)
-        elink = set_link(TRELLO_GITHUB_ISSUES_REL, [(GITHUB, issue_id), (TRELLO, card_id)])
+        elink = set_link(ISSUES_REL, [(GITHUB, issue_id), (TRELLO, card_id)])
 
     issue_message = TODO
     if issue_message:
@@ -433,12 +452,132 @@ def handle_webhook(httprequest):
         <field name="name">Sync labels Updating/Deleting</field>
         <field name="project_id" ref="sync.trello-github_project"/>
         <field name="code">
-            TODO
+<![CDATA[
+def handle_webhook(httprequest):
+    label_id = None
+    if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
+        glabel_id = None
+        tlabel_id = TODO
+    elif TRIGGER_NAME == "GITHUB_LABEL_UPDATES":
+        glabel_id = TODO
+        tlabel_id = None
+    else:
+       raise Exception("Unknown Event")
+
+    elinks = search_links(LABELS_REL, [(GITHUB, glabel_id), (TRELLO, tlabel_id)])
+    if not elinks:
+        # label is not linked
+        return
+    glabel_id = elinks[0].get(GITHUB)
+    tlabel_id = elinks[0].get(TRELLO)
+    is_updated = TODO
+    is_deleted = TODO
+    if is_updated:
+        if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
+            github_label_update(glabel_id, new_name):
+        else:
+            trello_label_update(tlabel_id, new_name):
+
+    if is_deleted:
+        elinks.unlink()
+        if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
+            github_label_delete(glabel_id):
+        else:
+            trello_label_detele(tlabel_id):
+
+]]>
         </field>
     </record>
-    TODO: add trello and github webhooks to the task above
 
+    <record id="trello-github_task_labels_trigger_webhook_trello" model="sync.trigger.webhook">
+        <field name="name">Trello Label updates</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_labels"/>
+        <field name="trigger_name">TRELLO_LABEL_UPDATES</field>
+    </record>
 
+    <record id="trello-github_task_labels_trigger_webhook_github" model="sync.trigger.webhook">
+        <field name="name">Github Label updates</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_labels"/>
+        <field name="trigger_name">GITHUB_LABEL_UPDATES</field>
+    </record>
+
+    <record id="trello-github_task_conflicts_resolving" model="sync.task">
+        <field name="name">Labels Conflict Resolving</field>
+        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="code">
+<![CDATA[
+def handle_cron():
+    elinks = search_links(ISSUES_REL, [(GITHUB, None), (TRELLO, None)])
+    issue_ids = elinks.get(GITHUB)
+    # https://docs.github.com/en/rest/reference/issues#list-repository-issues
+    # issue is {id: int, labels: [{id: int, name: str, ...}]}
+    issues = TODO
+    # issue_id -> issue
+    issues_index = TODO
+
+    card_ids = elinks.get(TRELLO)
+    # https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-cards-get
+    # https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-get
+    # card is dict {id: int, idLabels: [int], ...}
+    cards = TODO
+    # card_id -> card
+    cards_index = TODO
+
+    for el in elinks:
+        card_id = el.get(TRELLO)
+        issue_id = el.get(GITHUB)
+        card = cards_index.get(card_id)
+        issue = issues_index.get(issue_id)
+        if not (card and issue):
+            log("Linked card or issue is missed: %s" % (card, issue), level=LOG_WARNING)
+            continue
+        # compare labels
+        tlabel_ids = card.idsLabels
+        glabel_ids = [lbl["id"] for lbl in issue["labels"]]
+        tlinks = search_links(LABELS_REL, [(GITHUB, None), (TRELLO, tlabel_ids)])
+        glinks = search_links(LABELS_REL, [(GITHUB, glabel_ids), (TRELLO, None)])
+        if tlinks == glinks:
+            # all fine
+        logs("Found labels mismatch: issue=%s, card=%s" % (issue["id"], card["id"]), level=LOG_DEBUG)
+
+        tlinks_add = None
+        tlinks_remove = None
+        glinks_add = None
+        glinks_remove = None
+        if LABELS_MERGE_STRATEGY == "USE_TRELLO":
+            glinks_add = tlinks - glinks
+            glinks_remove = glinks - tlinks
+        elif LABELS_MERGE_STRATEGY == "USE_GITHUB":
+            tlinks_add = glinks - tlinks
+            tlinks_remove = tlinks - glinks
+        elif LABELS_MERGE_STRATEGY == "UNION":
+            tlinks_add = glinks - tlinks
+            glinks_add = tlinks - glinks
+        elif LABELS_MERGE_STRATEGY == "INTERSECTION":
+            tlinks_remove = tlinks - glinks
+            glinks_remove = glinks - tlinks
+        else:
+            raise Exception("Unknown LABELS_MERGE_STRATEGY: %s" % LABELS_MERGE_STRATEGY, level=LOG_ERROR)
+
+        if tlinks_add:
+            trello_card_add_labels(card_id, tlinks_add.get(TRELLO))
+        if glinks_add:
+            github_issue_add_labels(card_id, glinks_add.get(GITHUB))
+        if tlinks_remove:
+            trello_card_remove_labels(card_id, tlinks_remove.get(TRELLO))
+        if glinks_remove:
+            github_issue_remove_labels(card_id, glinks_remove.get(GITHUB))
+
+]]>
+        </field>
+    </record>
+
+    <record id="trello-github_task_conflicts_resolving_cron" model="sync.trigger.cron">
+        <field name="trigger_name">CONFLICT_RESOLVING</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resovling"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">day</field>
+    </record>
 
     <!-- unittest -->
     <record id="test_project" model="sync.project">

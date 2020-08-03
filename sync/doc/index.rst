@@ -117,7 +117,15 @@ Base
 ~~~~
 
 * ``env``: Odoo Environment
-* ``log(message, level='info')``: logging function to record debug information
+* ``log(message, level=LOG_INFO)``: logging function to record debug information
+
+  log levels:
+
+  * ``LOG_DEBUG``
+  * ``LOG_INFO``
+  * ``LOG_WARNING``
+  * ``LOG_ERROR``
+  * ``LOG_CRITICAL``
 
 Links
 ~~~~~
@@ -141,12 +149,24 @@ Odoo Link usage:
 * ``links.external``: list of all external references
 * ``links.sync_date``: minimal data-time among links
 * ``links.update(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
-* ``links.delete()``: delete link
+* ``links.unlink()``: delete links
+* ``for link in links:``: iterate over links
+* ``if links``: check that link set is not empty
+* ``len(links)``: number of links in the set
+* Set operaions:
+
+  * ``links1 == links2``: sets are equal
+  * ``links1 - links2``: links that are in first set, but not in another
+  * ``links1 | links2``: union
+  * ``links1 & links2``: intersection
+  * ``links1 ^ links2``: equal to ``(links1 | links2) - (links1 & links2)``
+
+
 
 You can also link external data with external data on syncing two different system (e.g. github and trello).
 
-* ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_task_num)], sync_date=None) -> elink``
-* ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_task_num)]) -> elink``
+* ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None) -> elink``
+* ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
   At least one of the reference should be not Falsy
 * ``search_links(relation_name, [("github", None), ("trello", None)]) -> elinks``:
   pass relation_name and system names with references; use None values to don't filter by
@@ -154,14 +174,9 @@ You can also link external data with external data on syncing two different syst
 
 In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
 
-External Link usage:
+External Link is similar to Odoo link with the following differences:
 
-* ``elink.get(<system>)``, e.g. ``elink.get("github")``: reference value for system1
-* ``elink.sync_date``: last saved date-time information
-* ``elinks.get(<system>)``: list of references for system
-* ``elinks.sync_date``: minimal data-time among links
-* ``elinks.update(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
-* ``elinks.delete()``: delete links
+* ``elink.get(<system>)``, e.g. ``elink.get("github")``: reference value for system; it's a replacement for ``link.odoo`` and ``link.external`` in Odoo link
 
 Network
 ~~~~~~~
@@ -409,7 +424,7 @@ Demo project: GitHub <-> Trello
 
 In this project we create copies of github issues/pull requests and their
 messages in trello cards. It's one side syncronization: new cards and message in
-trello are not published in github. Trello tags and Github labels are
+trello are not published in github. Trello and Github labels are
 synchronized in both directions.
 
 To try it, you need to install this module in demo mode. Also, your odoo
@@ -427,28 +442,30 @@ How it works
 *Github Webhook Trigger* waits from GitHub for label attaching/detaching (*Trello Webhook Trigger* works in the same way)
 
 * if label is attached in GitHub issue , then check for github label and trello
-  tag links and create trello tag if there is no such link yet
-* if label is attached in github issue, then attach corresponding tag in trello card
-* if label is detached in github issue, then detach corresponding tag in trello card
+  label links and create trello label if there is no such link yet
+* if label is attached in github issue, then attach corresponding label in trello card
+* if label is detached in github issue, then detach corresponding label in trello card
 
 *Github Webhook Trigger* waits from GitHub for label updating/deleting (*Trello Webhook Trigger* works in the same way):
 
-* if label is changed and there is trello tag linked to it, then update the tag
-* if label is changed and there is trello tag linked to it, then delete the tag
+* if label is changed and there is trello label linked to it, then update the label
+* if label is changed and there is trello label linked to it, then delete the label
 
-There is still possibility that labels/tags are mismatch, e.g. due to github api
+There is still possibility that labels are mismatch, e.g. due to github api
 temporary unavailability or misfunction (e.g. api request to add label responded
-with success, but label was not attached). If api request is failed, that the
-system will try few times to repeat label/tag attaching/detaching. As an ultimate
-conflict resolving, we run a *Cron Trigger* at night to check for labels/tags
-mismatch and synchronize them. In ``LABEL_TAG_MERGE_STRATEGY`` you can choose which
-strategy to use:
+with success, but label was not attached) or if odoo was stopped when github
+tried to notify about updates. In some cases, we can just retry the handler
+(e.g. there was an error on api request to github/trello, then the system tries
+few times to repeat label attaching/detaching). As a solution for cases when
+retrieng didn't help (e.g. api is still not working) or cannot help (e.g. odoo
+didn't get webhhook notification), we run a *Cron Trigger* at night to check for
+labels mismatch and synchronize them. In ``LABELS_MERGE_STRATEGY`` you can
+choose which strategy to use:
 
-* ``USE_TRELLO`` -- ignore github labels and override them with trello tags
-* ``USE_GITHUB`` -- ignore trello tags and  override them with push github labels
-* ``UNION`` -- add missed labels and tags from both side
-* ``INTERSECTION`` -- remove labels/tags that are not attached on both side
-
+* ``USE_TRELLO`` -- ignore github labels and override them with trello labels
+* ``USE_GITHUB`` -- ignore trello labes and  override them with push github labels
+* ``UNION`` -- add missed labels from both side
+* ``INTERSECTION`` -- remove labels that are not attached on both side
 
 Configuration
 -------------
@@ -474,7 +491,7 @@ Usage
 * Post a message
 * Now go back to the trello card
 * RESULT: you see a copy of the message
-* You can also add/remove github issue labels or trello card tags.
+* You can also add/remove github issue labels or trello card labels.
 
   * RESULT: once you change them on one side, after short time, you will see the changes on another side
 
@@ -482,7 +499,7 @@ Usage
 
 * Create a github issue and check that it's syncing to trello
 * Stop Odoo
-* Make *different* changes of labels/tags both in github issue and trello card
+* Make *different* changes of labels both in github issue and trello card
 * Start Odoo
 * Open menu ``[[ Sync Studio ]] >> Projects``
 * Select *Demo Github <-> Trello integration* project
@@ -492,7 +509,7 @@ Usage
 
   2. Change **Next Execution Date** to a past time and wait up to 1 minute
 
-* RESULT: the github issue and corresponding trello card the same set of labes/tags. The merging is done according to selected stragegy in ``LABEL_TAG_MERGE_STRATEGY`` parameter.
+* RESULT: the github issue and corresponding trello card the same set of labes. The merging is done according to selected stragegy in ``LABELS_MERGE_STRATEGY`` parameter.
 
 
 **Syncing all existing Github issues.**
@@ -503,7 +520,7 @@ Usage
 * Click button ``[Run Now]``
 * Open Trello
 
-  * RESULT: copies of all *open* github issues are in trello; they have *GITHUB:* prefix (can be configured in project parameter ISSUE_FROM_GITHUB_PREFIX)
+  * RESULT: copies of all *open* github issues (but no more than 100) are in trello; they have *GITHUB:* prefix (can be configured in project parameter ISSUE_FROM_GITHUB_PREFIX)
 
 Custom Integration
 ==================
