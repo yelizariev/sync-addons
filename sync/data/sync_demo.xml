@@ -587,8 +587,8 @@ def handle_cron():
     </record>
 
     <record id="test_project_param" model="sync.project.param">
-        <field name="key">PREFIX</field>
-        <field name="value">sync.partner_</field>
+        <field name="key">PARTNER_RELATION</field>
+        <field name="value">sync_unittest_partner</field>
         <field name="project_id" ref="sync.test_project"/>
     </record>
 
@@ -598,8 +598,7 @@ def handle_cron():
         <field name="code">
 def handle_db(records):
     for r in records:
-        TODO
-        r.make_ref("%s_%s" % (params.PREFIX, r.id))
+        r.set_link(PARTNER_RELATION, r.id)
         </field>
     </record>
 

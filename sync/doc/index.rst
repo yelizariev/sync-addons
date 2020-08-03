@@ -153,7 +153,7 @@ Odoo Link usage:
 * ``for link in links:``: iterate over links
 * ``if links``: check that link set is not empty
 * ``len(links)``: number of links in the set
-* Set operaions:
+* sets operaions:
 
   * ``links1 == links2``: sets are equal
   * ``links1 - links2``: links that are in first set, but not in another
@@ -168,7 +168,7 @@ You can also link external data with external data on syncing two different syst
 * ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None) -> elink``
 * ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
   At least one of the reference should be not Falsy
-* ``search_links(relation_name, [("github", None), ("trello", None)]) -> elinks``:
+* ``search_links(relation_name, [("github", github_issue_nums), ("trello", trello_card_nums)]) -> elinks``:
   pass relation_name and system names with references; use None values to don't filter by
   referece value of that system
 

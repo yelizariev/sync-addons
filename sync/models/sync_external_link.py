@@ -16,4 +16,4 @@ class SyncExternalLink(models.Model):
     external2_ref = fields.Char("External 2 Ref")
     date_update = fields.Datetime(string='Update Date', default=fields.Datetime.now)
 
-    # TODO: make index depending on search requests
+    # TODO: make indexes depending on search requests

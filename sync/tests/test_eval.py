@@ -12,9 +12,6 @@ BUTTON_DATA = {"button_data_key": "button_data_value"}
 
 class TestEval(TransactionCase):
 
-    def setUp(self):
-        super(TestBase, self).setUp()
-
     def print_last_logs(self, limit=1):
         logs = self.env["ir.logging"].search([], limit=limit)
         for lg in logs:
