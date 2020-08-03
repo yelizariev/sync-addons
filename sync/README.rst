@@ -24,8 +24,8 @@ Difference with built-in code evaluation:
 Roadmap
 =======
 
-* Odoo2odoo: split cron task for batch of records (e.g. 10 partners in a batch)
-* Github<->Trello
+* Github<->Trello: split issues uploading to trello into chunks
+* Github<->Trello: implement API
 
 Credits
 =======

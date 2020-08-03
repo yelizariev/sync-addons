@@ -217,17 +217,17 @@ def parse_date(s):
         <field name="project_id" ref="sync.odoo2odoo_project"/>
         <field name="code">
 <![CDATA[
-def create_external_partner(partner, name_prefix=""):
-    vals = partner2vals(partner)
-    vals["name"] = name_prefix + vals["name"]
-    external_partner_id = odoo_execute_kw("res.partner", "create", vals)
-    date_update = odoo_execute_kw("res.partner", "read", [external_partner_id], fields=["create_date"])
-    partner.set_link(PARTNER_REL, external_partner_id, date_update)
+def create_external_partners(partners, name_prefix=""):
+    for partner in partners:
+        vals = partner2vals(partner)
+        vals["name"] = name_prefix + vals["name"]
+        external_partner_id = odoo_execute_kw("res.partner", "create", vals)
+        date_update = odoo_execute_kw("res.partner", "read", [external_partner_id], fields=["create_date"])
+        partner.set_link(PARTNER_REL, external_partner_id, date_update)
 
 def handle_db(records):
     # records are instances of created res.partner
-    for r in records:
-        create_external_partner(r)
+    create_external_partners(records)
 
 def handle_cron(records):
     links = search_links(PARTNER_REL)
@@ -248,15 +248,22 @@ def handle_cron(records):
             link.update(date_update)
 
 def handle_button():
+    chunk = None
+    CHUNK_SIZE = 10
     for r in env["res.partner"].search([]):
         # check that record is not created yet
         link = r.get_link(PARTNER_REL)
         if link:
-            # object already exist
+            # object already exists
             continue
 
-        create_external_partner(r, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
-
+        if not chunk:
+            chunk = r
+        else:
+            chunk |= r
+        if len(chunk) == CHUNK_SIZE:
+            async(create_external_partner)(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
+            chunk = None
 ]]>
         </field>
     </record>
@@ -292,7 +299,10 @@ GITHUB="github"
 TRELLO="trello"
 
 from github import Github as _Github
-_github = _Github(secrets.GITHUB_TOKEN)
+if not secrets.GITHUB_TOKEN:
+    raise Exception("bot token is not set")
+
+_g = _Github(secrets.GITHUB_TOKEN)
 
 # Trello cards
 def trello_card_create(name, issue_id):
@@ -323,6 +333,11 @@ def trello_label_delete(tlabel_id):
 def trello_label_update(tlabel_id, new_name):
     log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
     pass
+
+# Github webhooks
+
+def github_set_webhook(TODO):
+    STOPHERE
 
 # Github issues
 def github_issue_add_labels(issue_id, glabel_ids):
@@ -411,7 +426,7 @@ INTERSECTION: remove labes that are not attached on another side
 <![CDATA[
 def handle_button():
     if TRIGGER_NAME == "SETUP_GITHUB":
-        _github. STOPHERE
+        github_set_webhook(TODO)
     elif TRIGGER_NAME == "SETUP_TRELLO":
         TODO
     else:

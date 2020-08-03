@@ -223,6 +223,20 @@ Event
 * ``TRIGGER_NAME``: available in tasks' code only
 * ``user``: user related to the event, e.g. who clicked a button
 
+Asynchronous work
+~~~~~~~~~~~~~~~~~
+
+* ``async(func_to_call_asyncroniously, **options)(*func_args, **func_kwargs)``: call a function asyncroniously; options are similar to ``with_delay`` methon of ``queue_job`` module:
+
+  * ``priority``: Priority of the job, 0 being the higher priority. Default is 10.
+  * ``eta``: Estimated Time of Arrival of the job. It will not be executed before this date/time.
+  * ``max_retries``: maximum number of retries before giving up and set the job
+    state to 'failed'. A value of 0 means infinite retries. Default is 5.
+  * ``description`` human description of the job. If None, description is
+    computed from the function doc or name
+  * ``identity_key`` key uniquely identifying the job, if specified and a job
+    with the same key has not yet been run, the new job will not be added.
+
 Libs
 ~~~~
 
