@@ -31,7 +31,7 @@ Credits
 
 Contributors
 ------------
-* `Ivan Yelizariev <https://it-projects.info/team/yelizariev>`__:
+* `Ivan Yelizariev <https://twitter.com/yelizariev>`__:
 
       * :one::zero: init version of the module
 
