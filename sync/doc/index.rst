@@ -543,4 +543,4 @@ Custom Integration
 ==================
 
 If you made a custom integration via UI and want to package it into a module,
-open the Sync Project and click ``[Actions] -> Export to xml`` button.
+open the Sync Project and click ``[Actions] -> Export to XML`` button.
