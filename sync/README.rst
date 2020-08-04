@@ -24,7 +24,6 @@ Difference with built-in code evaluation:
 Roadmap
 =======
 
-* Github<->Trello: split issues uploading to trello into chunks
 * Github<->Trello: implement API
 
 Credits

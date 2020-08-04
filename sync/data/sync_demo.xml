@@ -301,8 +301,11 @@ TRELLO="trello"
 from github import Github as _Github
 if not secrets.GITHUB_TOKEN:
     raise Exception("bot token is not set")
+if not secrets.GITHUB_REPO:
+    raise Exception("github repo is not set")
 
 _g = _Github(secrets.GITHUB_TOKEN)
+_grepo = _g.get_repo(secrets.GITHUB_REPO)
 
 # Trello cards
 def trello_card_create(name, issue_id):
@@ -336,8 +339,11 @@ def trello_label_update(tlabel_id, new_name):
 
 # Github webhooks
 
-def github_set_webhook(TODO):
-    STOPHERE
+def github_set_webhook(url, events):
+    # API: https://docs.github.com/en/rest/reference/repos#create-a-repository-webhook
+    # Events: https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
+    config = {"url": url}
+    _grepo.create_hook("web", config, events)
 
 # Github issues
 def github_issue_add_labels(issue_id, glabel_ids):
@@ -426,7 +432,8 @@ INTERSECTION: remove labes that are not attached on another side
 <![CDATA[
 def handle_button():
     if TRIGGER_NAME == "SETUP_GITHUB":
-        github_set_webhook(TODO)
+        github_set_webhook(webhooks.GITHUB_ISSUE_UPDATES, ["issues"])
+        github_set_webhook(webhooks.GITHUB_LABEL_UPDATES, ["label"])
     elif TRIGGER_NAME == "SETUP_TRELLO":
         TODO
     else:
@@ -492,9 +499,10 @@ def fetch_github_issues(page=0):
         chunk = TODO
         async(process_github_issues)(chunk)
     # fetch next page
-    fetch_github_issues(page+1)
+    async(fetch_github_issues)(page+1)
 
 def process_github_issues():
+    # Should be similar to process a single issue (see handle_webhook)
     TODO
 
 ]]>
@@ -531,13 +539,16 @@ def handle_webhook(httprequest):
         <field name="code">
 <![CDATA[
 def handle_webhook(httprequest):
-    label_id = None
+    glabel_id = None
+    tlabel_id = None
+    is_updated = None
+    is_deleted = None
     if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
-        glabel_id = None
         tlabel_id = TODO
     elif TRIGGER_NAME == "GITHUB_LABEL_UPDATES":
-        glabel_id = TODO
-        tlabel_id = None
+        is_updated = httprequest.form["action"] == "edited"
+        is_deleted = httprequest.form["action"] == "deleted
+        glabel_id = httprequest.form["label"]["id"]
     else:
        raise Exception("Unknown Event")
 
@@ -547,8 +558,6 @@ def handle_webhook(httprequest):
         return
     glabel_id = elinks[0].get(GITHUB)
     tlabel_id = elinks[0].get(TRELLO)
-    is_updated = TODO
-    is_deleted = TODO
     if is_updated:
         if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
             github_label_update(glabel_id, new_name):
