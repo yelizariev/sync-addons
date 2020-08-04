@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2020 Ivan Yelizariev <https://it-projects.info/team/yelizariev>
+     License MIT (https://opensource.org/licenses/MIT). -->
+<odoo>
+    <record id="sync_make_module" model="ir.ui.view">
+        <field name="model">sync.make.module</field>
+        <field name="arch" type="xml">
+            <form>
+                <field invisible="1" name="state"/>
+                <group states="choose" string="Export Settings">
+                    <field name="copyright_years"/>
+                    <field name="author_name"/>
+                    <field name="author_url"/>
+                    <field name="license"/>
+                </group>
+                <div states="get">
+                    <p>Here is the xml file to be put into your module: <field name="data" readonly="1" filename="name"/></p>
+                </div>
+                <footer states="choose">
+                    <button name="act_makefile" string="Export" type="object" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" type="object" class="btn-secondary"/>
+                </footer>
+                <footer states="get">
+                    <button special="cancel" string="Close" type="object" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
