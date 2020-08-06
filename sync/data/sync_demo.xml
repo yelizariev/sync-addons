@@ -5,7 +5,6 @@
     <!-- Telegram -->
     <record id="telegram_project" model="sync.project">
         <field name="name">Demo Telegram Integration</field>
-        <field name="network_access" eval="True"/>
         <field name="secret_code">
 from odoo.tools import html2plaintext
 from lxml.html import clean
@@ -142,7 +141,7 @@ def handle_db(records):
 
     <record id="telegram_trigger_automation" model="sync.trigger.automation">
         <field name="name">On new message posted</field>
-        <field name="sync_task_id" ref="sync.telegram_task"/>
+        <field name="sync_task_id" ref="sync.telegram_task_main"/>
         <field name="model_id" ref="mail.model_mail_message"/>
         <field name="trigger">on_create</field>
         <field name="filter_domain">[["model","=","res.partner"],["body","ilike","/telegram"]]</field>
@@ -151,7 +150,6 @@ def handle_db(records):
     <!-- Odoo2odoo -->
     <record id="odoo2odoo_project" model="sync.project">
         <field name="name">Demo Odoo2odoo Integration</field>
-        <field name="network_access" eval="True"/>
         <field name="secret_code">
 import xmlrpc.client as _client
 
@@ -278,7 +276,7 @@ def handle_button():
     <record id="odoo2odoo_trigger_cron" model="sync.trigger.cron">
         <field name="sync_task_id" ref="sync.odoo2odoo_task"/>
         <field name="interval_number">15</field>
-        <field name="interval_type">minute</field>
+        <field name="interval_type">minutes</field>
     </record>
 
     <record id="odoo2odoo_trigger_button" model="sync.trigger.button">
@@ -291,7 +289,6 @@ def handle_button():
     <!-- Trello-Github -->
     <record id="trello-github_project" model="sync.project">
         <field name="name">Demo Trello-Github Integration</field>
-        <field name="network_access" eval="True"/>
         <field name="secret_code">
 <![CDATA[
 # consts
@@ -660,9 +657,9 @@ def handle_cron():
 
     <record id="trello-github_task_conflicts_resolving_cron" model="sync.trigger.cron">
         <field name="trigger_name">CONFLICT_RESOLVING</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resovling"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resolving"/>
         <field name="interval_number">1</field>
-        <field name="interval_type">day</field>
+        <field name="interval_type">days</field>
     </record>
 
     <!-- unittest -->
