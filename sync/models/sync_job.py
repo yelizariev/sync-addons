@@ -9,4 +9,7 @@ class SyncJob(models.Model):
     _name = "sync.job"
     _description = "Sync Job"
 
-    trigger_id = fields.Many2one("sync.trigger")
+    trigger_cron_id = fields.Many2one("sync.trigger.cron")
+    trigger_automation_id = fields.Many2one("sync.trigger.automation")
+    trigger_webhook_id = fields.Many2one("sync.trigger.webhook")
+    trigger_button_id = fields.Many2one("sync.trigger.button")

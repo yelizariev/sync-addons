@@ -10,6 +10,7 @@ class SyncProject(models.Model):
     _description = "Sync Project"
 
     name = fields.Char("Name", help="e.g. Legacy Migration or eCommerce Synchronization")
+    active = fields.Boolean(default=True)
     secret_code = fields.Text(
         "Protected Code",
         groups="sync.sync_group_manager",
@@ -22,7 +23,7 @@ class SyncProject(models.Model):
         To log transmitted data, use log_transmission(receiver, data) function.
         """)
 
-    secret_code_readonly = fields.Text("Protected Code", compute="_compute_secret_code_readonly")
+    secret_code_readonly = fields.Text("Protected Code (Readonly)", compute="_compute_secret_code_readonly")
     common_code = fields.Text(
         "Common Code", help="""
         A place for helpers and constants.
@@ -45,6 +46,7 @@ class SyncProject(models.Model):
 class SyncProjectParamMixin(models.AbstractModel):
 
     _name = "sync.project.param.mixin"
+    _description = "Template model for Parameters"
     _rec_name = "key"
 
     key = fields.Char("Key")
@@ -60,6 +62,7 @@ class SyncProjectParamMixin(models.AbstractModel):
 class SyncProjectParam(models.Model):
 
     _name = "sync.project.param"
+    _description = "Project Parameter"
     _inherit = "sync.project.param.mixin"
 
     value = fields.Char("Value", translate=True)
@@ -68,6 +71,7 @@ class SyncProjectParam(models.Model):
 class SyncProjectSecret(models.Model):
 
     _name = "sync.project.secret"
+    _description = "Project Secret Parameter"
     _inherit = "sync.project.param.mixin"
 
     value = fields.Char(groups="sync.sync_group_manager")

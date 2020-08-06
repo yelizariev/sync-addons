@@ -20,3 +20,10 @@ access_sync_trigger_webhook_manager,sync.trigger.webhook manager,model_sync_trig
 access_sync_job_user,sync.job user,model_sync_job,sync_group_user,1,0,0,0
 access_sync_job_dev,sync.job dev,model_sync_job,sync_group_dev,1,0,0,0
 access_sync_job_manager,sync.job manager,model_sync_job,sync_group_manager,1,1,1,1
+access_sync_external_link_user,sync.external.link user,model_sync_external_link,sync_group_user,1,1,1,1
+access_sync_project_param_user,sync.project.param user,model_sync_project_param,sync_group_user,1,0,0,0
+access_sync_project_param_dev,sync.project.param dev,model_sync_project_param,sync_group_dev,1,1,1,1
+access_sync_project_param_manager,sync.project.param manager,model_sync_project_param,sync_group_manager,1,1,1,1
+access_sync_project_secret_user,sync.project.secret user,model_sync_project_secret,sync_group_user,1,0,0,0
+access_sync_project_secret_dev,sync.project.secret dev,model_sync_project_secret,sync_group_dev,1,1,1,1
+access_sync_project_secret_manager,sync.project.secret manager,model_sync_project_secret,sync_group_manager,1,1,1,1

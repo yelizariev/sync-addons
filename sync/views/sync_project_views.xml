@@ -3,16 +3,14 @@
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
 
-    <record id="sync_make_module_action" model="ir.actions.act_window">
-        <field name="name">Package project into a module</field>
-        <field name="res_model">sync.make.module</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">{
-        'default_project_id': active_id,
-        }</field>
-        <field name="binding_model_id" ref="model_sync_project"/>
-        <field name="binding_view_types">form</field>
-    </record>
+    <act_window
+        id="sync_make_module_action"
+        name="Package project into a module"
+        src_model="sync.project"
+        res_model="sync.make.module"
+        view_mode="form"
+        target="new"
+        context="{'default_project_id': active_id}"
+        />
 
 </odoo>

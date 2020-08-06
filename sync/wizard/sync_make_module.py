@@ -6,6 +6,7 @@ from odoo import api, fields, models
 
 class SyncMakeModule(models.TransientModel):
     _name = "sync.make.module"
+    _description = "Generating XML data file for a module"
 
     name = fields.Char("File Name", readonly=True, default="sync_project_data.xml")
     data = fields.Binary("File", readonly=True, attachment=False)

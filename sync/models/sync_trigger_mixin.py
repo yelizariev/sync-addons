@@ -7,6 +7,7 @@ from odoo import fields, models, api
 class SyncTriggerMixin(models.AbstractModel):
 
     _name = "sync.trigger.mixin"
+    _description = "Mixing for trigger models"
 
     trigger_name = fields.Char("Trigger Name", help="Technical name to be used in task code")
 
@@ -14,6 +15,7 @@ class SyncTriggerMixin(models.AbstractModel):
 class SyncTriggerMixinModelId(models.AbstractModel):
 
     _name = "sync.trigger.mixin.model_id"
+    _description = "Mixing to fill model_id field"
 
     @api.model_create_multi
     def create(self, vals_list):
