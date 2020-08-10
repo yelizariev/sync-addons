@@ -9,8 +9,11 @@ class SyncTriggerCron(models.Model):
     _name = "sync.trigger.cron"
     _inherit = ["sync.trigger.mixin", "sync.trigger.mixin.model_id"]
     _description = "Cron Trigger"
+    _sync_handler = "handle_cron"
 
-    cron_id = fields.Many2one('ir.cron', delegate=True, required=True, ondelete='cascade')
+    cron_id = fields.Many2one(
+        "ir.cron", delegate=True, required=True, ondelete="cascade"
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

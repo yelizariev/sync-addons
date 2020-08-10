@@ -220,13 +220,13 @@ Project Values
 Event
 ~~~~~
 
-* ``TRIGGER_NAME``: available in tasks' code only
+* ``trigger_name``: available in tasks' code only
 * ``user``: user related to the event, e.g. who clicked a button
 
 Asynchronous work
 ~~~~~~~~~~~~~~~~~
 
-* ``async(func_to_call_asyncroniously, **options)(*func_args, **func_kwargs)``: call a function asyncroniously; options are similar to ``with_delay`` methon of ``queue_job`` module:
+* ``async(func_to_call_asyncroniously, **options)(*func_args, **func_kwargs)``: call a function asyncroniously; options are similar to ``with_delay`` method of ``queue_job`` module:
 
   * ``priority``: Priority of the job, 0 being the higher priority. Default is 10.
   * ``eta``: Estimated Time of Arrival of the job. It will not be executed before this date/time.
@@ -271,7 +271,7 @@ Webhook
 Button
 ------
 
-* job is always added to the queue before run
+* runs immediatly
 * failed job can be retried if failed, though it's same as new button click
 
 Execution Logs
