@@ -1,11 +1,11 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
+from odoo.tools.safe_eval import safe_eval, test_python_expr
 
 from odoo.addons.queue_job.job import job
-
-from ..tools import safe_eval
 
 
 class SyncTask(models.Model):
@@ -21,6 +21,13 @@ class SyncTask(models.Model):
     webhook_ids = fields.One2many("sync.trigger.webhook", "sync_task_id")
     button_ids = fields.One2many("sync.trigger.button", "sync_task_id")
 
+    @api.constrains("code")
+    def _check_python_code(self):
+        for r in self.sudo().filtered("code"):
+            msg = test_python_expr(expr=r.code.strip(), mode="exec")
+            if msg:
+                raise ValidationError(msg)
+
     def start(self, trigger, args=None, with_delay=False):
 
         self.ensure_one()
@@ -31,8 +38,8 @@ class SyncTask(models.Model):
         return job
 
     @job
-    def run(self, trigger, args):
-        eval_context = self.project_id._get_eval_context()
+    def run(self, trigger, args=None):
+        eval_context = self.project_id._get_eval_context(trigger)
 
         function = trigger._sync_handler
 
@@ -44,10 +51,10 @@ class SyncTask(models.Model):
         return job
 
     def _eval(self, function, args, eval_context):
-        ARGS = "EXECUTION_ARGS__"
-        RESULT = "EXECUTION_RESULT__"
+        ARGS = "EXECUTION_ARGS_"
+        RESULT = "EXECUTION_RESULT_"
 
-        code = self.code
+        code = self.code.strip()
         code += """
 {RESULT} = {function}(*{ARGS})
         """.format(
@@ -57,6 +64,6 @@ class SyncTask(models.Model):
         eval_context[ARGS] = args or ()
 
         safe_eval(
-            self.code.strip(), eval_context, mode="exec", nocopy=True
+            code, eval_context, mode="exec", nocopy=True
         )  # nocopy allows to return RESULT
         return eval_context[RESULT]

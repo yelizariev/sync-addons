@@ -4,11 +4,20 @@
 import json
 import logging
 
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
+from odoo.tools.safe_eval import safe_eval, test_python_expr
 
-from ..tools import safe_eval, safe_eval_imports
+from ..tools import safe_eval_imports, test_python_expr_imports
 
 _logger = logging.getLogger(__name__)
+
+
+def cleanup_eval_context(eval_context):
+    delete = [k for k in eval_context if k.startswith("_")]
+    for k in delete:
+        del eval_context[k]
+    return eval_context
 
 
 class SyncProject(models.Model):
@@ -56,6 +65,18 @@ class SyncProject(models.Model):
         for r in self:
             r.network_access_readonly = r.sudo().network_access
 
+    @api.constrains("secret_code", "common_code")
+    def _check_python_code(self):
+        for r in self.sudo().filtered("secret_code"):
+            msg = test_python_expr_imports(expr=r.secret_code.strip(), mode="exec")
+            if msg:
+                raise ValidationError(msg)
+
+        for r in self.sudo().filtered("common_code"):
+            msg = test_python_expr(expr=r.common_code.strip(), mode="exec")
+            if msg:
+                raise ValidationError(msg)
+
     def _get_eval_context(self, trigger):
         """Executed Secret and Common codes and return "exported" variables and functions"""
         self.ensure_one()
@@ -65,7 +86,7 @@ class SyncProject(models.Model):
                 cr.execute(
                     """
                     INSERT INTO ir_logging(create_date, create_uid, type, dbname, name, level, message, path, line, func)
-                    VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
                         self.env.uid,
@@ -86,10 +107,10 @@ class SyncProject(models.Model):
 
         secrets = AttrDict()
         for p in self.sudo().secret_ids:
-            params[p.key] = p.value
+            secrets[p.key] = p.value
 
         webhooks = AttrDict()
-        for w in self.param_ids.mapped("webhook_ids"):
+        for w in self.task_ids.mapped("webhook_ids"):
             webhooks[w.trigger_name] = "TODO: get url"
 
         def log_transmission(recipient_str, data_str):
@@ -119,10 +140,10 @@ class SyncProject(models.Model):
             self.secret_code_readonly.strip(), eval_context, mode="exec", nocopy=True
         )
         del eval_context["secrets"]
-        # TODO: delete attributes with underscore ?
+        cleanup_eval_context(eval_context)
+
         safe_eval(self.common_code.strip(), eval_context, mode="exec", nocopy=True)
-        # TODO: delete attributes with underscore ?
-        _logger.warning("eval_context: %s", eval_context)
+        cleanup_eval_context(eval_context)
         return eval_context
 
 
@@ -137,7 +158,7 @@ class SyncProjectParamMixin(models.AbstractModel):
     description = fields.Char("Description", translate=True)
     project_id = fields.Many2one("sync.project")
 
-    _sql_constraints = [("key_uniq", "unique (key)", "Key must be unique.")]
+    _sql_constraints = [("key_uniq", "unique (project_id, key)", "Key must be unique.")]
 
 
 class SyncProjectParam(models.Model):

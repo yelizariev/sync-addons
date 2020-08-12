@@ -1,9 +1,9 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
-import json
 import logging
 
+from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 
 _logger = logging.getLogger(__name__)
@@ -40,16 +40,7 @@ class TestEval(TransactionCase):
                 **{
                     "name": "Task Eval Test",
                     "project_id": project.id,
-                    "button_ids": [
-                        (
-                            0,
-                            0,
-                            {
-                                "name": "Webhook Eval Test",
-                                "data": json.dumps(BUTTON_DATA),
-                            },
-                        )
-                    ],
+                    "button_ids": [(0, 0, {"name": "Webhook Eval Test"})],
                 },
                 **task_vals
             )
@@ -64,7 +55,15 @@ class TestEval(TransactionCase):
             "secret_code": "from odoo import tools",
             "common_code": "log('imported package in common_code: %s' % tools.config)",
         }
-        tvals = {"code": "log('imported package in task code: %s' % tools.config)"}
+        tvals = {
+            "code": "\n".join(
+                [
+                    "log('imported package in task code: %s' % tools.config)",
+                    "def handle_button():",
+                    "    pass",
+                ]
+            )
+        }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
         t.button_ids.run()
@@ -79,12 +78,12 @@ class TestEval(TransactionCase):
         tvals = {
             "code": "\n".join(
                 [
-                    "def handle_button(data, user):",
+                    "def handle_button():",
                     "    log('imported package in task code: %s' % tools.config)",
                 ]
             )
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             p, t = self.create_project_task(pvals, tvals)
             # t.button_ids.ensure_one()
             # t.button_ids.run()
@@ -98,12 +97,12 @@ class TestEval(TransactionCase):
             "code": "\n".join(
                 [
                     "from odoo import tools",
-                    "def handle_button(data, user):",
+                    "def handle_button():",
                     "    log('imported package in task code: %s' % tools.config)",
                 ]
             )
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             p, t = self.create_project_task(pvals, tvals)
             # t.button_ids.ensure_one()
             # t.button_ids.run()
@@ -116,7 +115,7 @@ class TestEval(TransactionCase):
                 [
                     "import hashlib",
                     "def hash(data):",
-                    "    return hashlib.sha224(data).hexdigest()",
+                    "    return hashlib.sha224(data.encode('utf-8')).hexdigest()",
                     "xxx = hash(secrets.SECRET1)",
                 ]
             ),
@@ -124,9 +123,10 @@ class TestEval(TransactionCase):
         # legal way
         pvals["common_code"] = "log('xxx in common_code: %s' % xxx)"
         tvals = {
-            "code": "\n".join(
-                ["def handle_button(data, user):", "    log('2+2=%s' % (2+2))"]
-            )
+            "code": """
+def handle_button():
+    log('2+2=%s' % (2+2))
+"""
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
@@ -136,16 +136,14 @@ class TestEval(TransactionCase):
         # using in common_code
         pvals["common_code"] = "xxx = hash(secrets.SECRET1)"
         tvals = {
-            "code": "\n".join(
-                [
-                    "def handle_button(data, user):",
-                    "    log('xxx in task code: %s' % xxx)",
-                ]
-            )
+            "code": """
+def handle_button():
+    log('xxx in task code: %s' % xxx)
+"""
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
-        with self.assertRaises(NameError):
+        with self.assertRaises(ValueError):
             t.button_ids.run()
 
         # using in task's code
@@ -153,7 +151,7 @@ class TestEval(TransactionCase):
         tvals = {
             "code": "\n".join(
                 [
-                    "def handle_button(data, user):",
+                    "def handle_button():",
                     "    xxx = hash(secrets.SECRET1)",
                     "    log('xxx in task code: %s' % xxx)",
                 ]
@@ -161,5 +159,5 @@ class TestEval(TransactionCase):
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
-        with self.assertRaises(NameError):
+        with self.assertRaises(ValueError):
             t.button_ids.run()
