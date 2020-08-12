@@ -8,36 +8,31 @@
     "images": [],
     "version": "12.0.1.0.0",
     "application": False,
-
     "author": "IT-Projects LLC, Ivan Yelizariev",
     "support": "apps@it-projects.info",
     "website": "https://apps.odoo.com/apps/modules/12.0/sync/",
     "license": "Other OSI approved licence",  # MIT
-
-    "depends": [
-        "base_automation",
-        "mail",
-    ],
+    "depends": ["base_automation", "mail"],
     "external_dependencies": {"python": [], "bin": []},
     "data": [
         "security/sync_groups.xml",
         "security/ir.model.access.csv",
-        'views/sync_job_views.xml',
-        'views/sync_trigger_views.xml',
+        "views/sync_job_views.xml",
+        "views/sync_trigger_views.xml",
         "views/sync_project_views.xml",
         "views/sync_task_views.xml",
     ],
     "demo": [
-        "data/sync_demo.xml",
+        "data/sync_project_telegram_demo.xml",
+        "data/sync_project_odoo2odoo_demo.xml",
+        "data/sync_project_trello_github_demo.xml",
+        "data/sync_project_unittest_demo.xml",
     ],
-    "qweb": [
-    ],
-
+    "qweb": [],
     "post_load": None,
     "pre_init_hook": None,
     "post_init_hook": None,
     "uninstall_hook": None,
-
     "auto_install": False,
     "installable": True,
 }
