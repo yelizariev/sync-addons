@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
@@ -6,6 +6,7 @@
     <record id="telegram_project" model="sync.project">
         <field name="name">Demo Telegram Integration</field>
         <field name="secret_code">
+<![CDATA[
 from odoo.tools import html2plaintext
 from lxml.html import clean
 
@@ -20,9 +21,10 @@ else:
 def sendMessage(chat_id, *args, **kwargs):
     log_transmission("%s@telegram" % chat_id, json.dumps([args, kwargs]))
     _bot.sendMessage(chat_id, *args, **kwargs)
-
+]]>
         </field>
         <field name="common_code">
+<![CDATA[
 def user2name(user):
     if user.get('username'):
         return '@%s' % (user.get('username'))
@@ -38,58 +40,60 @@ def html_sanitize_telegram(html):
     cleaner = clean.Cleaner(safe_attrs_only=True, safe_attrs=frozenset(), allow_tags=allowed_tags)
     html = cleaner.clean_html(html)
     return html
-
+]]>
         </field>
     </record>
-
     <record id="telegram_project_param_welcome" model="sync.project.param">
         <field name="key">TELEGRAM_WELCOME_MESSAGE</field>
         <field name="value">Hello! How can I help you?</field>
-        <field name="description">Message that is sent to a user on first bot usage</field>
-        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="description">
+            Message that is sent to a user on first bot usage
+        </field>
+        <field name="project_id" ref="sync.telegram_project" />
     </record>
-
     <record id="telegram_project_param_message_sent" model="sync.project.param">
         <field name="key">TELEGRAM_MESSAGE_SENT</field>
         <field name="value">The message has sent in telegram:</field>
-        <field name="description">When Odoo Bot reports on successfully sent telegram message</field>
-        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="description">
+            When Odoo Bot reports on successfully sent telegram message
+        </field>
+        <field name="project_id" ref="sync.telegram_project" />
     </record>
-
     <record id="telegram_project_param_prefix" model="sync.project.param">
         <field name="key">PARTNER_NAME_PREFIX</field>
-        <field name="value">Telegram: </field>
+        <field name="value">Telegram:</field>
         <field name="description">Prefix for new partner name</field>
-        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="project_id" ref="sync.telegram_project" />
     </record>
-
     <record id="telegram_project_secret" model="sync.project.secret">
         <field name="key">TELEGRAM_BOT_TOKEN</field>
-        <field name="description">Authentication token provided by https://t.me/BotFather</field>
-        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="description">
+            Authentication token provided by https://t.me/BotFather
+        </field>
+        <field name="project_id" ref="sync.telegram_project" />
     </record>
-
     <!-- telegram: task setup -->
     <record id="telegram_task_setup" model="sync.task">
         <field name="name">Setup</field>
-        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="project_id" ref="sync.telegram_project" />
         <field name="code">
+<![CDATA[
 def handle_button():
     bot.setWebhook(webhooks.TELEGRAM, allowed_updates=["message", "edited_message"])
+]]>
         </field>
     </record>
-
     <record id="telegram_trigger_button" model="sync.trigger.button">
         <field name="name">Setup Webhook</field>
-        <field name="sync_task_id" ref="sync.telegram_task_setup"/>
+        <field name="sync_task_id" ref="sync.telegram_task_setup" />
         <field name="trigger_name">TELEGRAM</field>
     </record>
-
     <!-- telegram: task main -->
     <record id="telegram_task_main" model="sync.task">
         <field name="name">Handle Messages</field>
-        <field name="project_id" ref="sync.telegram_project"/>
+        <field name="project_id" ref="sync.telegram_project" />
         <field name="code">
+<![CDATA[
 def handle_webhook(httprequest):
     telegram_payload = httprequest.form
     update = Update.de_json(telegram_payload, bot)
@@ -129,28 +133,28 @@ def handle_db(records):
 
         odoo_message_text = "%s:\n\n%s" % (params.TELEGRAM_MESSAGE_SENT, telegram_message_html)
         partner.message_post(body=odoo_message_text)
-
+]]>
         </field>
     </record>
-
     <record id="telegram_trigger_webhook" model="sync.trigger.webhook">
         <field name="name">Telegram updates</field>
-        <field name="sync_task_id" ref="sync.telegram_task_main"/>
+        <field name="sync_task_id" ref="sync.telegram_task_main" />
         <field name="trigger_name">TELEGRAM</field>
     </record>
-
     <record id="telegram_trigger_automation" model="sync.trigger.automation">
         <field name="name">On new message posted</field>
-        <field name="sync_task_id" ref="sync.telegram_task_main"/>
-        <field name="model_id" ref="mail.model_mail_message"/>
+        <field name="sync_task_id" ref="sync.telegram_task_main" />
+        <field name="model_id" ref="mail.model_mail_message" />
         <field name="trigger">on_create</field>
-        <field name="filter_domain">[["model","=","res.partner"],["body","ilike","/telegram"]]</field>
+        <field name="filter_domain">
+            [["model","=","res.partner"],["body","ilike","/telegram"]]
+        </field>
     </record>
-
     <!-- Odoo2odoo -->
     <record id="odoo2odoo_project" model="sync.project">
         <field name="name">Demo Odoo2odoo Integration</field>
         <field name="secret_code">
+<![CDATA[
 import xmlrpc.client as _client
 
 if not all([params.URL, params.DB, secrets.USERNAME, secrets.PASSWORD]):
@@ -164,8 +168,10 @@ def odoo_execute_kw(model, method, *args, **kwargs):
     res = models.execute_kw(params.DB, uid, secrets.PASSWORD, model, method, args, kwargs)
     log("Response: %s" % res, level="debug")
     return res
+]]>
         </field>
         <field name="common_code">
+<![CDATA[
 PARTNER_REL = "odoo2odoo_partner"
 IMAGE_FIELD = "image"
 def partner2vals(partner):
@@ -177,42 +183,38 @@ def partner2vals(partner):
 
 def parse_date(s):
     raise NotImplementedError(s)
-
+]]>
         </field>
     </record>
-
     <record id="odoo2odoo_project_param_prefix" model="sync.project.param">
         <field name="key">UPLOAD_ALL_PARTNER_PREFIX</field>
-        <field name="value">Sync Studio: </field>
-        <field name="project_id" ref="sync.odoo2odoo_project"/>
+        <field name="value">Sync Studio:</field>
+        <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-
     <record id="odoo2odoo_project_param_url" model="sync.project.param">
         <field name="key">URL</field>
-        <field name="description">URL to external Odoo, e.g. https://odoo.example</field>
-        <field name="project_id" ref="sync.odoo2odoo_project"/>
+        <field name="description">
+            URL to external Odoo, e.g. https://odoo.example
+        </field>
+        <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-
     <record id="odoo2odoo_project_param_DB" model="sync.project.param">
         <field name="key">DB</field>
         <field name="description">Odoo database name</field>
-        <field name="project_id" ref="sync.odoo2odoo_project"/>
+        <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-
     <record id="odoo2odoo_project_secret_username" model="sync.project.param">
         <field name="key">USERNAME</field>
         <field name="description">e.g. admin</field>
-        <field name="project_id" ref="sync.odoo2odoo_project"/>
+        <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-
     <record id="odoo2odoo_project_secret_password" model="sync.project.param">
         <field name="key">PASSWORD</field>
-        <field name="project_id" ref="sync.odoo2odoo_project"/>
+        <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-
     <record id="odoo2odoo_task" model="sync.task">
         <field name="name">Sync Partners</field>
-        <field name="project_id" ref="sync.odoo2odoo_project"/>
+        <field name="project_id" ref="sync.odoo2odoo_project" />
         <field name="code">
 <![CDATA[
 def create_external_partners(partners, name_prefix=""):
@@ -265,27 +267,22 @@ def handle_button():
 ]]>
         </field>
     </record>
-
     <record id="odoo2odoo_trigger_automation" model="sync.trigger.automation">
         <field name="name">On partner created</field>
-        <field name="sync_task_id" ref="sync.odoo2odoo_task"/>
-        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="sync_task_id" ref="sync.odoo2odoo_task" />
+        <field name="model_id" ref="base.model_res_partner" />
         <field name="trigger">on_create</field>
     </record>
-
     <record id="odoo2odoo_trigger_cron" model="sync.trigger.cron">
-        <field name="sync_task_id" ref="sync.odoo2odoo_task"/>
+        <field name="sync_task_id" ref="sync.odoo2odoo_task" />
         <field name="interval_number">15</field>
         <field name="interval_type">minutes</field>
     </record>
-
     <record id="odoo2odoo_trigger_button" model="sync.trigger.button">
         <field name="name">Sync All Partners</field>
-        <field name="sync_task_id" ref="sync.odoo2odoo_task"/>
+        <field name="sync_task_id" ref="sync.odoo2odoo_task" />
         <field name="trigger_name">SYNC_ALL</field>
     </record>
-
-
     <!-- Trello-Github -->
     <record id="trello-github_project" model="sync.project">
         <field name="name">Demo Trello-Github Integration</field>
@@ -365,66 +362,69 @@ def github_label_update(glabel_id, new_name):
 ISSUES_REL="TRELLO_GITHUB_ISSUES_REL"
 LABELS_REL="TRELLO_GITHUB_LABELS_REL"
 
-def get_related_label(from_id, name, from, to)
-    elink = get_link(LABELS_REL, [(from, from_id), (to, None)])
+def get_related_label(from_id, name, from_system, to_system):
+    elink = get_link(LABELS_REL, [(from_system, from_id), (to_system, None)])
 
     if elink:
-        return elink.get(to)
+        return elink.get(to_system)
     else:
-        to_id = github_label_create(name) if to == GITHUB else trello_label_create(name)
-        elink = set_link(LABELS_REL, [(from, from_id), (to, to_id)])
+        to_id = github_label_create(name) if to_system == GITHUB else trello_label_create(name)
+        elink = set_link(LABELS_REL, [(from_system, from_id), (to_system, to_id)])
         return to_id
 
-def github2trello_labels(labels)
+def github2trello_labels(labels):
     tlabel_ids = []
     for lb in labels:
         label_id = lb["id"]
         label_name = lb["name"]
-        tlabel_id = get_related_label(label_id, label_name, from=GITHUB, to=TRELLO)
+        tlabel_id = get_related_label(label_id, label_name, from_system=GITHUB, to_system=TRELLO)
         tlabel_ids.append(tlabel_id)
     return tlabel_ids
 
 ]]>
         </field>
     </record>
-
     <record id="trello-github_project_secret_github_token" model="sync.project.secret">
         <field name="key">GITHUB_TOKEN</field>
-        <field name="description">Token with access to read issues and create webhooks. See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="description">
+<![CDATA[
+            Token with access to read issues and create webhooks. See
+            https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+]]>
+        </field>
+        <field name="project_id" ref="sync.trello-github_project" />
     </record>
-
     <record id="trello-github_project_secret_github_repo" model="sync.project.secret">
         <field name="key">GITHUB_REPO</field>
         <field name="description">owner/repo_name</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
     </record>
-
     <record id="trello-github_project_param_prefix_name" model="sync.project.param">
         <field name="key">ISSUE_FROM_GITHUB_PREFIX</field>
-        <field name="value">GITHUB: </field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="value">GITHUB:</field>
+        <field name="project_id" ref="sync.trello-github_project" />
     </record>
-
     <record id="trello-github_project_param_prefix_message" model="sync.project.param">
         <field name="key">MESSAGE_PREFIX</field>
-        <field name="value">A Message posted on GitHub: </field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="value">A Message posted on GitHub:</field>
+        <field name="project_id" ref="sync.trello-github_project" />
     </record>
-
-    <record id="trello-github_project_param_labels_merge_strategy" model="sync.project.param">
+    <record
+        id="trello-github_project_param_labels_merge_strategy"
+        model="sync.project.param"
+    >
         <field name="key">LABELS_MERGE_STRATEGY</field>
-        <field name="description">Possible values:
+        <field name="description">
+            Possible values:
 USE_TRELLO, USE_GITHUB: use version from one side and override values from another
 UNION: add missed labels to each side
 INTERSECTION: remove labes that are not attached on another side
         </field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
     </record>
-
     <record id="trello-github_task_setup" model="sync.task">
         <field name="name">Setup</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
         <field name="code">
 <![CDATA[
 def handle_button():
@@ -438,20 +438,25 @@ def handle_button():
 ]]>
         </field>
     </record>
-    <record id="trello-github_task_setup_trigger_button_github" model="sync.trigger.button">
+    <record
+        id="trello-github_task_setup_trigger_button_github"
+        model="sync.trigger.button"
+    >
         <field name="name">Setup Github Webhook</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_setup"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_setup" />
         <field name="trigger_name">SETUP_GITHUB</field>
     </record>
-    <record id="trello-github_task_setup_trigger_button_trello" model="sync.trigger.button">
+    <record
+        id="trello-github_task_setup_trigger_button_trello"
+        model="sync.trigger.button"
+    >
         <field name="name">Setup Trello Webhook</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_setup"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_setup" />
         <field name="trigger_name">SETUP_TRELLO</field>
     </record>
-
     <record id="trello-github_task_issues" model="sync.task">
         <field name="name">Sync Github Issues to Trello (name, messages, labels)</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
         <field name="code">
 <![CDATA[
 def handle_webhook(httprequest):
@@ -505,16 +510,17 @@ def process_github_issues():
 ]]>
         </field>
     </record>
-
-    <record id="trello-github_task_issues_trigger_webhook_github" model="sync.trigger.webhook">
+    <record
+        id="trello-github_task_issues_trigger_webhook_github"
+        model="sync.trigger.webhook"
+    >
         <field name="name">Github Issue updates</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_issues"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_issues" />
         <field name="trigger_name">GITHUB_ISSUE_UPDATES</field>
     </record>
-
     <record id="trello-github_task_cards" model="sync.task">
         <field name="name">Sync Trello Cards to Github (labels)</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
         <field name="code">
 <![CDATA[
 def handle_webhook(httprequest):
@@ -523,16 +529,17 @@ def handle_webhook(httprequest):
 ]]>
         </field>
     </record>
-
-    <record id="trello-github_task_issues_trigger_webhook_trello" model="sync.trigger.webhook">
+    <record
+        id="trello-github_task_issues_trigger_webhook_trello"
+        model="sync.trigger.webhook"
+    >
         <field name="name">Trello Card updates</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_cards"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_cards" />
         <field name="trigger_name">TRELLO_CARD_UPDATES</field>
     </record>
-
     <record id="trello-github_task_labels" model="sync.task">
         <field name="name">Sync labels Updating/Deleting</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
         <field name="code">
 <![CDATA[
 def handle_webhook(httprequest):
@@ -544,7 +551,7 @@ def handle_webhook(httprequest):
         tlabel_id = TODO
     elif TRIGGER_NAME == "GITHUB_LABEL_UPDATES":
         is_updated = httprequest.form["action"] == "edited"
-        is_deleted = httprequest.form["action"] == "deleted
+        is_deleted = httprequest.form["action"] == "deleted"
         glabel_id = httprequest.form["label"]["id"]
     else:
        raise Exception("Unknown Event")
@@ -557,36 +564,39 @@ def handle_webhook(httprequest):
     tlabel_id = elinks[0].get(TRELLO)
     if is_updated:
         if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
-            github_label_update(glabel_id, new_name):
+            github_label_update(glabel_id, new_name)
         else:
-            trello_label_update(tlabel_id, new_name):
+            trello_label_update(tlabel_id, new_name)
 
     if is_deleted:
         elinks.unlink()
         if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
-            github_label_delete(glabel_id):
+            github_label_delete(glabel_id)
         else:
-            trello_label_detele(tlabel_id):
+            trello_label_detele(tlabel_id)
 
 ]]>
         </field>
     </record>
-
-    <record id="trello-github_task_labels_trigger_webhook_trello" model="sync.trigger.webhook">
+    <record
+        id="trello-github_task_labels_trigger_webhook_trello"
+        model="sync.trigger.webhook"
+    >
         <field name="name">Trello Label updates</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_labels"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_labels" />
         <field name="trigger_name">TRELLO_LABEL_UPDATES</field>
     </record>
-
-    <record id="trello-github_task_labels_trigger_webhook_github" model="sync.trigger.webhook">
+    <record
+        id="trello-github_task_labels_trigger_webhook_github"
+        model="sync.trigger.webhook"
+    >
         <field name="name">Github Label updates</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_labels"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_labels" />
         <field name="trigger_name">GITHUB_LABEL_UPDATES</field>
     </record>
-
     <record id="trello-github_task_conflicts_resolving" model="sync.task">
         <field name="name">Labels Conflict Resolving</field>
-        <field name="project_id" ref="sync.trello-github_project"/>
+        <field name="project_id" ref="sync.trello-github_project" />
         <field name="code">
 <![CDATA[
 def handle_cron():
@@ -621,6 +631,7 @@ def handle_cron():
         glinks = search_links(LABELS_REL, [(GITHUB, glabel_ids), (TRELLO, None)])
         if tlinks == glinks:
             # all fine
+            continue
         logs("Found labels mismatch: issue=%s, card=%s" % (issue["id"], card["id"]), level=LOG_DEBUG)
 
         tlinks_add = None
@@ -654,41 +665,38 @@ def handle_cron():
 ]]>
         </field>
     </record>
-
     <record id="trello-github_task_conflicts_resolving_cron" model="sync.trigger.cron">
         <field name="trigger_name">CONFLICT_RESOLVING</field>
-        <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resolving"/>
+        <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resolving" />
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
     </record>
-
     <!-- unittest -->
     <record id="test_project" model="sync.project">
         <field name="name">Project For Unittests</field>
         <!-- disable to hide from UI -->
         <field name="active" eval="False" />
     </record>
-
     <record id="test_project_param" model="sync.project.param">
         <field name="key">PARTNER_RELATION</field>
         <field name="value">sync_unittest_partner</field>
-        <field name="project_id" ref="sync.test_project"/>
+        <field name="project_id" ref="sync.test_project" />
     </record>
-
     <record id="test_task" model="sync.task">
         <field name="name">Assign ref to new partners</field>
-        <field name="project_id" ref="sync.test_project"/>
+        <field name="project_id" ref="sync.test_project" />
         <field name="code">
+<![CDATA[
 def handle_db(records):
     for r in records:
         r.set_link(PARTNER_RELATION, r.id)
+]]>
         </field>
     </record>
-
     <record id="test_trigger_automation" model="sync.trigger.automation">
         <field name="name">Sync test: Run code On partner created</field>
-        <field name="sync_task_id" ref="sync.test_task"/>
-        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="sync_task_id" ref="sync.test_task" />
+        <field name="model_id" ref="base.model_res_partner" />
         <field name="trigger">on_create</field>
     </record>
 </odoo>
