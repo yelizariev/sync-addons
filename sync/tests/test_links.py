@@ -76,6 +76,23 @@ class TestLink(TransactionCase):
         r.set_link(REL2, ref2)
         self.assertFalse(get_link(REL2, ref1))
 
+        # search links by two sets of references
+        r1 = self.create_record()
+        ref1 = uuid.uuid4()
+        r2 = self.create_record()
+        ref2 = uuid.uuid4()
+        r3 = self.create_record()
+        ref3 = uuid.uuid4()
+        r123 = r1|r2|r3
+        links = r123.search_links(REL, [ref1, ref2])
+        self.assertEqual(2, len(links))
+        links = r123.search_links(REL, [ref1, ref2, ref3])
+        self.assertEqual(3, len(links))
+        r12 = r1|r2
+        links = r12.search_links(REL, [ref1, ref2, ref3])
+        self.assertEqual(2, len(links))
+
+
         # check links
         all_links = self.search_links(REL)
         self.assertNotEqual(1, len(all_links))
@@ -145,8 +162,12 @@ class TestLink(TransactionCase):
         self.assertEqual(glink1, glink2)
         self.assertEqual(glink1, glink3)
         self.assertEqual(glink1, glink4)
-        elinks = self.get_link(REL, [("github", None), ("trello", [105, 1005])])
+        elinks = self.search_links(REL, [("github", None), ("trello", [105, 1005])])
         self.assertEqual(1, len(elinks))
+        elinks = self.search_links(REL, [("github", [2, 5]), ("trello", [102, 100000002, 105, 1005])])
+        self.assertEqual(2, len(elinks))
+        elinks = self.search_links(REL, [("github", [2, 5]), ("trello", None)])
+        self.assertEqual(2, len(elinks))
 
         # unlink
         all_links = self.search_links(REL, [("github", None), ("trello", None)])
