@@ -11,6 +11,6 @@ class Base(models.AbstractModel):
         TODO
         return link
 
-    def get_link(self, relation_name, ref):
+    def search_links(self, relation_name):
         TODO
         return link

@@ -19,13 +19,8 @@ class IrActionsServer(models.Model):
             env
             return link
 
-        def search_links(rel, external_refs=None):
-            if external_refs:
-                # External links
-                TODO
-            else:
-                # Internal links
-                TODO
+        def search_links(rel, external_refs):
+            # Works for external links only
             return links
 
         def get_link(rel, ref_or_external_refs):
