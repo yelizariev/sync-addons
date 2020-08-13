@@ -131,7 +131,7 @@ Links
 ~~~~~
 
 * ``<record>.set_link(relation_name, external, sync_date=None) -> link``: makes link between Odoo and external resource
-* ``<records>.search_links(relation_name) -> links``
+* ``<records>.search_links(relation_name, refs=[external_ref1, external_ref2, ...]) -> links``
 * ``get_link(relation_name, external_ref) -> link``
 
 Odoo Link usage:
@@ -166,8 +166,10 @@ You can also link external data with external data on syncing two different syst
 
 * ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None) -> elink``
 * ``search_links(relation_name, [("github", github_issue_nums), ("trello", trello_card_nums)]) -> elinks``:
-  pass relation_name and system names with references; use None values to don't filter by
-  referece value of that system
+  * pass relation_name and system names with references;
+  * use None values to don't filter by referece value of that system
+  * if references for both systems are passed, then elink is added to result
+    only when its references are presented in both references lists
 * ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
   At least one of the reference should be not Falsy
 
