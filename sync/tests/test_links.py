@@ -65,13 +65,23 @@ class TestLink(TransactionCase):
         self.assertEqual(1, len(all_links))
         self.assertEqual(r, all_links[0].odoo)
 
-        # Error: multiple refs for the same relation and record
+        # Multiple refs for the same relation and record
         r = self.create_record()
         ref1 = generate_ref()
         ref2 = generate_ref()
         r.set_link(REL, ref1)
         with self.assertRaises(ValidationError):
             r.set_link(REL, ref2)
+        r.set_link(REL, ref2, allow_many2many=True)
+
+        # Multiple records for the same relation and ref
+        r1 = self.create_record()
+        r2 = self.create_record()
+        ref = generate_ref()
+        r1.set_link(REL, ref)
+        with self.assertRaises(ValidationError):
+            r2.set_link(REL, ref)
+        r2.set_link(REL, ref, allow_many2many=True)
 
         # multiple links for different relation_name
         r = self.create_record()
@@ -159,9 +169,13 @@ class TestLink(TransactionCase):
 
         # one2many
         self.set_link(REL, [("github", 5), ("trello", 105)])
-        self.set_link(REL, [("github", 5), ("trello", 1005)])
+        with self.assertRaises(Exception):
+            self.set_link(REL, [("github", 5), ("trello", 1005)])
+        self.set_link(REL, [("github", 5), ("trello", 1005)], allow_many2many=True)
         with self.assertRaises(Exception):
             glink = self.get_link(REL, [("github", 5), ("trello", None)])
+        glinks = self.search_links(REL, [("github", 5), ("trello", None)])
+        self.assertEqual(2, len(glinks))
         glink1 = self.get_link(REL, [("github", 5), ("trello", 105)])
         glink2 = self.get_link(REL, [("github", 5), ("trello", 1005)])
         glink3 = self.get_link(REL, [("github", None), ("trello", 1005)])
