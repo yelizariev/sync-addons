@@ -13,27 +13,29 @@ class IrActionsServer(models.Model):
     def _get_links_functions(self):
         env = self.env
 
-        def set_link(rel, external_refs, sync_date=None):
+        def set_link(rel, external_refs, sync_date=None, allow_many2many=False):
+            # TODO use *args, **kwargs
             # Works for external links only
-            return env["sync.external.link"]._set_link_external(
-                rel, external_refs, sync_date
+            return env["sync.link"]._set_link_external(
+                rel, external_refs, sync_date, allow_many2many
             )
 
         def search_links(rel, external_refs):
+            # TODO use *args, **kwargs
             # Works for external links only
-            return env["sync.external.link"]._search_links_external(rel, external_refs)
+            return env["sync.link"]._search_links_external(rel, external_refs)
 
         def get_link(rel, ref_info):
+            # TODO: move code to sync.link model
+            # return  env["sync.link"]._get_link(*args)
             if isinstance(ref_info, list):
                 # External link
                 external_refs = ref_info
-                return env["sync.external.link"]._get_link_external(rel, external_refs)
+                return env["sync.link"]._get_link_external(rel, external_refs)
             else:
                 # Odoo link
                 ref = ref_info
-                return env["ir.model.data"].search(
-                    [("module", "=", rel), ("name", "=", str(ref))]
-                )
+                return env["sync.link"]._get_link_odoo(rel, ref)
 
         return {
             "set_link": set_link,
