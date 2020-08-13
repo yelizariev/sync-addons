@@ -118,7 +118,7 @@ class TestLink(TransactionCase):
     def test_external_link(self):
         REL = "sync_test_external_links"
         all_links = self.search_links(REL, [("github", None), ("trello", None)])
-        self.assertFalse(self.search_links(REL))
+        self.assertFalse(all_links)
 
         # set get links
         now = datetime.now() - relativedelta(days=1)
@@ -133,7 +133,7 @@ class TestLink(TransactionCase):
         # update sync_date
         now = datetime.now()
         glink.update_links(now)
-        glink = self.get_link(REL, ref)
+        glink = self.get_link(REL, [("github", None), ("trello", 101)])
         self.assertEqual(glink.sync_date, now)
 
         # search_links
@@ -151,11 +151,11 @@ class TestLink(TransactionCase):
         a = self.search_links(REL, [("github", [1, 2, 3]), ("trello", None)])
         b = self.search_links(REL, [("github", None), ("trello", [102, 103, 104])])
         self.assertNotEqual(a, b)
-        self.assertEqual(set((a - b).get("trello")), {102, 103})
-        self.assertEqual(set((a - b).get("github")), {2, 3})
-        self.assertEqual(set((a | b).get("github")), {1, 2, 3, 4})
-        self.assertEqual(set((a & b).get("github")), {2, 3})
-        self.assertEqual(set((a ^ b).get("github")), {1, 4})
+        self.assertEqual(set((a - b).get("trello")), {"101"})
+        self.assertEqual(set((a - b).get("github")), {"1"})
+        self.assertEqual(set((a | b).get("github")), {"1", "2", "3", "4"})
+        self.assertEqual(set((a & b).get("github")), {"2", "3"})
+        self.assertEqual(set((a ^ b).get("github")), {"1", "4"})
 
         # one2many
         self.set_link(REL, [("github", 5), ("trello", 105)])

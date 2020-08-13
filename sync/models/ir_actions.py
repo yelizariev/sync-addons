@@ -15,19 +15,19 @@ class IrActionsServer(models.Model):
 
         def set_link(rel, external_refs, sync_date=None):
             # Works for external links only
-            TODO
-            env
-            return link
+            return env["sync.external.link"]._set_link_external(
+                rel, external_refs, sync_date
+            )
 
         def search_links(rel, external_refs):
             # Works for external links only
-            return links
+            return env["sync.external.link"]._search_links_external(rel, external_refs)
 
         def get_link(rel, ref_info):
             if isinstance(ref_info, list):
                 # External link
                 external_refs = ref_info
-                TODO
+                return env["sync.external.link"]._get_link_external(rel, external_refs)
             else:
                 # Odoo link
                 ref = ref_info

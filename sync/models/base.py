@@ -14,7 +14,9 @@ class Base(models.AbstractModel):
         if existing:
             if existing.name != ref:
                 raise ValidationError(
-                    "Link already exists: record={}, ref={}".format(existing, existing.name)
+                    "Link already exists: record={}, ref={}".format(
+                        existing, existing.name
+                    )
                 )
             existing.update_links(sync_date)
             return existing
@@ -32,6 +34,7 @@ class Base(models.AbstractModel):
     def search_links(self, relation_name, refs=None):
         domain = [
             ("module", "=", relation_name),
+            ("model", "=", self._name),
         ]
         if refs:
             domain.append(("name", "in", [str(r) for r in refs]))

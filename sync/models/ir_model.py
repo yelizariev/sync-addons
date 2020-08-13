@@ -1,11 +1,12 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
-from odoo import fields, models
+from odoo import models
 
 
 class IrModelData(models.Model):
-    _inherit = "ir.model.data"
+    _name = "ir.model.data"
+    _inherit = ["ir.model.data", "sync.link.mixin"]
 
     @property
     def odoo(self):
@@ -24,12 +25,3 @@ class IrModelData(models.Model):
         if len(res) == 1:
             return res[0]
         return res
-
-    @property
-    def sync_date(self):
-        return min(r.date_update for r in self)
-
-    def update_links(self, sync_date=None):
-        if not sync_date:
-            sync_date = fields.Datetime.now()
-        self.write({"date_update": sync_date})
