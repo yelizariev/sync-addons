@@ -10,11 +10,11 @@ import uuid
 
 class TestLink(TransactionCase):
     def setUp(self):
+        super(TestLink, self).setUp()
         funcs = self.env["ir.actions.server"]._get_links_functions()
         self.get_link = funcs["get_link"]
         self.set_link = funcs["set_link"]
         self.search_links = funcs["search_links"]
-        super(TestLink, self).setUp()
 
     def create_record(self):
         return self.env["res.partner"].create({"name": "Test"})
