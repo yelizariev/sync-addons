@@ -9,8 +9,6 @@ from . import sync_trigger_webhook
 from . import sync_trigger_button
 from . import sync_job
 from . import ir_logging
-from . import sync_link_mixin
 from . import ir_actions
-from . import sync_external_link
+from . import sync_link
 from . import base
-from . import ir_model

@@ -33,6 +33,7 @@ class SyncLink(models.Model):
         )
         return res
 
+    # External links
     @api.model
     def refs2vals(self, external_refs):
         external_refs = sorted(external_refs, key=lambda code_value: code_value[0])
@@ -82,6 +83,29 @@ class SyncLink(models.Model):
                 )
         return res
 
+    # Odoo links
+    @property
+    def odoo(self):
+        res = None
+        for r in self:
+            record = self.env[r.model].browse(r.res_id)
+            if res:
+                res |= record
+            else:
+                res = record
+        return res
+
+    @property
+    def external(self):
+        res = [r.name for r in self]
+        if len(res) == 1:
+            return res[0]
+        return res
+
+    def _get_link_odoo(self, rel, ref):
+        return self.search([("module", "=", rel), ("name", "=", str(ref))])
+
+    # Common API
     @property
     def sync_date(self):
         return min(r.date_update for r in self)
@@ -94,3 +118,4 @@ class SyncLink(models.Model):
 
     def __xor__(self, other):
         return (self | other) - (self & other)
+
