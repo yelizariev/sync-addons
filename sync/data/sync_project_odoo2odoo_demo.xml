@@ -82,7 +82,7 @@ def handle_db(records):
     create_external_partners(records)
 
 def handle_cron(records):
-    links = search_links(PARTNER_REL)
+    links = env["res.partner"].search([]).search_links(PARTNER_REL)
     if not links:
         log("Cron: there are no associated partners")
         return
@@ -104,7 +104,7 @@ def handle_button():
     CHUNK_SIZE = 10
     for r in env["res.partner"].search([]):
         # check that record is not created yet
-        link = r.get_link(PARTNER_REL)
+        link = r.search_links(PARTNER_REL)
         if link:
             # object already exists
             continue

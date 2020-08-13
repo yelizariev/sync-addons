@@ -165,11 +165,11 @@ Odoo Link usage:
 You can also link external data with external data on syncing two different system (e.g. github and trello).
 
 * ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None) -> elink``
-* ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
-  At least one of the reference should be not Falsy
 * ``search_links(relation_name, [("github", github_issue_nums), ("trello", trello_card_nums)]) -> elinks``:
   pass relation_name and system names with references; use None values to don't filter by
   referece value of that system
+* ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
+  At least one of the reference should be not Falsy
 
 In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
 

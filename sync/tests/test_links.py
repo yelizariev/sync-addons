@@ -1,11 +1,12 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
-from odoo.tests.common import TransactionCase
-from odoo.exceptions import ValidationError
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import uuid
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
+
+from odoo.tests.common import TransactionCase
 
 
 class TestLink(TransactionCase):
@@ -28,11 +29,11 @@ class TestLink(TransactionCase):
         # Set and get links
         r = self.create_record()
         ref = uuid.uuid4()
-        slink = r.set_link(REL, ref)
+        r.set_link(REL, ref)
         glink = self.get_link(REL, ref)
         self.assertEqual(r, glink.odoo)
         self.assertEqual(ref, glink.external)
-        glink = r.get_link(REL)
+        glink = r.search_links(REL)
         self.assertEqual(r, glink.odoo)
         self.assertEqual(ref, glink.external)
 
@@ -59,14 +60,13 @@ class TestLink(TransactionCase):
         self.assertEqual(1, len(all_links))
         self.assertEqual(r, all_links[0].odoo)
 
-        # Error: get_link with multiple results
+        # Error: multiple refs for the same relation and record
         r = self.create_record()
         ref1 = uuid.uuid4()
         ref2 = uuid.uuid4()
         r.set_link(REL, ref1)
-        r.set_link(REL, ref2)
         with self.assertRaises(Exception):
-            r.get_link(REL)
+            r.set_link(REL, ref2)
 
         # multiple links for different relation_name
         r = self.create_record()
@@ -124,14 +124,14 @@ class TestLink(TransactionCase):
         self.set_link(REL, [("github", 2), ("trello", 102)])
         self.set_link(REL, [("github", 3), ("trello", 103)])
         self.set_link(REL, [("github", 4), ("trello", 104)])
-        a = self.search_links(REL, [("github", [1,2,3]), ("trello", None)])
+        a = self.search_links(REL, [("github", [1, 2, 3]), ("trello", None)])
         b = self.search_links(REL, [("github", None), ("trello", [102, 103, 104])])
         self.assertNotEqual(a, b)
-        self.assertEqual(set((a-b).get("trello")), set([102,103]))
-        self.assertEqual(set((a-b).get("github")), set([2,3]))
-        self.assertEqual(set((a|b).get("github")), set([1,2,3,4]))
-        self.assertEqual(set((a&b).get("github")), set([2,3]))
-        self.assertEqual(set((a^b).get("github")), set([1,4]))
+        self.assertEqual(set((a - b).get("trello")), {102, 103})
+        self.assertEqual(set((a - b).get("github")), {2, 3})
+        self.assertEqual(set((a | b).get("github")), {1, 2, 3, 4})
+        self.assertEqual(set((a & b).get("github")), {2, 3})
+        self.assertEqual(set((a ^ b).get("github")), {1, 4})
 
         # one2many
         self.set_link(REL, [("github", 5), ("trello", 105)])
@@ -145,7 +145,7 @@ class TestLink(TransactionCase):
         self.assertEqual(glink1, glink2)
         self.assertEqual(glink1, glink3)
         self.assertEqual(glink1, glink4)
-        elinks = self.get_link(REL, [("github", None), ("trello", [105,1005])])
+        elinks = self.get_link(REL, [("github", None), ("trello", [105, 1005])])
         self.assertEqual(1, len(elinks))
 
         # unlink
