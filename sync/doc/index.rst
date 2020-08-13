@@ -131,9 +131,8 @@ Links
 ~~~~~
 
 * ``<record>.set_link(relation_name, external, sync_date=None) -> link``: makes link between Odoo and external resource
-* ``<record>.get_link(relation_name) -> link``
+* ``<records>.search_links(relation_name) -> links``
 * ``get_link(relation_name, external_ref) -> link``
-* ``search_links(relation_name) -> links``: all links for the relation
 
 Odoo Link usage:
 
