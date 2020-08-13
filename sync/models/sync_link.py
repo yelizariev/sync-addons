@@ -4,10 +4,9 @@
 from odoo import api, fields, models, tools
 
 
-class SyncExternalLink(models.Model):
+class SyncLink(models.Model):
 
-    _name = "sync.external.link"
-    _inherit = "sync.link.mixin"
+    _name = "sync.link"
     _description = "External Link"
 
     relation_name = fields.Char("Relation Name")
@@ -82,3 +81,16 @@ class SyncExternalLink(models.Model):
                     % (system, r.external1, r.external2)
                 )
         return res
+
+    @property
+    def sync_date(self):
+        return min(r.date_update for r in self)
+
+    def update_links(self, sync_date=None):
+        if not sync_date:
+            sync_date = fields.Datetime.now()
+        self.write({"date_update": sync_date})
+        return self
+
+    def __xor__(self, other):
+        return (self | other) - (self & other)
