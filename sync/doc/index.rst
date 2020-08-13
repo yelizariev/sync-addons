@@ -130,7 +130,11 @@ Base
 Links
 ~~~~~
 
-* ``<record>.set_link(relation_name, external, sync_date=None) -> link``: makes link between Odoo and external resource
+* ``<record>.set_link(relation_name, external, sync_date=None, allow_many2many=False) -> link``: makes link between Odoo and external resource
+  * ``allow_many2many``: when False raises an error if there is a link for the
+    ``record`` and ``relation_name`` or if there is a link for ``relation_name``
+    and ``external``;
+
 * ``<records>.search_links(relation_name, refs=[external_ref1, external_ref2, ...]) -> links``
 * ``get_link(relation_name, external_ref) -> link``
 
@@ -164,14 +168,18 @@ Odoo Link usage:
 
 You can also link external data with external data on syncing two different system (e.g. github and trello).
 
-* ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None) -> elink``
+* ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None, allow_many2many=False) -> elink``
 * ``search_links(relation_name, [("github", github_issue_nums), ("trello", trello_card_nums)]) -> elinks``:
   * pass relation_name and system names with references;
   * use None values to don't filter by referece value of that system
   * if references for both systems are passed, then elink is added to result
     only when its references are presented in both references lists
 * ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
-  At least one of the reference should be not Falsy
+  * At least one of the reference should be not Falsy
+  * ``get_link`` raise error, if there are few odoo records linked to the
+    references. Set work with multiple relations (*one2many*, *many2one*,
+    *many2many*) use ``set_link(..., allow_many2many=False)`` and
+    ``search_links``
 
 In place of ``github`` and ``trello`` you can use other labels depending on what you sync.
 
