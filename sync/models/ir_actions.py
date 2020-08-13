@@ -23,13 +23,17 @@ class IrActionsServer(models.Model):
             # Works for external links only
             return links
 
-        def get_link(rel, ref_or_external_refs):
-            if isinstance(ref_or_external_refs, list):
-                # External links
+        def get_link(rel, ref_info):
+            if isinstance(ref_info, list):
+                # External link
+                external_refs = ref_info
                 TODO
             else:
-                TODO
-            return link
+                # Odoo link
+                ref = ref_info
+                return env["ir.model.data"].search(
+                    [("module", "=", rel), ("name", "=", str(ref))]
+                )
 
         return {
             "set_link": set_link,

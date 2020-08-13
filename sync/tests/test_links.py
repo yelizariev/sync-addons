@@ -6,7 +6,12 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 
+from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
+
+
+def generate_ref():
+    return str(uuid.uuid4())
 
 
 class TestLink(TransactionCase):
@@ -24,11 +29,11 @@ class TestLink(TransactionCase):
         REL = "sync_test_links_partner"
         REL2 = "sync_test_links_partner2"
 
-        self.assertFalse(self.search_links(REL))
+        self.assertFalse(self.env["res.partner"].search([]).search_links(REL))
 
         # Set and get links
         r = self.create_record()
-        ref = uuid.uuid4()
+        ref = generate_ref()
         r.set_link(REL, ref)
         glink = self.get_link(REL, ref)
         self.assertEqual(r, glink.odoo)
@@ -38,63 +43,65 @@ class TestLink(TransactionCase):
         self.assertEqual(ref, glink.external)
 
         # check search_links
-        all_links = self.search_links(REL)
+        all_links = self.env["res.partner"].search([]).search_links(REL)
         self.assertEqual(1, len(all_links))
         self.assertEqual(r, all_links[0].odoo)
 
         # update sync_date
         now = datetime.now() - relativedelta(days=1)
-        all_links.update(now)
+        all_links.update_links(now)
         glink = self.get_link(REL, ref)
         self.assertEqual(glink.sync_date, now)
 
         # update sync_date
         now = datetime.now()
-        glink.update(now)
+        glink.update_links(now)
         glink = self.get_link(REL, ref)
         self.assertEqual(glink.sync_date, now)
 
         # check search_links
-        all_links = self.search_links(REL)
+        all_links = self.env["res.partner"].search([]).search_links(REL)
         self.assertTrue(all_links)
         self.assertEqual(1, len(all_links))
         self.assertEqual(r, all_links[0].odoo)
 
         # Error: multiple refs for the same relation and record
         r = self.create_record()
-        ref1 = uuid.uuid4()
-        ref2 = uuid.uuid4()
+        ref1 = generate_ref()
+        ref2 = generate_ref()
         r.set_link(REL, ref1)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             r.set_link(REL, ref2)
 
         # multiple links for different relation_name
         r = self.create_record()
-        ref1 = uuid.uuid4()
+        ref1 = generate_ref()
         r.set_link(REL, ref1)
-        ref2 = uuid.uuid4()
+        ref2 = generate_ref()
         r.set_link(REL2, ref2)
-        self.assertFalse(get_link(REL2, ref1))
+        self.assertFalse(self.get_link(REL2, ref1))
 
         # search links by two sets of references
         r1 = self.create_record()
-        ref1 = uuid.uuid4()
+        ref1 = generate_ref()
+        r1.set_link(REL, ref1)
         r2 = self.create_record()
-        ref2 = uuid.uuid4()
+        ref2 = generate_ref()
+        r2.set_link(REL, ref2)
         r3 = self.create_record()
-        ref3 = uuid.uuid4()
-        r123 = r1|r2|r3
+        ref3 = generate_ref()
+        r3.set_link(REL, ref3)
+        r123 = r1 | r2 | r3
         links = r123.search_links(REL, [ref1, ref2])
         self.assertEqual(2, len(links))
         links = r123.search_links(REL, [ref1, ref2, ref3])
         self.assertEqual(3, len(links))
-        r12 = r1|r2
+        r12 = r1 | r2
         links = r12.search_links(REL, [ref1, ref2, ref3])
         self.assertEqual(2, len(links))
 
-
         # check links
-        all_links = self.search_links(REL)
+        all_links = self.env["res.partner"].search([]).search_links(REL)
         self.assertNotEqual(1, len(all_links))
         self.assertNotEqual(1, len(all_links.odoo))
         self.assertIsInstance(all_links.odoo.ids, list)
@@ -105,7 +112,7 @@ class TestLink(TransactionCase):
 
         # unlink
         all_links.unlink()
-        all_links = self.search_links(REL)
+        all_links = self.env["res.partner"].search([]).search_links(REL)
         self.assertFalse(all_links)
 
     def test_external_link(self):
@@ -125,7 +132,7 @@ class TestLink(TransactionCase):
 
         # update sync_date
         now = datetime.now()
-        glink.update(now)
+        glink.update_links(now)
         glink = self.get_link(REL, ref)
         self.assertEqual(glink.sync_date, now)
 
@@ -135,7 +142,7 @@ class TestLink(TransactionCase):
         self.assertEqual(now, all_links.sync_date)
         for link in all_links:
             self.assertEqual(now, link.sync_date)
-        all_links.update(now)
+        all_links.update_links(now)
 
         # sets operations
         self.set_link(REL, [("github", 2), ("trello", 102)])
@@ -164,7 +171,9 @@ class TestLink(TransactionCase):
         self.assertEqual(glink1, glink4)
         elinks = self.search_links(REL, [("github", None), ("trello", [105, 1005])])
         self.assertEqual(1, len(elinks))
-        elinks = self.search_links(REL, [("github", [2, 5]), ("trello", [102, 100000002, 105, 1005])])
+        elinks = self.search_links(
+            REL, [("github", [2, 5]), ("trello", [102, 100000002, 105, 1005])]
+        )
         self.assertEqual(2, len(elinks))
         elinks = self.search_links(REL, [("github", [2, 5]), ("trello", None)])
         self.assertEqual(2, len(elinks))

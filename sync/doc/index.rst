@@ -147,7 +147,7 @@ Odoo Link usage:
 * ``links.odoo``: normal Odoo RecordSet
 * ``links.external``: list of all external references
 * ``links.sync_date``: minimal data-time among links
-* ``links.update(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
+* ``links.update_links(sync_date=None)``: set new sync_date value; if value is not passed, then ``now()`` is used
 * ``links.unlink()``: delete links
 * ``for link in links:``: iterate over links
 * ``if links``: check that link set is not empty

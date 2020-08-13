@@ -12,3 +12,4 @@ from . import ir_logging
 from . import ir_actions
 from . import sync_external_link
 from . import base
+from . import ir_model
