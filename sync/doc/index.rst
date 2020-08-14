@@ -168,17 +168,32 @@ Odoo Link usage:
 
 You can also link external data with external data on syncing two different system (e.g. github and trello).
 
-TODO: use kwargs for system names:
-* ``set_link(relation_name, github=github_issue_num, trello=trello_card_num, sync_date=None, allow_many2many=False) -> elink``
-
-
 * ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None, allow_many2many=False) -> elink``
-* ``search_links(relation_name, [("github", github_issue_nums), ("trello", trello_card_nums)]) -> elinks``:
-  * pass relation_name and system names with references;
-  * use None values to don't filter by referece value of that system
+  * ``refs`` is a dictionary with system name and references pairs, e.g.
+
+          {
+            "github": github_issue_num,
+            "trello": trello_card_num,
+          }
+
+* ``search_links(relation_name, refs) -> elinks``:
+  * ``refs`` may contain list of references as values, e.g.
+
+          {
+            "github": [github_issue_num],
+            "trello": [trello_card_num],
+          }
+
+  * use None values to don't filter by referece value of that system, e.g.
+
+          {
+            "github": None,
+            "trello": [trello_card_num],
+          }
+
   * if references for both systems are passed, then elink is added to result
     only when its references are presented in both references lists
-* ``get_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)]) -> elink``
+* ``get_link(relation_name, refs) -> elink``
   * At least one of the reference should be not Falsy
   * ``get_link`` raise error, if there are few odoo records linked to the
     references. Set work with multiple relations (*one2many*, *many2one*,
