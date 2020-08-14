@@ -181,7 +181,7 @@ def handle_button():
 def handle_webhook(httprequest):
     issue_id = TODO
     issue_name = TODO
-    elink = get_link(ISSUES_REL, {GITHUB: issue_id, {TRELLO: None}])
+    elink = get_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: None})
     if not elink:
         card_id = trello_card_create(issue_name, issue_id)
         elink = set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
@@ -346,7 +346,7 @@ def handle_cron():
         # compare labels
         tlabel_ids = card.idsLabels
         glabel_ids = [lbl["id"] for lbl in issue["labels"]]
-        tlinks = search_links(LABELS_REL, {GITHUB: None TRELLO: tlabel_ids})
+        tlinks = search_links(LABELS_REL, {GITHUB: None, TRELLO: tlabel_ids})
         glinks = search_links(LABELS_REL, {GITHUB: glabel_ids, TRELLO: None})
         if tlinks == glinks:
             # all fine

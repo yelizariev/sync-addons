@@ -2,6 +2,7 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 from odoo import api, fields, models, tools
+from odoo.exceptions import ValidationError
 
 ODOO = "__odoo__"
 EXTERNAL = "__external__"
@@ -12,14 +13,15 @@ class SyncLink(models.Model):
     _name = "sync.link"
     _description = "Resource Links"
 
-    relation_name = fields.Char("Relation Name")
-    # rename: system1, system2, ref1, ref2
-    external1 = fields.Char("System 1")
-    external2 = fields.Char("System 2")
-    external1_ref = fields.Char("System 1 Ref")
-    external2_ref = fields.Char("System 2 Ref")
-    # rename: date
-    date_update = fields.Datetime(string="Update Date", default=fields.Datetime.now)
+    relation = fields.Char("Relation Name", required=True)
+    system1 = fields.Char("System 1", required=True)
+    system2 = fields.Char("System 2", required=True)
+    ref1 = fields.Char("System 1 Ref", required=True)
+    ref2 = fields.Char("System 2 Ref", required=True)
+    date = fields.Datetime(
+        string="Sync Date", default=fields.Datetime.now, required=True
+    )
+    model = fields.Char("Odoo Model")
 
     @api.model_cr_context
     def _auto_init(self):
@@ -28,83 +30,111 @@ class SyncLink(models.Model):
             self._cr,
             "sync_link_refs_uniq_index",
             self._table,
-            [
-                "relation_name",
-                "external1",
-                "external2",
-                "external1_ref",
-                "external2_ref",
-            ],
+            ["relation", "system1", "system2", "ref1", "ref2"],
         )
         return res
 
     # External links
     @api.model
     def refs2vals(self, external_refs):
-        external_refs = sorted(external_refs, key=lambda code_value: code_value[0])
-        external1, external1_ref = external_refs[0]
-        external2, external2_ref = external_refs[1]
-        return {
-            "external1": external1,
-            "external2": external2,
-            "external1_ref": external1_ref,
-            "external2_ref": external2_ref,
+        external_refs = sorted(
+            external_refs.items(), key=lambda code_value: code_value[0]
+        )
+        system1, ref1 = external_refs[0]
+        system2, ref2 = external_refs[1]
+        vals = {
+            "system1": system1,
+            "system2": system2,
+            "ref1": ref1,
+            "ref2": ref2,
         }
+        for k in ["ref1", "ref2"]:
+            if vals[k] is None:
+                continue
+            if isinstance(vals[k], list):
+                vals[k] = [str(i) for i in vals[k]]
+            else:
+                vals[k] = str(vals[k])
+        return vals
 
     @api.model
     def _set_link_external(
-        self, rel, external_refs, sync_date=None, allow_many2many=False
+        self, relation, external_refs, sync_date=None, allow_many2many=False
     ):
-        # check existing links for a part of external_refs
+        vals = self.refs2vals(external_refs)
+        # Check for existing records
+        if allow_many2many:
+            existing = self._search_links_external(relation, external_refs)
+        else:
+            # check existing links for a part of external_refs
+            refs1 = external_refs.copy()
+            refs2 = external_refs.copy()
+            for i, k in enumerate(external_refs.keys()):
+                if i:
+                    refs1[k] = None
+                else:
+                    refs2[k] = None
 
-        existing = self._search_links_external(record, external_refs)
-        if not existing:
-            # check existing links for the reference
-            existing = self._get_link_external(relation_name, ref)
+            existing = self._search_links_external(
+                relation, refs1
+            ) or self._search_links_external(relation, refs2)
 
-        if existing.external == ref and existing.odoo == self:
+            if existing and not (
+                existing.ref1 == vals["ref1"] and existing.ref2 == vals["ref2"]
+            ):
+                raise ValidationError(
+                    "%s link already exists: %s=%s, %s=%s"
+                    % (
+                        relation,
+                        existing.system1,
+                        existing.ref1,
+                        existing.system1,
+                        existing.ref2,
+                    )
+                )
+
+        if existing:
             existing.update_links(sync_date)
             return existing
 
-        if existing and not allow_many2many:
-            raise ValidationError(
-                "%s link already exists: record={}, ref={}".format(
-                    relation_name, existing.odoo, existing.external
-                )
-            )
-
-        vals = self.refs2vals(external_refs)
         if sync_date:
-            vals["date_update"] = sync_date
-        vals["relation_name"] = rel
+            vals["date"] = sync_date
+        vals["relation"] = relation
+        print("create", vals)
         return self.create(vals)
 
     @api.model
-    def _get_link_external(self, rel, external_refs):
-        return self._search_links_external(rel, external_refs)
+    def _get_link_external(self, relation, external_refs):
+        links = self._search_links_external(relation, external_refs)
+        if len(links) > 1:
+            raise ValidationError(
+                "get_link found multiple links. Use search_links for many2many relations"
+            )
+        return links
 
     @api.model
-    def _search_links_external(self, rel, external_refs):
+    def _search_links_external(self, relation, external_refs):
         vals = self.refs2vals(external_refs)
-        domain = [("relation_name", "=", rel)]
+        domain = [("relation", "=", relation)]
         for k, v in vals.items():
             if not v:
                 continue
             operator = "in" if isinstance(v, list) else "="
             domain.append((k, operator, v))
+        print("search", domain)
         return self.search(domain)
 
     def get(self, system):
         res = []
         for r in self:
-            if r.external1 == system:
-                res.append(r.external1_ref)
-            elif r.external2 == system:
-                res.append(r.external2_ref)
+            if r.system1 == system:
+                res.append(r.ref1)
+            elif r.system2 == system:
+                res.append(r.ref2)
             else:
                 raise ValueError(
                     "Cannot find value for %s. Found: %s and %s"
-                    % (system, r.external1, r.external2)
+                    % (system, r.system1, r.system2)
                 )
         return res
 
@@ -128,16 +158,16 @@ class SyncLink(models.Model):
         return res
 
     def _set_link_odoo(
-        self, record, relation_name, ref, sync_date=None, allow_many2many=False
+        self, record, relation, ref, sync_date=None, allow_many2many=False
     ):
         # TODO: call _set_link_external
         self.ensure_one()
 
         # check existing links for the record
-        existing = self._search_links(record, relation_name)
+        existing = self._search_links(record, relation)
         if not existing:
             # check existing links for the reference
-            existing = self._get_link_odoo(relation_name, ref)
+            existing = self._get_link_odoo(relation, ref)
 
         if existing.external == ref and existing.odoo == self:
             existing.update_links(sync_date)
@@ -146,28 +176,28 @@ class SyncLink(models.Model):
         if existing and not allow_many2many:
             raise ValidationError(
                 "%s link already exists: record={}, ref={}".format(
-                    relation_name, existing.odoo, existing.external
+                    relation, existing.odoo, existing.external
                 )
             )
 
         vals = {
-            "module": relation_name,
+            "module": relation,
             "name": ref,
             "model": record._name,
             "res_id": record.id,
         }
         if sync_date:
-            vals["date_update"] = sync_date
+            vals["date"] = sync_date
         return self.env["ir.model.data"].create(vals)
 
-    def _get_link_odoo(self, rel, ref):
+    def _get_link_odoo(self, relation, ref):
         # TODO: call _get_link_external
         return self.search([("module", "=", rel), ("name", "=", str(ref))])
 
-    def _search_links_odoo(self, records, relation_name, refs=None):
+    def _search_links_odoo(self, records, relation, refs=None):
         # TODO: call _search_link_external
         domain = [
-            ("module", "=", relation_name),
+            ("module", "=", relation),
             ("model", "=", records._name),
         ]
         if refs:
@@ -180,12 +210,12 @@ class SyncLink(models.Model):
     # Common API
     @property
     def sync_date(self):
-        return min(r.date_update for r in self)
+        return min(r.date for r in self)
 
     def update_links(self, sync_date=None):
         if not sync_date:
             sync_date = fields.Datetime.now()
-        self.write({"date_update": sync_date})
+        self.write({"date": sync_date})
         return self
 
     def __xor__(self, other):

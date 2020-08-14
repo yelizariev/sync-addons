@@ -28,7 +28,7 @@ class IrActionsServer(models.Model):
         def get_link(rel, ref_info):
             # TODO: move code to sync.link model
             # return  env["sync.link"]._get_link(*args)
-            if isinstance(ref_info, list):
+            if isinstance(ref_info, dict):
                 # External link
                 external_refs = ref_info
                 return env["sync.link"]._get_link_external(rel, external_refs)
