@@ -127,27 +127,27 @@ class TestLink(TransactionCase):
 
     def test_external_link(self):
         REL = "sync_test_external_links"
-        all_links = self.search_links(REL, [("github", None), ("trello", None)])
+        all_links = self.search_links(REL, {"github": None, "trello": None})
         self.assertFalse(all_links)
 
         # set get links
         now = datetime.now() - relativedelta(days=1)
-        slink = self.set_link(REL, [("github", 1), ("trello", 101)], sync_date=now)
-        glink = self.get_link(REL, [("github", 1), ("trello", 101)])
+        slink = self.set_link(REL, {"github": 1, "trello": 101}, sync_date=now)
+        glink = self.get_link(REL, {"github": 1, "trello": 101})
         self.assertEqual(slink.get("github"), glink.get("github"))
-        glink = self.get_link(REL, [("github", 1), ("trello", None)])
+        glink = self.get_link(REL, {"github": 1, "trello": None})
         self.assertEqual(slink.get("github"), glink.get("github"))
-        glink = self.get_link(REL, [("github", None), ("trello", 101)])
+        glink = self.get_link(REL, {"github": None, "trello": 101})
         self.assertEqual(slink.get("github"), glink.get("github"))
 
         # update sync_date
         now = datetime.now()
         glink.update_links(now)
-        glink = self.get_link(REL, [("github", None), ("trello", 101)])
+        glink = self.get_link(REL, {"github": None, "trello": 101})
         self.assertEqual(glink.sync_date, now)
 
         # search_links
-        all_links = self.search_links(REL, [("github", None), ("trello", None)])
+        all_links = self.search_links(REL, {"github": None, "trello": None})
         self.assertEqual(1, len(all_links))
         self.assertEqual(now, all_links.sync_date)
         for link in all_links:
@@ -155,11 +155,11 @@ class TestLink(TransactionCase):
         all_links.update_links(now)
 
         # sets operations
-        self.set_link(REL, [("github", 2), ("trello", 102)])
-        self.set_link(REL, [("github", 3), ("trello", 103)])
-        self.set_link(REL, [("github", 4), ("trello", 104)])
-        a = self.search_links(REL, [("github", [1, 2, 3]), ("trello", None)])
-        b = self.search_links(REL, [("github", None), ("trello", [102, 103, 104])])
+        self.set_link(REL, {"github": 2, "trello": 102})
+        self.set_link(REL, {"github": 3, "trello": 103})
+        self.set_link(REL, {"github": 4, "trello": 104})
+        a = self.search_links(REL, {"github": [1, 2, 3], "trello": None})
+        b = self.search_links(REL, {"github": None, "trello": [102, 103, 104]})
         self.assertNotEqual(a, b)
         self.assertEqual(set((a - b).get("trello")), {"101"})
         self.assertEqual(set((a - b).get("github")), {"1"})
@@ -168,32 +168,32 @@ class TestLink(TransactionCase):
         self.assertEqual(set((a ^ b).get("github")), {"1", "4"})
 
         # one2many
-        self.set_link(REL, [("github", 5), ("trello", 105)])
+        self.set_link(REL, {"github": 5, "trello": 105})
         with self.assertRaises(Exception):
-            self.set_link(REL, [("github", 5), ("trello", 1005)])
-        self.set_link(REL, [("github", 5), ("trello", 1005)], allow_many2many=True)
+            self.set_link(REL, {"github": 5, "trello": 1005})
+        self.set_link(REL, {"github": 5, "trello": 1005}, allow_many2many=True)
         with self.assertRaises(Exception):
-            glink = self.get_link(REL, [("github", 5), ("trello", None)])
-        glinks = self.search_links(REL, [("github", 5), ("trello", None)])
+            glink = self.get_link(REL, {"github": 5, "trello": None})
+        glinks = self.search_links(REL, {"github": 5, "trello": None})
         self.assertEqual(2, len(glinks))
-        glink1 = self.get_link(REL, [("github", 5), ("trello", 105)])
-        glink2 = self.get_link(REL, [("github", 5), ("trello", 1005)])
-        glink3 = self.get_link(REL, [("github", None), ("trello", 1005)])
-        glink4 = self.get_link(REL, [("github", None), ("trello", 1005)])
+        glink1 = self.get_link(REL, {"github": 5, "trello": 105})
+        glink2 = self.get_link(REL, {"github": 5, "trello": 1005})
+        glink3 = self.get_link(REL, {"github": None, "trello": 1005})
+        glink4 = self.get_link(REL, {"github": None, "trello": 1005})
         self.assertEqual(glink1, glink2)
         self.assertEqual(glink1, glink3)
         self.assertEqual(glink1, glink4)
-        elinks = self.search_links(REL, [("github", None), ("trello", [105, 1005])])
+        elinks = self.search_links(REL, {"github": None, "trello": [105, 1005]})
         self.assertEqual(1, len(elinks))
         elinks = self.search_links(
-            REL, [("github", [2, 5]), ("trello", [102, 100000002, 105, 1005])]
+            REL, {"github": [2, 5], "trello": [102, 100000002, 105, 1005]}
         )
         self.assertEqual(2, len(elinks))
-        elinks = self.search_links(REL, [("github", [2, 5]), ("trello", None)])
+        elinks = self.search_links(REL, {"github": [2, 5], "trello": None})
         self.assertEqual(2, len(elinks))
 
         # unlink
-        all_links = self.search_links(REL, [("github", None), ("trello", None)])
+        all_links = self.search_links(REL, {"github": None, "trello": None})
         all_links.unlink()
-        all_links = self.search_links(REL, [("github", None), ("trello", None)])
+        all_links = self.search_links(REL, {"github": None, "trello": None})
         self.assertFalse(all_links)
