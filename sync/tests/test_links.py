@@ -25,7 +25,7 @@ class TestLink(TransactionCase):
     def create_record(self):
         return self.env["res.partner"].create({"name": "Test"})
 
-    def _test_odoo_link(self):
+    def test_odoo_link(self):
         REL = "sync_test_links_partner"
         REL2 = "sync_test_links_partner2"
 

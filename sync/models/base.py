@@ -7,7 +7,6 @@ from odoo import models
 class Base(models.AbstractModel):
     _inherit = "base"
 
-    # TODO use *args, **kwargs
     def set_link(self, relation_name, ref, sync_date=None, allow_many2many=False):
         return self.env["sync.link"]._set_link_odoo(
             self, relation_name, ref, sync_date, allow_many2many
