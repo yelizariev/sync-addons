@@ -20,7 +20,7 @@
 <![CDATA[
 def handle_db(records):
     for r in records:
-        r.set_link(PARTNER_RELATION, r.id)
+        r.set_link(params.PARTNER_RELATION, r.id)
 ]]>
         </field>
     </record>

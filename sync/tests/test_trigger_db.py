@@ -3,16 +3,18 @@
 
 import logging
 
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase, tagged
 
 _logger = logging.getLogger(__name__)
 
 
+# Use the same tags as in base_automation module tests
+@tagged("post_install", "-at_install")
 class TestTriggerDB(TransactionCase):
     def setUp(self):
+        super(TestTriggerDB, self).setUp()
         funcs = self.env["ir.actions.server"]._get_links_functions()
         self.get_link = funcs["get_link"]
-        super(TestTriggerDB, self).setUp()
 
     def test_trigger_db(self):
         """Test handle_db created in sync_demo.xml"""
@@ -20,7 +22,7 @@ class TestTriggerDB(TransactionCase):
         # activate project
         self.env.ref("sync.test_project").active = True
         # trigger event
-        partner = self.env["res.partner"].create({"name": name})
+        partner = self.env["res.partner"].create({"name": "Test Partner Name"})
         # check that handler is executed
         param = self.env.ref("sync.test_project_param")
         link = self.get_link(param.value, partner.id)

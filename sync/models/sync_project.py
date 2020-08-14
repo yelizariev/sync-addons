@@ -59,7 +59,7 @@ class SyncProject(models.Model):
 
     def _compute_secret_code_readonly(self):
         for r in self:
-            r.secret_code_readonly = r.sudo().secret_code
+            r.secret_code_readonly = (r.sudo().secret_code or "").strip()
 
     def _compute_network_access_readonly(self):
         for r in self:
@@ -68,12 +68,14 @@ class SyncProject(models.Model):
     @api.constrains("secret_code", "common_code")
     def _check_python_code(self):
         for r in self.sudo().filtered("secret_code"):
-            msg = test_python_expr_imports(expr=r.secret_code.strip(), mode="exec")
+            msg = test_python_expr_imports(
+                expr=(r.secret_code or "").strip(), mode="exec"
+            )
             if msg:
                 raise ValidationError(msg)
 
         for r in self.sudo().filtered("common_code"):
-            msg = test_python_expr(expr=r.common_code.strip(), mode="exec")
+            msg = test_python_expr(expr=(r.common_code or "").strip(), mode="exec")
             if msg:
                 raise ValidationError(msg)
 
@@ -137,12 +139,14 @@ class SyncProject(models.Model):
         }
 
         safe_eval_imports(
-            self.secret_code_readonly.strip(), eval_context, mode="exec", nocopy=True
+            self.secret_code_readonly, eval_context, mode="exec", nocopy=True
         )
         del eval_context["secrets"]
         cleanup_eval_context(eval_context)
 
-        safe_eval(self.common_code.strip(), eval_context, mode="exec", nocopy=True)
+        safe_eval(
+            (self.common_code or "").strip(), eval_context, mode="exec", nocopy=True
+        )
         cleanup_eval_context(eval_context)
         return eval_context
 

@@ -55,12 +55,12 @@ def parse_date(s):
         <field name="description">Odoo database name</field>
         <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-    <record id="odoo2odoo_project_secret_username" model="sync.project.param">
+    <record id="odoo2odoo_project_secret_username" model="sync.project.secret">
         <field name="key">USERNAME</field>
         <field name="description">e.g. admin</field>
         <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
-    <record id="odoo2odoo_project_secret_password" model="sync.project.param">
+    <record id="odoo2odoo_project_secret_password" model="sync.project.secret">
         <field name="key">PASSWORD</field>
         <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
