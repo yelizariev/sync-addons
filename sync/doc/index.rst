@@ -71,6 +71,7 @@ Job Triggers
 Cron
 ----
 
+* **Trigger Name**, e.g. ``NIGHTLY_SYNC``
 * **Execute Every**: every 2 hours, every 1 week, etc.
 * **Next Execution Date**
 * **Scheduler User**
@@ -78,7 +79,7 @@ Cron
 DB
 --
 
-* **Name**, e.g. *On Product price changed*
+* **Trigger Name**, e.g. ``PRODUCT_PRICE_CHANGE``
 * **Model**
 * **Trigger Condition**
 
@@ -98,14 +99,13 @@ DB
 Webhook
 -------
 
-* **Name**
+* **Trigger Name**, e.g. ``ON_EXTERNAL_UPDATE``
 * **Webhook URL**: readonly.
 
 Button
 ------
 
-* **Name**, e.g. "Sync all Products"
-* **Data**: json/yaml data to be passed to handler
+* **Trigger Name**, e.g. ``SYNC_ALL_PRODUCTS``
 
 Code
 ====

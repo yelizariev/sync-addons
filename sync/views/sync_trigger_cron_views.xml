@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
+     License MIT (https://opensource.org/licenses/MIT). -->
+<odoo>
+    <record id="sync_trigger_cron_view_form" model="ir.ui.view">
+        <field name="name">sync.trigger.cron.form</field>
+        <field name="model">sync.trigger.cron</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <label for="interval_number" string="Execute Every" />
+                        <div>
+                            <field name="interval_number" class="oe_inline" />
+                            <field name="interval_type" class="oe_inline" />
+                        </div>
+                        <field name="nextcall" />
+                        <field name="numbercall" />
+                        <field name="priority" />
+                        <field name="doall" />
+                        <field name="user_id" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

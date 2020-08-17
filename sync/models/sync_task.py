@@ -16,6 +16,7 @@ class SyncTask(models.Model):
     project_id = fields.Many2one("sync.project")
     name = fields.Char("Name", help="e.g. Sync Products")
     code = fields.Text("Code")
+    active = fields.Boolean(default=True)
     cron_ids = fields.One2many("sync.trigger.cron", "sync_task_id")
     automation_ids = fields.One2many("sync.trigger.automation", "sync_task_id")
     webhook_ids = fields.One2many("sync.trigger.webhook", "sync_task_id")
