@@ -431,8 +431,8 @@ Usage
 
 * Open Contacts/Customers menu
 * Create new partner
-* Go back to the *Demo Odoo2odoo* project
-* Choose the DB Trigger and check that logs don't contain errors
+* Go back to the project
+* Click ``Logs`` button and check that there are no errors
 
 * Open the external Odoo
 

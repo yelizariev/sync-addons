@@ -1,7 +1,7 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
-from odoo import fields, models, api
+from odoo import api, fields, models
 
 
 class SyncTriggerMixin(models.AbstractModel):
@@ -9,7 +9,9 @@ class SyncTriggerMixin(models.AbstractModel):
     _name = "sync.trigger.mixin"
     _description = "Mixing for trigger models"
 
-    trigger_name = fields.Char("Trigger Name", help="Technical name to be used in task code")
+    trigger_name = fields.Char(
+        "Trigger Name", help="Technical name to be used in task code", required=True
+    )
 
 
 class SyncTriggerMixinModelId(models.AbstractModel):

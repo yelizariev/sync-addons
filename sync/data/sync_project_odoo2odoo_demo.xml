@@ -124,19 +124,19 @@ def handle_button():
         </field>
     </record>
     <record id="odoo2odoo_trigger_automation" model="sync.trigger.automation">
-        <field name="name">On partner created</field>
+        <field name="trigger_name">PARTNER_CREATED</field>
         <field name="sync_task_id" ref="sync.odoo2odoo_task" />
         <field name="model_id" ref="base.model_res_partner" />
         <field name="trigger">on_create</field>
     </record>
     <record id="odoo2odoo_trigger_cron" model="sync.trigger.cron">
+        <field name="trigger_name">CHECK_EXTERNAL_ODOO</field>
         <field name="sync_task_id" ref="sync.odoo2odoo_task" />
         <field name="interval_number">15</field>
         <field name="interval_type">minutes</field>
     </record>
     <record id="odoo2odoo_trigger_button" model="sync.trigger.button">
-        <field name="name">Sync All Partners</field>
+        <field name="trigger_name">SYNC_ALL_PARTNERS</field>
         <field name="sync_task_id" ref="sync.odoo2odoo_task" />
-        <field name="trigger_name">SYNC_ALL</field>
     </record>
 </odoo>

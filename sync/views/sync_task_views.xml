@@ -2,6 +2,16 @@
 <!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
+    <record id="sync_project_task_view_tree" model="ir.ui.view">
+        <field name="name">sync.task.tree</field>
+        <field name="model">sync.task</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="active" />
+            </tree>
+        </field>
+    </record>
     <record id="sync_project_task_view_form" model="ir.ui.view">
         <field name="name">sync.task.form</field>
         <field name="model">sync.task</field>
@@ -49,6 +59,7 @@
                             />
                         </page>
                         <page name="triggers" string="Triggers">
+                            <separator string="Cron" />
                             <field name="cron_ids">
                                 <tree>
                                     <field name="trigger_name" />
@@ -59,20 +70,22 @@
                                     <field name="active" />
                                 </tree>
                             </field>
-                            <field name="automation_ids">
+                            <separator string="DB Triggers" />
+                            <field name="automation_ids" string="DB">
                                 <tree>
                                     <field name="trigger_name" />
-                                    <field name="name" />
                                     <field name="model_id" />
                                     <field name="trigger" />
                                 </tree>
                             </field>
+                            <separator string="Webhooks" />
                             <field name="webhook_ids">
                                 <tree editable="bottom">
                                     <field name="trigger_name" />
                                     <field name="website_url" />
                                 </tree>
                             </field>
+                            <separator string="Buttons" />
                             <field name="button_ids">
                                 <tree editable="bottom">
                                     <field name="trigger_name" />
@@ -82,6 +95,15 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+    <record id="sync_task_action_from_project" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">sync.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('project_id', '=', active_id)]</field>
+        <field name="context">
+            {'default_project_id': active_id, 'active_test': False}
         </field>
     </record>
 </odoo>

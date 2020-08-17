@@ -26,7 +26,7 @@ class SyncProject(models.Model):
     _description = "Sync Project"
 
     name = fields.Char(
-        "Name", help="e.g. Legacy Migration or eCommerce Synchronization"
+        "Name", help="e.g. Legacy Migration or eCommerce Synchronization", required=True
     )
     active = fields.Boolean(default=True)
     secret_code = fields.Text(
@@ -56,6 +56,11 @@ class SyncProject(models.Model):
     param_ids = fields.One2many("sync.project.param", "project_id")
     secret_ids = fields.One2many("sync.project.secret", "project_id")
     task_ids = fields.One2many("sync.task", "project_id")
+    task_count = fields.Integer(compute="_compute_task_count")
+    trigger_cron_count = fields.Integer(compute="_compute_triggers_count")
+    trigger_automation_count = fields.Integer(compute="_compute_triggers_count")
+    trigger_webhook_count = fields.Integer(compute="_compute_triggers_count")
+    trigger_button_count = fields.Integer(compute="_compute_triggers_count")
 
     def _compute_secret_code_readonly(self):
         for r in self:
@@ -64,6 +69,18 @@ class SyncProject(models.Model):
     def _compute_network_access_readonly(self):
         for r in self:
             r.network_access_readonly = r.sudo().network_access
+
+    @api.depends("task_ids")
+    def _compute_task_count(self):
+        for r in self:
+            r.task_count = len(r.task_ids)
+
+    def _compute_triggers_count(self):
+        for r in self:
+            r.trigger_cron_count = len(r.mapped("task_ids.cron_ids"))
+            r.trigger_automation_count = len(r.mapped("task_ids.automation_ids"))
+            r.trigger_webhook_count = len(r.mapped("task_ids.webhook_ids"))
+            r.trigger_button_count = len(r.mapped("task_ids.button_ids"))
 
     @api.constrains("secret_code", "common_code")
     def _check_python_code(self):
@@ -157,7 +174,7 @@ class SyncProjectParamMixin(models.AbstractModel):
     _description = "Template model for Parameters"
     _rec_name = "key"
 
-    key = fields.Char("Key")
+    key = fields.Char("Key", required=True)
     value = fields.Char("Value")
     description = fields.Char("Description", translate=True)
     project_id = fields.Many2one("sync.project")

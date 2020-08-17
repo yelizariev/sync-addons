@@ -40,11 +40,62 @@
                                 options='{"terminology": "archive"}'
                             />
                         </button>
-                        <!--
-                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-file-text-o">
-                            <field string="Documents" name="doc_count" widget="statinfo"/>
+                        <button
+                            type="action"
+                            name="%(sync.sync_task_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-tasks"
+                        >
+                            <field string="Tasks" name="task_count" widget="statinfo" />
                         </button>
-                        -->
+                        <button
+                            type="action"
+                            name="%(sync.sync_trigger_cron_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-clock-o"
+                        >
+                            <field
+                                string="Cron Triggers"
+                                name="trigger_cron_count"
+                                widget="statinfo"
+                            />
+                        </button>
+                        <button
+                            type="action"
+                            name="%(sync.sync_trigger_automation_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-database"
+                        >
+                            <field
+                                string="DB Triggers"
+                                name="trigger_automation_count"
+                                widget="statinfo"
+                            />
+                        </button>
+                        <button
+                            type="action"
+                            name="%(sync.sync_trigger_webhook_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-globe"
+                        >
+                            <field
+                                string="Webhook Triggers"
+                                name="trigger_webhook_count"
+                                widget="statinfo"
+                            />
+                        </button>
+                        <button
+                            type="action"
+                            name="%(sync.sync_trigger_button_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-hand-pointer-o"
+                        >
+                            <field
+                                string="Button Triggers"
+                                name="trigger_button_count"
+                                widget="statinfo"
+                            />
+                        </button>
                     </div>
                     <!-- Uncomment in Odoo 13
                     <widget name="web_ribbon" text="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
@@ -81,14 +132,6 @@
                                     <field name="key" />
                                     <field name="value" />
                                     <field name="description" />
-                                </tree>
-                            </field>
-                        </page>
-                        <page name="tasks" string="Tasks">
-                            <field name="task_ids">
-                                <tree>
-                                    <field name="name" />
-                                    <field name="active" />
                                 </tree>
                             </field>
                         </page>
