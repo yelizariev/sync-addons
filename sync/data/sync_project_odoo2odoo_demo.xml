@@ -64,6 +64,10 @@ def parse_date(s):
         <field name="key">PASSWORD</field>
         <field name="project_id" ref="sync.odoo2odoo_project" />
     </record>
+    <!-- TODO: split tasks:
+         * Local Odoo to Remote Odoo
+         * Remote Odoo to Local Odoo
+    -->
     <record id="odoo2odoo_task" model="sync.task">
         <field name="name">Sync Partners</field>
         <field name="project_id" ref="sync.odoo2odoo_project" />
