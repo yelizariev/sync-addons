@@ -12,7 +12,7 @@
     "support": "apps@it-projects.info",
     "website": "https://apps.odoo.com/apps/modules/12.0/sync/",
     "license": "Other OSI approved licence",  # MIT
-    "depends": ["base_automation", "mail", "website"],
+    "depends": ["base_automation", "mail", "website", "queue_job"],
     "external_dependencies": {"python": [], "bin": []},
     "data": [
         "security/sync_groups.xml",

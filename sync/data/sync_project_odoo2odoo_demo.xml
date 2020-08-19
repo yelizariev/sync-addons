@@ -10,7 +10,7 @@
 import xmlrpc.client as _client
 
 if not all([params.URL, params.DB, secrets.USERNAME, secrets.PASSWORD]):
-    raise Exception("External Odoo Credentials are not set")
+    raise UserError("External Odoo Credentials are not set")
 
 def odoo_execute_kw(model, method, *args, **kwargs):
     log_transmission("%s::%s" % (params.URL, params.DB), json.dumps([method, args, kwargs]))

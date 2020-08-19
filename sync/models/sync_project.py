@@ -5,7 +5,7 @@ import json
 import logging
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
 
 from ..tools import safe_eval_imports, test_python_expr_imports
@@ -57,10 +57,28 @@ class SyncProject(models.Model):
     secret_ids = fields.One2many("sync.project.secret", "project_id")
     task_ids = fields.One2many("sync.task", "project_id")
     task_count = fields.Integer(compute="_compute_task_count")
-    trigger_cron_count = fields.Integer(compute="_compute_triggers_count")
-    trigger_automation_count = fields.Integer(compute="_compute_triggers_count")
-    trigger_webhook_count = fields.Integer(compute="_compute_triggers_count")
-    trigger_button_count = fields.Integer(compute="_compute_triggers_count")
+    active_task_ids = fields.Many2many(
+        "sync.task",
+        string="Enabled Tasks",
+        compute="_compute_active_task_ids",
+        inverse="_inverse_active_task_ids",
+        context={"active_test": False},
+    )
+    trigger_cron_count = fields.Integer(
+        compute="_compute_triggers", help="Enabled Crons"
+    )
+    trigger_automation_count = fields.Integer(
+        compute="_compute_triggers", help="Enabled DB Triggers"
+    )
+    trigger_webhook_count = fields.Integer(
+        compute="_compute_triggers", help="Enabled Webhooks"
+    )
+    trigger_button_count = fields.Integer(
+        compute="_compute_triggers", help="Enabled Buttons"
+    )
+    trigger_button_ids = fields.Many2many(
+        "sync.trigger.button", compute="_compute_triggers"
+    )
 
     def _compute_secret_code_readonly(self):
         for r in self:
@@ -73,14 +91,24 @@ class SyncProject(models.Model):
     @api.depends("task_ids")
     def _compute_task_count(self):
         for r in self:
-            r.task_count = len(r.task_ids)
+            r.task_count = len(r.with_context(active_test=False).task_ids)
 
-    def _compute_triggers_count(self):
+    def _compute_triggers(self):
         for r in self:
             r.trigger_cron_count = len(r.mapped("task_ids.cron_ids"))
             r.trigger_automation_count = len(r.mapped("task_ids.automation_ids"))
             r.trigger_webhook_count = len(r.mapped("task_ids.webhook_ids"))
             r.trigger_button_count = len(r.mapped("task_ids.button_ids"))
+            r.trigger_button_ids = r.mapped("task_ids.button_ids")
+
+    def _compute_active_task_ids(self):
+        for r in self:
+            r.active_task_ids = r.task_ids
+
+    def _inverse_active_task_ids(self):
+        for r in self:
+            (r.active_task_ids - r.task_ids).write({"active": True})
+            (r.task_ids - r.active_task_ids).write({"active": False})
 
     @api.constrains("secret_code", "common_code")
     def _check_python_code(self):
@@ -153,6 +181,7 @@ class SyncProject(models.Model):
             "trigger_name": trigger.trigger_name,
             "async": "TODO",
             "json": json,
+            "UserError": UserError,
         }
 
         safe_eval_imports(

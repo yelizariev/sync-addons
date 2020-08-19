@@ -35,11 +35,6 @@
                                 options='{"terminology": "archive"}'
                             />
                         </button>
-                        <!--
-                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-file-text-o">
-                            <field string="Documents" name="doc_count" widget="statinfo"/>
-                        </button>
-                        -->
                     </div>
                     <!-- Uncomment in Odoo 13
                     <widget name="web_ribbon" text="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
@@ -50,6 +45,37 @@
                             <field name="name" placeholder="E.g. Sync Products" />
                         </h1>
                     </div>
+                    <group>
+                        <group>
+                            <field
+                                name="active_cron_ids"
+                                widget="many2many_tags"
+                                options="{'no_create': True}"
+                                domain="[('sync_task_id', '=', active_id)]"
+                            />
+                            <field
+                                name="active_automation_ids"
+                                widget="many2many_tags"
+                                options="{'no_create': True}"
+                                domain="[('sync_task_id', '=', active_id)]"
+                            />
+                            <field
+                                name="active_webhook_ids"
+                                widget="many2many_tags"
+                                options="{'no_create': True}"
+                                domain="[('sync_task_id', '=', active_id)]"
+                            />
+                            <field
+                                name="active_button_ids"
+                                widget="many2many_tags"
+                                options="{'no_create': True}"
+                                domain="[('sync_task_id', '=', active_id)]"
+                            />
+                        </group>
+                        <group>
+                            <field name="project_id" />
+                        </group>
+                    </group>
                     <notebook>
                         <page name="code" string="Code">
                             <field
@@ -58,37 +84,46 @@
                                 options="{'mode': 'python'}"
                             />
                         </page>
-                        <page name="triggers" string="Triggers">
+                        <page name="triggers" string="Available Triggers">
                             <separator string="Cron" />
-                            <field name="cron_ids">
+                            <field name="cron_ids" context="{'active_test': False}">
                                 <tree>
                                     <field name="trigger_name" />
+                                    <field name="active" />
                                     <field name="interval_number" />
                                     <field name="interval_type" />
                                     <field name="nextcall" />
                                     <field name="numbercall" />
-                                    <field name="active" />
                                 </tree>
                             </field>
                             <separator string="DB Triggers" />
-                            <field name="automation_ids" string="DB">
+                            <field
+                                name="automation_ids"
+                                context="{'active_test': False}"
+                            >
                                 <tree>
                                     <field name="trigger_name" />
+                                    <field name="active" />
                                     <field name="model_id" />
                                     <field name="trigger" />
                                 </tree>
                             </field>
                             <separator string="Webhooks" />
-                            <field name="webhook_ids">
+                            <field name="webhook_ids" context="{'active_test': False}">
                                 <tree editable="bottom">
                                     <field name="trigger_name" />
+                                    <field name="active" />
                                     <field name="website_url" />
                                 </tree>
                             </field>
-                            <separator string="Buttons" />
+                            <separator
+                                string="Buttons"
+                                context="{'active_test': False}"
+                            />
                             <field name="button_ids">
                                 <tree editable="bottom">
                                     <field name="trigger_name" />
+                                    <field name="active" />
                                 </tree>
                             </field>
                         </page>

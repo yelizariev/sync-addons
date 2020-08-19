@@ -16,6 +16,7 @@ class SyncTriggerButton(models.Model):
     sync_project_id = fields.Many2one(
         "sync.project", related="sync_task_id.project_id", readonly=True
     )
+    active = fields.Boolean(default=True)
 
     def run(self):
         self.sync_task_id.run(self)

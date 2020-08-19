@@ -21,6 +21,34 @@ class SyncTask(models.Model):
     automation_ids = fields.One2many("sync.trigger.automation", "sync_task_id")
     webhook_ids = fields.One2many("sync.trigger.webhook", "sync_task_id")
     button_ids = fields.One2many("sync.trigger.button", "sync_task_id")
+    active_cron_ids = fields.Many2many(
+        "sync.trigger.cron",
+        string="Enabled Crons",
+        compute="_compute_active_triggers",
+        inverse="_inverse_active_triggers",
+        context={"active_test": False},
+    )
+    active_automation_ids = fields.Many2many(
+        "sync.trigger.automation",
+        string="Enabled DB Triggers",
+        compute="_compute_active_triggers",
+        inverse="_inverse_active_triggers",
+        context={"active_test": False},
+    )
+    active_webhook_ids = fields.Many2many(
+        "sync.trigger.webhook",
+        string="Enabled Webhooks",
+        compute="_compute_active_triggers",
+        inverse="_inverse_active_triggers",
+        context={"active_test": False},
+    )
+    active_button_ids = fields.Many2many(
+        "sync.trigger.button",
+        string="Enabled Buttons",
+        compute="_compute_active_triggers",
+        inverse="_inverse_active_triggers",
+        context={"active_test": False},
+    )
 
     @api.constrains("code")
     def _check_python_code(self):
@@ -28,6 +56,27 @@ class SyncTask(models.Model):
             msg = test_python_expr(expr=r.code.strip(), mode="exec")
             if msg:
                 raise ValidationError(msg)
+
+    def _compute_active_triggers(self):
+        for r in self:
+            r.active_cron_ids = r.cron_ids
+            r.active_automation_ids = r.automation_ids
+            r.active_webhook_ids = r.webhook_ids
+            r.active_button_ids = r.button_ids
+
+    def _inverse_active_triggers(self):
+        for r in self:
+            (r.active_cron_ids - r.cron_ids).write({"active": True})
+            (r.cron_ids - r.active_cron_ids).write({"active": False})
+
+            (r.active_automation_ids - r.automation_ids).write({"active": True})
+            (r.automation_ids - r.active_automation_ids).write({"active": False})
+
+            (r.active_webhook_ids - r.webhook_ids).write({"active": True})
+            (r.webhook_ids - r.active_webhook_ids).write({"active": False})
+
+            (r.active_button_ids - r.button_ids).write({"active": True})
+            (r.button_ids - r.active_button_ids).write({"active": False})
 
     def start(self, trigger, args=None, with_delay=False):
 
@@ -68,3 +117,12 @@ class SyncTask(models.Model):
             code, eval_context, mode="exec", nocopy=True
         )  # nocopy allows to return RESULT
         return eval_context[RESULT]
+
+    def name_get(self):
+        if not self.env.context.get("name_with_project"):
+            return super(SyncTask, self).name_get()
+        result = []
+        for r in self:
+            name = r.project_id.name + ": " + r.name
+            result.append((r.id, name))
+        return result

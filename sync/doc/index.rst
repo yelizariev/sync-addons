@@ -270,6 +270,12 @@ Libs
 
 * ``json``
 
+Exceptions
+~~~~~~~~~~
+
+* ``UserError``
+* ``ValidationError``
+
 Running Job
 ===========
 

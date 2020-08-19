@@ -25,8 +25,7 @@ Roadmap
 =======
 
 * Github<->Trello: implement API via Odoo UI and use button "Export to XML" to package into the module
-* TODO: name_get for ``sync.task`` to use Project name as a prefix
-* TODO: add project_id field to sync.task
+* Disabling sync.task should disable all triggers
 
 Credits
 =======

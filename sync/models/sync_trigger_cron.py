@@ -2,6 +2,7 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 from odoo import api, fields, models
+from odoo.tools.translate import _
 
 
 class SyncTriggerCron(models.Model):
@@ -20,3 +21,16 @@ class SyncTriggerCron(models.Model):
         for vals in vals_list:
             vals.setdefault("name", vals.get("trigger_name", "Sync"))
         return super(SyncTriggerCron, self).create(vals_list)
+
+    def name_get(self):
+        result = []
+        for r in self:
+            name = _("%s: every %s %s") % (
+                r.trigger_name,
+                r.interval_number,
+                r.interval_type,
+            )
+            if r.numbercall > 0:
+                name += " (%s times)" % r.numbercall
+            result.append((r.id, name))
+        return result

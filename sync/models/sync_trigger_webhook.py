@@ -10,10 +10,12 @@ class SyncTriggerWebhook(models.Model):
     _inherit = ["sync.trigger.mixin", "sync.trigger.mixin.model_id"]
     _description = "Webhook Trigger"
     _sync_handler = "handle_webhook"
+    _default_name = "Webhook"
 
     action_server_id = fields.Many2one(
         "ir.actions.server", delegate=True, required=True, ondelete="cascade"
     )
+    active = fields.Boolean(active=True)
 
     @api.model
     def _sync_post_handler(self, args, result):

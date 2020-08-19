@@ -46,7 +46,11 @@
                             class="oe_stat_button"
                             icon="fa-tasks"
                         >
-                            <field string="Tasks" name="task_count" widget="statinfo" />
+                            <field
+                                string="Available Tasks"
+                                name="task_count"
+                                widget="statinfo"
+                            />
                         </button>
                         <button
                             type="action"
@@ -55,7 +59,7 @@
                             icon="fa-clock-o"
                         >
                             <field
-                                string="Cron Triggers"
+                                string="Crons"
                                 name="trigger_cron_count"
                                 widget="statinfo"
                             />
@@ -79,11 +83,12 @@
                             icon="fa-globe"
                         >
                             <field
-                                string="Webhook Triggers"
+                                string="Webhooks"
                                 name="trigger_webhook_count"
                                 widget="statinfo"
                             />
                         </button>
+                        <!--
                         <button
                             type="action"
                             name="%(sync.sync_trigger_button_action_from_project)d"
@@ -91,11 +96,12 @@
                             icon="fa-hand-pointer-o"
                         >
                             <field
-                                string="Button Triggers"
+                                string="Buttons"
                                 name="trigger_button_count"
                                 widget="statinfo"
                             />
                         </button>
+                        -->
                     </div>
                     <!-- Uncomment in Odoo 13
                     <widget name="web_ribbon" text="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
@@ -106,37 +112,123 @@
                             <field name="name" placeholder="E.g. Legacy Migration" />
                         </h1>
                     </div>
+                    <group>
+                        <field
+                            name="active_task_ids"
+                            widget="many2many_tags"
+                            options="{'no_create': True}"
+                            domain="[('project_id', '=', active_id)]"
+                        />
+                    </group>
                     <notebook>
+                        <page name="params" string="Parameters">
+                            <separator string="Parameters" />
+                            <field name="param_ids">
+                                <tree editable="bottom" decoration-danger="not value">
+                                    <field name="key" />
+                                    <field name="value" />
+                                    <field name="description" />
+                                </tree>
+                            </field>
+                            <separator string="Secrets" />
+                            <p class="oe_read_only">
+                                <em>
+                                    Secret parameters values are available for Sync
+                                    Managers only (click on a line to see the value)
+                                </em>
+                            </p>
+                            <field name="secret_ids">
+                                <tree editable="bottom" decoration-danger="not value">
+                                    <field name="key" />
+                                    <field
+                                        name="value"
+                                        password="True"
+                                        decoration-danger="not value"
+                                    />
+                                    <field name="description" />
+                                </tree>
+                            </field>
+                        </page>
                         <page name="code" string="Code">
+                            <separator string="Protected Code" />
+                            <p>
+                                <em>
+                                    # Protected code can be edited by Sync Managers
+                                    only.
+                                    <br />
+                                    # Python statement
+                                    <code>import</code>
+                                    and variable
+                                    <code>secrets</code>
+                                    can be used in this code only.
+                                    <br />
+                                    # Add underscore prefix to variables and functions
+                                    (e.g.
+                                    <code>_something</code>
+                                    ) to make them not available in task code and common
+                                    code
+                                </em>
+                            </p>
                             <field
                                 name="secret_code"
                                 widget="ace"
                                 options="{'mode': 'python'}"
                             />
+                            <separator string="Common Code" />
+                            <p>
+                                <em>
+                                    # Put here a code that will be accesable from any
+                                    task code
+                                </em>
+                            </p>
                             <field
                                 name="common_code"
                                 widget="ace"
                                 options="{'mode': 'python'}"
                             />
                         </page>
-                        <page name="params" string="Parameters">
-                            <field name="param_ids">
-                                <tree editable="botton">
-                                    <field name="key" />
-                                    <field name="value" />
-                                    <field name="description" />
-                                </tree>
-                            </field>
-                            <field name="secret_ids">
-                                <tree editable="botton">
-                                    <field name="key" />
-                                    <field name="value" />
-                                    <field name="description" />
+                        <page name="buttons" string="Buttons">
+                            <field name="trigger_button_ids">
+                                <tree create="0">
+                                    <field name="trigger_name" />
+                                    <button
+                                        name="run"
+                                        string="Run Now"
+                                        class="oe_highlight"
+                                        type="object"
+                                    />
+                                    <field name="name" />
                                 </tree>
                             </field>
                         </page>
                     </notebook>
                 </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sync_project_param_view_form" model="ir.ui.view">
+        <field name="name">sync.project.param.form</field>
+        <field name="model">sync.project.param</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="key" />
+                    <field name="value" />
+                </group>
+                <field name="description" />
+            </form>
+        </field>
+    </record>
+    <record id="sync_project_secret_view_form" model="ir.ui.view">
+        <field name="name">sync.project.secret.form</field>
+        <field name="model">sync.project.secret</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="key" />
+                    <field name="value" />
+                </group>
+                <field name="description" />
             </form>
         </field>
     </record>

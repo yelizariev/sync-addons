@@ -19,6 +19,5 @@
         <field name="res_model">sync.trigger.webhook</field>
         <field name="view_mode">tree</field>
         <field name="domain">[('sync_project_id', '=', active_id)]</field>
-        <field name="context">{'active_test': False}</field>
     </record>
 </odoo>

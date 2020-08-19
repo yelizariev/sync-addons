@@ -13,8 +13,8 @@
                 <field name="nextcall" />
                 <field name="numbercall" />
                 <field name="active" />
-                <field name="sync_task_id" />
                 <field name="sync_project_id" />
+                <field name="sync_task_id" />
             </tree>
         </field>
     </record>
@@ -25,6 +25,7 @@
             <form>
                 <sheet>
                     <group>
+                        <field name="trigger_name" />
                         <label for="interval_number" string="Execute Every" />
                         <div>
                             <field name="interval_number" class="oe_inline" />
@@ -58,7 +59,6 @@
         <field name="res_model">sync.trigger.cron</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('sync_project_id', '=', active_id)]</field>
-        <field name="context">{'active_test': False}</field>
         <field
             name="view_ids"
             eval="[(5, 0, 0),
