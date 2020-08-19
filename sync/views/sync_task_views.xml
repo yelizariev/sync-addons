@@ -124,6 +124,13 @@
                                 <tree editable="bottom">
                                     <field name="trigger_name" />
                                     <field name="active" />
+                                    <button
+                                        name="run"
+                                        string="Run Now"
+                                        class="oe_highlight"
+                                        type="object"
+                                    />
+                                    <field name="name" />
                                 </tree>
                             </field>
                         </page>

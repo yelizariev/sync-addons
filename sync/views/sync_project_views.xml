@@ -190,6 +190,7 @@
                         <page name="buttons" string="Buttons">
                             <field name="trigger_button_ids">
                                 <tree create="0">
+                                    <field name="sync_task_id" />
                                     <field name="trigger_name" />
                                     <button
                                         name="run"
