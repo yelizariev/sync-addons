@@ -19,5 +19,6 @@ class SyncTriggerButton(models.Model):
     active = fields.Boolean(default=True)
 
     def run(self):
-        self.sync_task_id.run(self)
+        job = self.sync_task_id.start(self)
+        return job  # just to prevent lint errors for a while
         # TODO: redirect to logs created during the run

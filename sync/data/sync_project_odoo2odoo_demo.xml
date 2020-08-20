@@ -5,6 +5,7 @@
     <!-- Odoo2odoo -->
     <record id="odoo2odoo_project" model="sync.project">
         <field name="name">Demo Odoo2odoo Integration</field>
+        <field name="active" eval="False" />
         <field name="secret_code">
 <![CDATA[
 import xmlrpc.client as _client
@@ -118,7 +119,7 @@ def handle_button():
         else:
             chunk |= r
         if len(chunk) == CHUNK_SIZE:
-            async(create_external_partner)(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
+            call_async("create_external_partner")(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
             chunk = None
 ]]>
         </field>

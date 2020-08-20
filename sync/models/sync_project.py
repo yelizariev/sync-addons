@@ -124,12 +124,12 @@ class SyncProject(models.Model):
             if msg:
                 raise ValidationError(msg)
 
-    def _get_eval_context(self, trigger):
+    def _get_eval_context(self, job):
         """Executed Secret and Common codes and return "exported" variables and functions"""
         self.ensure_one()
 
         def log(message, level="info"):
-            with self.pool.cursor() as cr:
+            with self.env.registry.cursor() as cr:
                 cr.execute(
                     """
                     INSERT INTO ir_logging(create_date, create_uid, type, dbname, name, level, message, path, line, func)
@@ -139,14 +139,24 @@ class SyncProject(models.Model):
                         self.env.uid,
                         "server",
                         self._cr.dbname,
-                        __name__,
+                        "Sync Studio Log",
                         level,
                         message,
-                        trigger._name,
-                        trigger.id,
-                        trigger.trigger_name,
+                        "sync.job",
+                        job.id,
+                        job.trigger_name,
                     ),
                 )
+
+        def call_async(function, **options):
+            if callable(function):
+                function = function.__name__
+            sub_job = self.env["sync.job"].create({"parent_job_id": job.id})
+
+            def f(*args, **kwargs):
+                job.task_id.with_delay(**options).run(sub_job, function, args, kwargs)
+
+            return f
 
         params = AttrDict()
         for p in self.param_ids:
@@ -158,7 +168,7 @@ class SyncProject(models.Model):
 
         webhooks = AttrDict()
         for w in self.task_ids.mapped("webhook_ids"):
-            webhooks[w.trigger_name] = "TODO: get url"
+            webhooks[w.trigger_name] = w.website_url
 
         def log_transmission(recipient_str, data_str):
             # TODO
@@ -178,8 +188,8 @@ class SyncProject(models.Model):
             "secrets": secrets,
             "webhooks": webhooks,
             "user": self.env.user,
-            "trigger_name": trigger.trigger_name,
-            "async": "TODO",
+            "trigger_name": job.trigger_name,
+            "call_async": call_async,
             "json": json,
             "UserError": UserError,
         }

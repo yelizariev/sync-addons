@@ -254,7 +254,7 @@ Event
 Asynchronous work
 ~~~~~~~~~~~~~~~~~
 
-* ``async(func_to_call_asyncroniously, **options)(*func_args, **func_kwargs)``: call a function asyncroniously; options are similar to ``with_delay`` method of ``queue_job`` module:
+* ``call_async(func_name, **options)(*func_args, **func_kwargs)``: call a function asyncroniously; options are similar to ``with_delay`` method of ``queue_job`` module:
 
   * ``priority``: Priority of the job, 0 being the higher priority. Default is 10.
   * ``eta``: Estimated Time of Arrival of the job. It will not be executed before this date/time.
@@ -429,6 +429,7 @@ Configuration
 
   * USERNAME, e.g. ``admin``
   * PASSWORD, e.g. ``admin``
+* Unarchive project
 
 Usage
 -----

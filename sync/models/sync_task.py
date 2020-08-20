@@ -79,32 +79,32 @@ class SyncTask(models.Model):
             (r.button_ids - r.active_button_ids).write({"active": False})
 
     def start(self, trigger, args=None, with_delay=False):
-
         self.ensure_one()
+        if not self.active or not self.project_id.active:
+            return None
 
-        run = self.run.with_delay() if with_delay else self.run
-        run(trigger, args)
+        job = self.env["sync.job"].create_trigger_job(trigger)
+        run = self.with_delay().run if with_delay else self.run
+        run(job, trigger._sync_handler, args)
 
         return job
 
     @job
-    def run(self, trigger, args=None):
-        eval_context = self.project_id._get_eval_context(trigger)
+    def run(self, job, function, args=None, kwargs=None):
+        eval_context = self.project_id._get_eval_context(job)
 
-        function = trigger._sync_handler
+        code = self.code.strip()
+        result = self._eval(code, function, args, eval_context)
 
-        result = self._eval(function, args, eval_context)
-
-        if hasattr(trigger, "_sync_post_handler"):
-            trigger._sync_post_handler(args, result)
+        job.post_handler(args, kwargs, result)
 
         return job
 
-    def _eval(self, function, args, eval_context):
+    @api.model
+    def _eval(self, code, function, args, eval_context):
         ARGS = "EXECUTION_ARGS_"
         RESULT = "EXECUTION_RESULT_"
 
-        code = self.code.strip()
         code += """
 {RESULT} = {function}(*{ARGS})
         """.format(

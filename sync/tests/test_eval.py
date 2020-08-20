@@ -38,9 +38,9 @@ class TestEval(TransactionCase):
         task = self.env["sync.task"].create(
             dict(
                 **{
-                    "name": "Task Eval Test",
+                    "name": "Task eval test",
                     "project_id": project.id,
-                    "button_ids": [(0, 0, {"name": "Webhook Eval Test"})],
+                    "button_ids": [(0, 0, {"trigger_name": "BUTTON_EVAL_TEST"})],
                 },
                 **task_vals
             )

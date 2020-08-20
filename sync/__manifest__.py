@@ -18,7 +18,7 @@
         "security/sync_groups.xml",
         "security/ir.model.access.csv",
         "views/sync_menus.xml",
-        # "views/sync_job_views.xml",
+        "views/sync_job_views.xml",
         "views/sync_trigger_cron_views.xml",
         "views/sync_trigger_automation_views.xml",
         "views/sync_trigger_webhook_views.xml",

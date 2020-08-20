@@ -40,13 +40,13 @@ class SyncTriggerAutomation(models.Model):
 
         return record
 
-    def run(self, records):
-        self.sync_task_id.run(self, args=(records,))
+    def start(self, records):
+        self.sync_task_id.start(self, args=(records,))
 
     def get_code(self):
         return (
             """
-env["sync.trigger.automation"].browse(%s).run(records)
+env["sync.trigger.automation"].browse(%s).start(records)
 """
             % self.id
         )
