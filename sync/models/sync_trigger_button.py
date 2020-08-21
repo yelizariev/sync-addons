@@ -20,5 +20,12 @@ class SyncTriggerButton(models.Model):
 
     def run(self):
         job = self.sync_task_id.start(self, force=True)
-        return job  # just to prevent lint errors for a while
-        # TODO: redirect to logs created during the run
+        return {
+            "name": "Job triggered by clicking Button",
+            "type": "ir.actions.act_window",
+            "view_type": "form",
+            "view_mode": "form",
+            "res_model": "sync.job",
+            "res_id": job.id,
+            "target": "new",
+        }

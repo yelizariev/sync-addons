@@ -65,12 +65,14 @@
                                 options="{'no_create': True}"
                                 domain="[('sync_task_id', '=', active_id)]"
                             />
+                            <!--
                             <field
                                 name="active_button_ids"
                                 widget="many2many_tags"
                                 options="{'no_create': True}"
                                 domain="[('sync_task_id', '=', active_id)]"
                             />
+                            -->
                         </group>
                         <group>
                             <field name="project_id" />

@@ -9,6 +9,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
 
 from ..tools import safe_eval_imports, test_python_expr_imports
+from .ir_logging import LOG_CRITICAL, LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_WARNING
 
 _logger = logging.getLogger(__name__)
 
@@ -162,7 +163,7 @@ class SyncProject(models.Model):
                 ),
             )
 
-        def log(message, level="info"):
+        def log(message, level=LOG_INFO):
             if self.env.context.get("new_cursor_logs") is False:
                 return _log(self.env.cr, message, level)
 
@@ -172,10 +173,18 @@ class SyncProject(models.Model):
         def call_async(function, **options):
             if callable(function):
                 function = function.__name__
-            sub_job = self.env["sync.job"].create({"parent_job_id": job.id})
 
             def f(*args, **kwargs):
-                job.task_id.with_delay(**options).run(sub_job, function, args, kwargs)
+                sub_job = self.env["sync.job"].create({"parent_job_id": job.id})
+                queue_job = job.task_id.with_delay(**options).run(
+                    sub_job, function, args, kwargs
+                )
+                sub_job.queue_job_id = queue_job.db_record()
+                log(
+                    "call_async: %s(*%s, **%s). See %s"
+                    % (function, args, kwargs, sub_job),
+                    level=LOG_DEBUG,
+                )
 
             return f
 
@@ -200,11 +209,11 @@ class SyncProject(models.Model):
             "env": self.env,
             "log": log,
             "log_transmission": log_transmission,
-            "LOG_DEBUG": "debug",
-            "LOG_INFO": "info",
-            "LOG_WARNING": "warning",
-            "LOG_ERROR": "error",
-            "LOG_CRITICAL": "critical",
+            "LOG_DEBUG": LOG_DEBUG,
+            "LOG_INFO": LOG_INFO,
+            "LOG_WARNING": LOG_WARNING,
+            "LOG_ERROR": LOG_ERROR,
+            "LOG_CRITICAL": LOG_CRITICAL,
             "params": params,
             "secrets": secrets,
             "webhooks": webhooks,

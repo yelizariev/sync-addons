@@ -85,6 +85,9 @@ class SyncTask(models.Model):
 
         job = self.env["sync.job"].create_trigger_job(trigger)
         run = self.with_delay().run if with_delay else self.run
+        if not with_delay:
+            # log records are created via new cursor and they use job.id value for sync_job_id field
+            self.env.cr.commit()  # pylint: disable=invalid-commit
         run(job, trigger._sync_handler, args)
 
         return job

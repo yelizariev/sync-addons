@@ -3,6 +3,11 @@
 
 from odoo import api, fields, models
 
+from odoo.addons.queue_job.job import DONE, ENQUEUED, FAILED, PENDING, STARTED
+
+from .ir_logging import LOG_CRITICAL, LOG_ERROR, LOG_WARNING
+
+DONE_WARNING = "done_warning"
 TRIGGER_MODEL2FIELD = {
     "sync.trigger.cron": "trigger_cron_id",
     "sync.trigger.automation": "trigger_automation_id",
@@ -17,8 +22,9 @@ class SyncJob(models.Model):
     _name = "sync.job"
     _description = "Sync Job"
     _rec_name = "trigger_name"
+    _order = "id desc"
 
-    trigger_name = fields.Char(compute="_compute_trigger_name")
+    trigger_name = fields.Char(compute="_compute_trigger_name", store=True)
     trigger_cron_id = fields.Many2one("sync.trigger.cron", readonly=True)
     trigger_automation_id = fields.Many2one("sync.trigger.automation", readonly=True)
     trigger_webhook_id = fields.Many2one("sync.trigger.webhook", readonly=True)
@@ -32,6 +38,40 @@ class SyncJob(models.Model):
     queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
     log_ids = fields.One2many("ir.logging", "sync_job_id", readonly=True)
     log_count = fields.Integer(compute="_compute_log_count")
+    state = fields.Selection(
+        [
+            (PENDING, "Pending"),
+            (ENQUEUED, "Enqueued"),
+            (STARTED, "Started"),
+            (DONE, "Done"),
+            (DONE_WARNING, "Done With Warnings"),
+            (FAILED, "Failed"),
+        ],
+        compute="_compute_state",
+    )
+
+    @api.depends("queue_job_id", "job_ids.queue_job_id.state", "log_ids.level")
+    def _compute_state(self):
+        for r in self:
+            jobs = r + r.job_ids
+            states = [q.state for q in jobs.mapped("queue_job_id")]
+            levels = {log.level for log in jobs.mapped("log_ids")}
+            computed_state = DONE
+            has_errors = any(lev in [LOG_CRITICAL, LOG_ERROR] for lev in levels)
+            has_warnings = any(lev == LOG_WARNING for lev in levels)
+            if jobs:
+                for s in [FAILED, STARTED, ENQUEUED, PENDING]:
+                    if any(s == ss for ss in states):
+                        computed_state = s
+                        break
+            else:
+                if has_errors:
+                    computed_state = FAILED
+
+            if computed_state == DONE and has_warnings:
+                computed_state = DONE_WARNING
+
+            r.state = computed_state
 
     @api.depends("log_ids")
     def _compute_log_count(self):
@@ -53,7 +93,7 @@ class SyncJob(models.Model):
     def _compute_trigger_name(self):
         for r in self:
             if r.parent_job_id:
-                r.trigger_name = "SUB_" + r.parent_job_id.trigger_name
+                r.trigger_name = "SUB_" + (r.parent_job_id.trigger_name or "")
                 continue
             for f in TRIGGER_FIELDS:
                 t = getattr(r, f)
