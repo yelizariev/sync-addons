@@ -393,7 +393,7 @@ You can continue chatting in this way
 Demo Project: Odoo2odoo
 =======================
 
-In this project we push partners to external Odoo 12.0  and sync back avatar changes.
+In this project we push partners to external Odoo 12.0 and sync back avatar changes.
 
 To try it, you need to install this module in demo mode.
 

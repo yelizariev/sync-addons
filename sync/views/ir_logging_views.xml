@@ -41,13 +41,19 @@
         <field name="res_model">ir.logging</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('sync_job_id', '!=', False)]</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                                     (0, 0, {'view_mode': 'tree', 'view_id': ref('ir_logging_view_tree')}),
+                                     (0, 0, {'view_mode': 'form', 'view_id': ref('ir_logging_view_form')})]"
+        />
     </record>
     <menuitem
         id="ir_logging_menu_action"
         name="Logs"
         parent="sync_menu"
         action="ir_logging_action"
-        sequence="10"
+        sequence="30"
     />
     <record id="ir_logging_action_from_project" model="ir.actions.act_window">
         <field name="name">Project Logs</field>

@@ -71,4 +71,16 @@
         <field name="view_mode">tree,form</field>
         <field name="domain">[('sync_project_id', '=', active_id)]</field>
     </record>
+    <record id="sync_job_action" model="ir.actions.act_window">
+        <field name="name">Jobs</field>
+        <field name="res_model">sync.job</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="sync_job_menu_action"
+        name="Jobs"
+        parent="sync_menu"
+        action="sync_job_action"
+        sequence="20"
+    />
 </odoo>
