@@ -35,15 +35,19 @@ class TestEval(TransactionCase):
             )
         )
 
-        task = self.env["sync.task"].create(
-            dict(
-                **{
-                    "name": "Task eval test",
-                    "project_id": project.id,
-                    "button_ids": [(0, 0, {"trigger_name": "BUTTON_EVAL_TEST"})],
-                },
-                **task_vals
+        task = (
+            self.env["sync.task"]
+            .create(
+                dict(
+                    **{
+                        "name": "Task eval test",
+                        "project_id": project.id,
+                        "button_ids": [(0, 0, {"trigger_name": "BUTTON_EVAL_TEST"})],
+                    },
+                    **task_vals
+                )
             )
+            .with_context(new_cursor_logs=False)
         )
         return project, task
 

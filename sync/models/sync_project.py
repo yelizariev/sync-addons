@@ -79,6 +79,10 @@ class SyncProject(models.Model):
     trigger_button_ids = fields.Many2many(
         "sync.trigger.button", compute="_compute_triggers"
     )
+    job_ids = fields.One2many("sync.job", "project_id")
+    job_count = fields.Integer(compute="_compute_job_count")
+    log_ids = fields.One2many("ir.logging", "sync_project_id")
+    log_count = fields.Integer(compute="_compute_log_count")
 
     def _compute_secret_code_readonly(self):
         for r in self:
@@ -92,6 +96,16 @@ class SyncProject(models.Model):
     def _compute_task_count(self):
         for r in self:
             r.task_count = len(r.with_context(active_test=False).task_ids)
+
+    @api.depends("job_ids")
+    def _compute_job_count(self):
+        for r in self:
+            r.job_count = len(r.job_ids)
+
+    @api.depends("log_ids")
+    def _compute_log_count(self):
+        for r in self:
+            r.log_count = len(r.log_ids)
 
     def _compute_triggers(self):
         for r in self:
@@ -128,25 +142,32 @@ class SyncProject(models.Model):
         """Executed Secret and Common codes and return "exported" variables and functions"""
         self.ensure_one()
 
+        def _log(cr, message, level):
+            cr.execute(
+                """
+                INSERT INTO ir_logging(create_date, create_uid, type, dbname, name, level, message, path, line, func, sync_job_id)
+                VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+                (
+                    self.env.uid,
+                    "server",
+                    self._cr.dbname,
+                    "Sync Studio Log",
+                    level,
+                    message,
+                    "sync.job",
+                    job.id,
+                    job.trigger_name,
+                    job.id,
+                ),
+            )
+
         def log(message, level="info"):
+            if self.env.context.get("new_cursor_logs") is False:
+                return _log(self.env.cr, message, level)
+
             with self.env.registry.cursor() as cr:
-                cr.execute(
-                    """
-                    INSERT INTO ir_logging(create_date, create_uid, type, dbname, name, level, message, path, line, func)
-                    VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                    (
-                        self.env.uid,
-                        "server",
-                        self._cr.dbname,
-                        "Sync Studio Log",
-                        level,
-                        message,
-                        "sync.job",
-                        job.id,
-                        job.trigger_name,
-                    ),
-                )
+                return _log(cr, message, level)
 
         def call_async(function, **options):
             if callable(function):

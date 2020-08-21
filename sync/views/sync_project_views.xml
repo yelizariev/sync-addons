@@ -89,6 +89,26 @@
                                 widget="statinfo"
                             />
                         </button>
+                        <button
+                            type="action"
+                            name="%(sync.sync_job_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-check-circle-o"
+                        >
+                            <field string="Jobs" name="job_count" widget="statinfo" />
+                        </button>
+                        <button
+                            type="action"
+                            name="%(sync.ir_logging_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                        >
+                            <field
+                                string="All Logs"
+                                name="log_count"
+                                widget="statinfo"
+                            />
+                        </button>
                         <!--
                         <button
                             type="action"

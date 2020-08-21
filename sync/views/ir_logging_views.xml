@@ -2,6 +2,40 @@
 <!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
+    <record id="ir_logging_view_tree" model="ir.ui.view">
+        <field name="name">ir.logging.tree</field>
+        <field name="model">ir.logging</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="create_date" />
+                <field name="level" />
+                <field name="message" />
+                <field name="sync_project_id" />
+                <field name="sync_task_id" />
+            </tree>
+        </field>
+    </record>
+    <record id="ir_logging_view_form" model="ir.ui.view">
+        <field name="name">ir.logging.form</field>
+        <field name="model">ir.logging</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="create_date" />
+                        <field name="create_uid" />
+                        <field name="sync_job_id" />
+                        <field name="sync_project_id" />
+                        <field name="sync_task_id" />
+                    </group>
+                    <group>
+                        <field name="level" />
+                    </group>
+                </group>
+                <field name="message" />
+            </form>
+        </field>
+    </record>
     <record id="ir_logging_action" model="ir.actions.act_window">
         <field name="name">Logs</field>
         <field name="res_model">ir.logging</field>
@@ -15,4 +49,29 @@
         action="ir_logging_action"
         sequence="10"
     />
+    <record id="ir_logging_action_from_project" model="ir.actions.act_window">
+        <field name="name">Project Logs</field>
+        <field name="res_model">ir.logging</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('sync_project_id', '=', active_id)]</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                                     (0, 0, {'view_mode': 'tree', 'view_id': ref('ir_logging_view_tree')}),
+                                     (0, 0, {'view_mode': 'form', 'view_id': ref('ir_logging_view_form')})]"
+        />
+    </record>
+    <record id="ir_logging_action_from_job" model="ir.actions.act_window">
+        <field name="name">Project Logs</field>
+        <field name="res_model">ir.logging</field>
+        <field name="view_mode">tree,form</field>
+        <!-- TODO: use search filters instead -->
+        <field name="domain">[('sync_job_id', '=', active_id)]</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                                     (0, 0, {'view_mode': 'tree', 'view_id': ref('ir_logging_view_tree')}),
+                                     (0, 0, {'view_mode': 'form', 'view_id': ref('ir_logging_view_form')})]"
+        />
+    </record>
 </odoo>

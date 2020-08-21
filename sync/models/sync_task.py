@@ -78,9 +78,9 @@ class SyncTask(models.Model):
             (r.active_button_ids - r.button_ids).write({"active": True})
             (r.button_ids - r.active_button_ids).write({"active": False})
 
-    def start(self, trigger, args=None, with_delay=False):
+    def start(self, trigger, args=None, with_delay=False, force=False):
         self.ensure_one()
-        if not self.active or not self.project_id.active:
+        if not force and not (self.active and self.project_id.active):
             return None
 
         job = self.env["sync.job"].create_trigger_job(trigger)

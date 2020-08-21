@@ -1,5 +1,74 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
+    <record id="sync_job_view_tree" model="ir.ui.view">
+        <field name="name">sync.job.tree</field>
+        <field name="model">sync.job</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="trigger_name" />
+                <field name="project_id" />
+                <field name="task_id" />
+            </tree>
+        </field>
+    </record>
+    <record id="sync_job_view_form" model="ir.ui.view">
+        <field name="name">sync.job.form</field>
+        <field name="model">sync.job</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            type="action"
+                            name="%(sync.ir_logging_action_from_job)d"
+                            class="oe_stat_button"
+                            icon="fa-tasks"
+                        >
+                            <field string="Logs" name="log_count" widget="statinfo" />
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="trigger_name" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id" />
+                            <field name="task_id" />
+                            <field name="queue_job_id" />
+                        </group>
+                        <group>
+                            <field name="trigger_cron_id" />
+                            <field name="trigger_automation_id" />
+                            <field name="trigger_webhook_id" />
+                            <field name="trigger_button_id" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Related Jobs">
+                            <group>
+                                <field name="parent_job_id" />
+                            </group>
+                            <separator string="Sub Jobs" />
+                            <field name="job_ids">
+                                <tree>
+                                    <field name="trigger_name" />
+                                    <field name="queue_job_id" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sync_job_action_from_project" model="ir.actions.act_window">
+        <field name="name">Project Jobs</field>
+        <field name="res_model">sync.job</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('sync_project_id', '=', active_id)]</field>
+    </record>
 </odoo>

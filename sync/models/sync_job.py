@@ -16,18 +16,27 @@ class SyncJob(models.Model):
 
     _name = "sync.job"
     _description = "Sync Job"
+    _rec_name = "trigger_name"
 
     trigger_name = fields.Char(compute="_compute_trigger_name")
-    trigger_cron_id = fields.Many2one("sync.trigger.cron")
-    trigger_automation_id = fields.Many2one("sync.trigger.automation")
-    trigger_webhook_id = fields.Many2one("sync.trigger.webhook")
-    trigger_button_id = fields.Many2one("sync.trigger.button")
+    trigger_cron_id = fields.Many2one("sync.trigger.cron", readonly=True)
+    trigger_automation_id = fields.Many2one("sync.trigger.automation", readonly=True)
+    trigger_webhook_id = fields.Many2one("sync.trigger.webhook", readonly=True)
+    trigger_button_id = fields.Many2one("sync.trigger.button", readonly=True)
     task_id = fields.Many2one("sync.task", compute="_compute_sync_task_id", store=True)
-    project_id = fields.Many2one("sync.project", related="task_id.project_id")
-    parent_job_id = fields.Many2one("sync.job")
-    job_ids = fields.Many2one("queue.job", "Sub jobs")
-    queue_job_id = fields.Many2one("queue.job")
-    log_ids = fields.One2many("ir.logging", "sync_job_id")
+    project_id = fields.Many2one(
+        "sync.project", related="task_id.project_id", readonly=True
+    )
+    parent_job_id = fields.Many2one("sync.job", readonly=True)
+    job_ids = fields.One2many("sync.job", "parent_job_id", "Sub jobs", readonly=True)
+    queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
+    log_ids = fields.One2many("ir.logging", "sync_job_id", readonly=True)
+    log_count = fields.Integer(compute="_compute_log_count")
+
+    @api.depends("log_ids")
+    def _compute_log_count(self):
+        for r in self:
+            r.log_count = len(r.log_ids)
 
     @api.depends("parent_job_id", *TRIGGER_FIELDS)
     def _compute_sync_task_id(self):
