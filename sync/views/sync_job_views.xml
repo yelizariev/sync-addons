@@ -70,6 +70,7 @@
                     <group attrs="{'invisible': [('queue_job_id', '=', False)]}">
                         <group>
                             <field name="queue_job_id" />
+                            <field name="func_string" />
                         </group>
                         <group colspan="4">
                             <div>

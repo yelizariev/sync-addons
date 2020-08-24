@@ -38,6 +38,7 @@ class SyncJob(models.Model):
     log_ids = fields.One2many("ir.logging", "sync_job_id", readonly=True)
     log_count = fields.Integer(compute="_compute_log_count")
     queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
+    func_string = fields.Char(related="queue_job_id.func_string", readonly=True)
     retry = fields.Integer(related="queue_job_id.retry", readonly=True)
     max_retries = fields.Integer(related="queue_job_id.max_retries", readonly=True)
     state = fields.Selection(

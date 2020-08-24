@@ -8,8 +8,9 @@ import time
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
+from odoo.tools.translate import _
 
-from ..tools import safe_eval_imports, test_python_expr_imports
+from ..tools import safe_eval_extra, test_python_expr_extra
 from .ir_logging import LOG_CRITICAL, LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_WARNING
 
 _logger = logging.getLogger(__name__)
@@ -129,7 +130,7 @@ class SyncProject(models.Model):
     @api.constrains("secret_code", "common_code")
     def _check_python_code(self):
         for r in self.sudo().filtered("secret_code"):
-            msg = test_python_expr_imports(
+            msg = test_python_expr_extra(
                 expr=(r.secret_code or "").strip(), mode="exec"
             )
             if msg:
@@ -212,6 +213,16 @@ class SyncProject(models.Model):
             # TODO
             log("{}: {}".format(recipient_str, data_str))
 
+        def safe_getattr(o, k, d=None):
+            if k.startswith("_"):
+                raise ValidationError(_("You cannot use %s with getattr") % k)
+            return getattr(o, k, d)
+
+        def safe_setattr(o, k, v):
+            if k.startswith("_"):
+                raise ValidationError(_("You cannot use %s with setattr") % k)
+            return setattr(o, k, v)
+
         # TODO: add links functions
         eval_context = {
             "env": self.env,
@@ -230,11 +241,13 @@ class SyncProject(models.Model):
             "call_async": call_async,
             "json": json,
             "UserError": UserError,
+            "getattr": safe_getattr,
+            "setattr": safe_setattr,
         }
         log("Reading project data: %05.3f sec" % (time.time() - start_time), LOG_DEBUG)
 
         start_time = time.time()
-        safe_eval_imports(
+        safe_eval_extra(
             self.secret_code_readonly, eval_context, mode="exec", nocopy=True
         )
         log(

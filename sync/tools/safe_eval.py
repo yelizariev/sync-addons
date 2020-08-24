@@ -27,7 +27,19 @@ from odoo.tools.safe_eval import _BUILTINS, _SAFE_OPCODES, test_expr
 
 _logger = logging.getLogger(__name__)
 
-_SAFE_OPCODES = _SAFE_OPCODES.union({opmap[x] for x in ["IMPORT_NAME", "IMPORT_FROM"]})
+_SAFE_OPCODES = _SAFE_OPCODES.union(
+    {
+        opmap[x]
+        for x in [
+            "IMPORT_NAME",
+            "IMPORT_FROM",
+            "LOAD_DEREF",
+            "STORE_DEREF",
+            "MAKE_CLOSURE",
+            "LOAD_CLOSURE",
+        ]
+    }
+)
 
 unsafe_eval = eval
 
@@ -35,7 +47,7 @@ _BUILTINS["__import__"] = __import__
 
 
 # The code below differs from origin by lint changes only
-def safe_eval_imports(
+def safe_eval_extra(
     expr,
     globals_dict=None,
     locals_dict=None,
@@ -120,7 +132,7 @@ def safe_eval_imports(
         )
 
 
-def test_python_expr_imports(expr, mode="eval"):
+def test_python_expr_extra(expr, mode="eval"):
     try:
         test_expr(expr, _SAFE_OPCODES, mode=mode)
     except (SyntaxError, TypeError, ValueError) as err:
