@@ -35,9 +35,11 @@ class SyncJob(models.Model):
     )
     parent_job_id = fields.Many2one("sync.job", readonly=True)
     job_ids = fields.One2many("sync.job", "parent_job_id", "Sub jobs", readonly=True)
-    queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
     log_ids = fields.One2many("ir.logging", "sync_job_id", readonly=True)
     log_count = fields.Integer(compute="_compute_log_count")
+    queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
+    retry = fields.Integer(related="queue_job_id.retry", readonly=True)
+    max_retries = fields.Integer(related="queue_job_id.max_retries", readonly=True)
     state = fields.Selection(
         [
             (PENDING, "Pending"),
@@ -49,6 +51,7 @@ class SyncJob(models.Model):
         ],
         compute="_compute_state",
     )
+    in_progress = fields.Boolean(compute="_compute_state",)
 
     @api.depends("queue_job_id", "job_ids.queue_job_id.state", "log_ids.level")
     def _compute_state(self):
@@ -72,6 +75,7 @@ class SyncJob(models.Model):
                 computed_state = DONE_WARNING
 
             r.state = computed_state
+            r.in_progress = any(s in [PENDING, ENQUEUED, STARTED] for s in states)
 
     @api.depends("log_ids")
     def _compute_log_count(self):
@@ -112,3 +116,7 @@ class SyncJob(models.Model):
 
     def create_trigger_job(self, trigger):
         return self.create({TRIGGER_MODEL2FIELD[trigger._name]: trigger.id})
+
+    def refresh_button(self):
+        # magic empty method to refresh form content
+        pass

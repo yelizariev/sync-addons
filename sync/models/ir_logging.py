@@ -18,3 +18,11 @@ class IrLogging(models.Model):
     sync_project_id = fields.Many2one(
         "sync.project", related="sync_job_id.task_id.project_id"
     )
+    message_short = fields.Text(compute="_compute_message_short")
+
+    def _compute_message_short(self):
+        for r in self:
+            message_short = "\n".join(r.message.split("\n")[:3])
+            if message_short != r.message:
+                message_short += "\n..."
+            r.message_short = message_short

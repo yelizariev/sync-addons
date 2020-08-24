@@ -29,3 +29,4 @@ class SyncTriggerWebhook(models.Model):
                 data_str = result
 
             httprequest.make_response(data_str, headers)
+        return True

@@ -119,7 +119,7 @@
                                 </tree>
                             </field>
                             <separator
-                                string="Buttons"
+                                string="Manual Triggers"
                                 context="{'active_test': False}"
                             />
                             <field name="button_ids">

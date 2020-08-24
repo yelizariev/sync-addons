@@ -1,11 +1,17 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
+import time
+import traceback
+from io import StringIO
+
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
 
 from odoo.addons.queue_job.job import job
+
+from .ir_logging import LOG_CRITICAL, LOG_DEBUG
 
 
 class SyncTask(models.Model):
@@ -85,23 +91,42 @@ class SyncTask(models.Model):
 
         job = self.env["sync.job"].create_trigger_job(trigger)
         run = self.with_delay().run if with_delay else self.run
-        if not with_delay:
+        if not with_delay and self.env.context.get("new_cursor_logs") is not False:
             # log records are created via new cursor and they use job.id value for sync_job_id field
             self.env.cr.commit()  # pylint: disable=invalid-commit
-        run(job, trigger._sync_handler, args)
+
+        queue_job_or_none = run(job, trigger._sync_handler, args)
+        if with_delay:
+            job.queue_job_id = queue_job_or_none.db_record()
 
         return job
 
     @job
     def run(self, job, function, args=None, kwargs=None):
-        eval_context = self.project_id._get_eval_context(job)
-
-        code = self.code.strip()
-        result = self._eval(code, function, args, eval_context)
-
-        job.post_handler(args, kwargs, result)
-
-        return job
+        log = self.project_id._get_log_function(job, function)
+        try:
+            eval_context = self.project_id._get_eval_context(job, log)
+            code = self.code.strip()
+            start_time = time.time()
+            result = self._eval(code, function, args, eval_context)
+            log(
+                "Executing {}: {:05.3f} sec".format(function, time.time() - start_time),
+                LOG_DEBUG,
+            )
+            start_time = time.time()
+            has_post_handler = job.post_handler(args, kwargs, result)
+            if has_post_handler:
+                log(
+                    "Executing _sync_post_handler: %05.3f sec"
+                    % (time.time() - start_time),
+                    LOG_DEBUG,
+                )
+            log("Job finished")
+        except Exception:
+            buff = StringIO()
+            traceback.print_exc(file=buff)
+            log(buff.getvalue(), LOG_CRITICAL)
+            raise
 
     @api.model
     def _eval(self, code, function, args, eval_context):

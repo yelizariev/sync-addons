@@ -3,6 +3,7 @@
 
 import json
 import logging
+import time
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -139,8 +140,7 @@ class SyncProject(models.Model):
             if msg:
                 raise ValidationError(msg)
 
-    def _get_eval_context(self, job):
-        """Executed Secret and Common codes and return "exported" variables and functions"""
+    def _get_log_function(self, job, function):
         self.ensure_one()
 
         def _log(cr, message, level):
@@ -158,7 +158,7 @@ class SyncProject(models.Model):
                     message,
                     "sync.job",
                     job.id,
-                    job.trigger_name,
+                    function,
                     job.id,
                 ),
             )
@@ -169,6 +169,14 @@ class SyncProject(models.Model):
 
             with self.env.registry.cursor() as cr:
                 return _log(cr, message, level)
+
+        return log
+
+    def _get_eval_context(self, job, log):
+        """Executed Secret and Common codes and return "exported" variables and functions"""
+        self.ensure_one()
+        log("Job started", LOG_DEBUG)
+        start_time = time.time()
 
         def call_async(function, **options):
             if callable(function):
@@ -183,7 +191,7 @@ class SyncProject(models.Model):
                 log(
                     "call_async: %s(*%s, **%s). See %s"
                     % (function, args, kwargs, sub_job),
-                    level=LOG_DEBUG,
+                    level=LOG_INFO,
                 )
 
             return f
@@ -223,16 +231,24 @@ class SyncProject(models.Model):
             "json": json,
             "UserError": UserError,
         }
+        log("Reading project data: %05.3f sec" % (time.time() - start_time), LOG_DEBUG)
 
+        start_time = time.time()
         safe_eval_imports(
             self.secret_code_readonly, eval_context, mode="exec", nocopy=True
+        )
+        log(
+            "Executing Protected Code: %05.3f sec" % (time.time() - start_time),
+            LOG_DEBUG,
         )
         del eval_context["secrets"]
         cleanup_eval_context(eval_context)
 
+        start_time = time.time()
         safe_eval(
             (self.common_code or "").strip(), eval_context, mode="exec", nocopy=True
         )
+        log("Executing Common Code: %05.3f sec" % (time.time() - start_time), LOG_DEBUG)
         cleanup_eval_context(eval_context)
         return eval_context
 

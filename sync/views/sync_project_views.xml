@@ -204,7 +204,7 @@
                                 options="{'mode': 'python'}"
                             />
                         </page>
-                        <page name="buttons" string="Buttons">
+                        <page name="buttons" string="Manual Triggers">
                             <field name="trigger_button_ids">
                                 <tree create="0">
                                     <field name="sync_task_id" />

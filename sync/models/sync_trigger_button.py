@@ -27,5 +27,5 @@ class SyncTriggerButton(models.Model):
             "view_mode": "form",
             "res_model": "sync.job",
             "res_id": job.id,
-            "target": "new",
+            "target": "self",
         }
