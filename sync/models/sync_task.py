@@ -108,7 +108,7 @@ class SyncTask(models.Model):
             eval_context = self.project_id._get_eval_context(job, log)
             code = self.code.strip()
             start_time = time.time()
-            result = self._eval(code, function, args, eval_context)
+            result = self._eval(code, function, args, kwargs, eval_context)
             log(
                 "Executing {}: {:05.3f} sec".format(function, time.time() - start_time),
                 LOG_DEBUG,
@@ -129,17 +129,19 @@ class SyncTask(models.Model):
             raise
 
     @api.model
-    def _eval(self, code, function, args, eval_context):
+    def _eval(self, code, function, args, kwargs, eval_context):
         ARGS = "EXECUTION_ARGS_"
+        KWARGS = "EXECUTION_KWARGS_"
         RESULT = "EXECUTION_RESULT_"
 
         code += """
-{RESULT} = {function}(*{ARGS})
+{RESULT} = {function}(*{ARGS}, **{KWARGS})
         """.format(
-            RESULT=RESULT, function=function, ARGS=ARGS
+            RESULT=RESULT, function=function, ARGS=ARGS, KWARGS=KWARGS
         )
 
         eval_context[ARGS] = args or ()
+        eval_context[KWARGS] = kwargs or {}
 
         safe_eval(
             code, eval_context, mode="exec", nocopy=True

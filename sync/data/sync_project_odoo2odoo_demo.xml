@@ -14,11 +14,11 @@ def _odoo_execute_kw(secrets):
         raise UserError("External Odoo Credentials are not set")
 
     def f(model, method, *args, **kwargs):
-        log_transmission("%s::%s" % (params.URL, params.DB), json.dumps([method, args, kwargs]))
+        log_transmission("XMLRPC DB=%s URL=%s" % (params.DB, params.URL), json.dumps([method, args, kwargs]))
         try:
             common = _client.ServerProxy('{}/xmlrpc/2/common'.format(params.URL))
             uid = common.authenticate(params.DB, secrets.USERNAME, secrets.PASSWORD, {})
-            models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(params.URL))
+            models = _client.ServerProxy('{}/xmlrpc/2/object'.format(params.URL))
         except OSError:
             raise RetryableJobError("Error on connecting to external Odoo")
         res = models.execute_kw(params.DB, uid, secrets.PASSWORD, model, method, args, kwargs)
@@ -86,9 +86,11 @@ def parse_date(s):
 def create_external_partners(partners, name_prefix=""):
     for partner in partners:
         vals = partner2vals(partner)
-        vals["name"] = name_prefix + vals["name"]
+        if name_prefix:
+            vals["name"] = name_prefix + " " + vals["name"]
         external_partner_id = odoo_execute_kw("res.partner", "create", vals)
-        date_update = odoo_execute_kw("res.partner", "read", [external_partner_id], fields=["create_date"])
+        res = odoo_execute_kw("res.partner", "read", [external_partner_id], fields=["create_date"])
+        date_update = res[0]["create_date"]
         partner.set_link(PARTNER_REL, external_partner_id, date_update)
 
 def handle_db(records):
@@ -98,6 +100,9 @@ def handle_db(records):
 def handle_button():
     chunk = None
     CHUNK_SIZE = 10
+    def process_chunk(chunk):
+        call_async("create_external_partners")(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
+
     for r in env["res.partner"].search([]):
         # check that record is not created yet
         link = r.search_links(PARTNER_REL)
@@ -110,8 +115,10 @@ def handle_button():
         else:
             chunk |= r
         if len(chunk) == CHUNK_SIZE:
-            call_async("create_external_partners")(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
+            process_chunk(chunk)
             chunk = None
+    if chunk:
+        process_chunk(chunk)
 ]]>
         </field>
     </record>

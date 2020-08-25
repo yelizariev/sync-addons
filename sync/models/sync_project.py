@@ -213,8 +213,7 @@ class SyncProject(models.Model):
             webhooks[w.trigger_name] = w.website_url
 
         def log_transmission(recipient_str, data_str):
-            # TODO
-            log("{}: {}".format(recipient_str, data_str))
+            log("{}:\n{}".format(recipient_str, data_str), name="Data Transmission")
 
         def safe_getattr(o, k, d=None):
             if k.startswith("_"):
