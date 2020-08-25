@@ -22,7 +22,7 @@
                 <header>
                     <button
                         name="refresh_button"
-                        string="Refresh"
+                        string="Refresh Form"
                         type="object"
                         attrs="{'invisible': [('in_progress', '=', False)]}"
                     />
@@ -76,14 +76,15 @@
                             <div>
                                 <label
                                     for="retry"
-                                    string="Current try / max. retries"
+                                    string="Current automatic try / max. retries"
                                 />
                                 <field name="retry" class="oe_inline" />
                                 /
                                 <field name="max_retries" class="oe_inline" />
                                 <span class="oe_grey oe_inline">
-                                    If the max. retries is 0, the number of retries is
-                                    infinite.
+                                    The job is restarted only if code raises
+                                    <code>RetryableJobError</code>
+                                    exception.
                                 </span>
                             </div>
                         </group>

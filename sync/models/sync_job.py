@@ -2,6 +2,7 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 from odoo import api, fields, models
+from odoo.tools.translate import _
 
 from odoo.addons.queue_job.job import DONE, ENQUEUED, FAILED, PENDING, STARTED
 
@@ -40,7 +41,7 @@ class SyncJob(models.Model):
     queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
     func_string = fields.Char(related="queue_job_id.func_string", readonly=True)
     retry = fields.Integer(related="queue_job_id.retry", readonly=True)
-    max_retries = fields.Integer(related="queue_job_id.max_retries", readonly=True)
+    max_retries_str = fields.Char(compute="_compute_max_retries_str")
     state = fields.Selection(
         [
             (PENDING, "Pending"),
@@ -53,6 +54,15 @@ class SyncJob(models.Model):
         compute="_compute_state",
     )
     in_progress = fields.Boolean(compute="_compute_state",)
+
+    @api.depends("queue_job_id.max_retries")
+    def _compute_max_retries_str(self):
+        for r in self:
+            max_retries = r.queue_job_id.max_retries
+            if not max_retries:
+                r.max_retries_str = _("infinity")
+            else:
+                r.max_retries_str = str(max_retries)
 
     @api.depends("queue_job_id", "job_ids.queue_job_id.state", "log_ids.level")
     def _compute_state(self):

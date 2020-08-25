@@ -281,6 +281,7 @@ Exceptions
 
 * ``UserError``
 * ``ValidationError``
+* ``RetryableJobError``: raise to restart job from beginning; e.g. in case of temporarly errors like broken connection
 
 Running Job
 ===========
