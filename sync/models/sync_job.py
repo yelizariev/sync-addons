@@ -39,7 +39,12 @@ class SyncJob(models.Model):
     log_ids = fields.One2many("ir.logging", "sync_job_id", readonly=True)
     log_count = fields.Integer(compute="_compute_log_count")
     queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True)
-    func_string = fields.Char(related="queue_job_id.func_string", readonly=True)
+    queue_job_state = fields.Selection(
+        related="queue_job_id.state", readonly=True, string="Queue Job State"
+    )
+    func_string = fields.Char(
+        related="queue_job_id.func_string", readonly=True, string="Function"
+    )
     retry = fields.Integer(related="queue_job_id.retry", readonly=True)
     max_retries_str = fields.Char(compute="_compute_max_retries_str")
     state = fields.Selection(
@@ -131,3 +136,6 @@ class SyncJob(models.Model):
     def refresh_button(self):
         # magic empty method to refresh form content
         pass
+
+    def requeue_button(self):
+        self.queue_job_id.requeue()

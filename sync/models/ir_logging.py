@@ -9,6 +9,9 @@ LOG_WARNING = "warning"
 LOG_ERROR = "error"
 LOG_CRITICAL = "critical"
 
+SHORT_MESSAGE_LINES = 5
+SHORT_MESSAGE_CHARS = 100
+
 
 class IrLogging(models.Model):
     _inherit = "ir.logging"
@@ -18,11 +21,19 @@ class IrLogging(models.Model):
     sync_project_id = fields.Many2one(
         "sync.project", related="sync_job_id.task_id.project_id"
     )
-    message_short = fields.Text(compute="_compute_message_short")
+    message_short = fields.Text(string="Message...", compute="_compute_message_short")
 
     def _compute_message_short(self):
         for r in self:
-            message_short = "\n".join(r.message.split("\n")[:3])
-            if message_short != r.message:
+            lines = r.message.split("\n")
+            message_short = "\n".join(
+                [
+                    line[:SHORT_MESSAGE_CHARS] + "..."
+                    if len(line) > SHORT_MESSAGE_CHARS
+                    else line
+                    for line in lines[:SHORT_MESSAGE_LINES]
+                ]
+            )
+            if len(lines) > SHORT_MESSAGE_LINES:
                 message_short += "\n..."
             r.message_short = message_short

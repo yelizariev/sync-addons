@@ -27,6 +27,15 @@
                         attrs="{'invisible': [('in_progress', '=', False)]}"
                     />
                     <field name="in_progress" invisible="1" />
+                    <button
+                        name="requeue_button"
+                        string="Restart Failed Job"
+                        type="object"
+                        class="oe_highlight"
+                        groups="sync.sync_group_dev"
+                        attrs="{'invisible': [('queue_job_state', '!=', 'failed')]}"
+                    />
+                    <field name="queue_job_state" invisible="1" />
                     <field
                         name="state"
                         widget="statusbar"
@@ -74,17 +83,15 @@
                         </group>
                         <group colspan="4">
                             <div>
-                                <label
-                                    for="retry"
-                                    string="Current automatic try / max. retries"
-                                />
+                                <label for="retry" string="Starts:" />
                                 <field name="retry" class="oe_inline" />
                                 /
-                                <field name="max_retries" class="oe_inline" />
+                                <field name="max_retries_str" class="oe_inline" />
                                 <span class="oe_grey oe_inline">
                                     The job is restarted only if code raises
                                     <code>RetryableJobError</code>
-                                    exception.
+                                    exception. On
+                                    manual restarting the counter is reset.
                                 </span>
                             </div>
                         </group>
