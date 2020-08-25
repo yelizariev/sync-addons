@@ -10,10 +10,13 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
 from odoo.tools.translate import _
 
+from odoo.addons.queue_job.exception import RetryableJobError
+
 from ..tools import safe_eval_extra, test_python_expr_extra
 from .ir_logging import LOG_CRITICAL, LOG_DEBUG, LOG_ERROR, LOG_INFO, LOG_WARNING
 
 _logger = logging.getLogger(__name__)
+DEFAULT_LOG_NAME = "Sync Studio Log"
 
 
 def cleanup_eval_context(eval_context):
@@ -144,7 +147,7 @@ class SyncProject(models.Model):
     def _get_log_function(self, job, function):
         self.ensure_one()
 
-        def _log(cr, message, level):
+        def _log(cr, message, level, name):
             cr.execute(
                 """
                 INSERT INTO ir_logging(create_date, create_uid, type, dbname, name, level, message, path, line, func, sync_job_id)
@@ -154,7 +157,7 @@ class SyncProject(models.Model):
                     self.env.uid,
                     "server",
                     self._cr.dbname,
-                    "Sync Studio Log",
+                    name,
                     level,
                     message,
                     "sync.job",
@@ -164,12 +167,12 @@ class SyncProject(models.Model):
                 ),
             )
 
-        def log(message, level=LOG_INFO):
+        def log(message, level=LOG_INFO, name=DEFAULT_LOG_NAME):
             if self.env.context.get("new_cursor_logs") is False:
-                return _log(self.env.cr, message, level)
+                return _log(self.env.cr, message, level, name)
 
             with self.env.registry.cursor() as cr:
-                return _log(cr, message, level)
+                return _log(cr, message, level, name)
 
         return log
 
@@ -241,6 +244,9 @@ class SyncProject(models.Model):
             "call_async": call_async,
             "json": json,
             "UserError": UserError,
+            "ValidationError": ValidationError,
+            "OSError": OSError,
+            "RetryableJobError": RetryableJobError,
             "getattr": safe_getattr,
             "setattr": safe_setattr,
         }
