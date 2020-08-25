@@ -218,9 +218,9 @@ def fetch_github_issues(page=0):
     # split issues into chunks
     for TODO in TODO:
         chunk = TODO
-        call_async("process_github_issues")(chunk)
+        add_job("process_github_issues")(chunk)
     # fetch next page
-    call_async("fetch_github_issues")(page+1)
+    add_job("fetch_github_issues")(page+1)
 
 def process_github_issues():
     # Should be similar to process a single issue (see handle_webhook)

@@ -182,7 +182,7 @@ class SyncProject(models.Model):
         log("Job started", LOG_DEBUG)
         start_time = time.time()
 
-        def call_async(function, **options):
+        def add_job(function, **options):
             if callable(function):
                 function = function.__name__
 
@@ -193,7 +193,7 @@ class SyncProject(models.Model):
                 )
                 sub_job.queue_job_id = queue_job.db_record()
                 log(
-                    "call_async: %s(*%s, **%s). See %s"
+                    "add_job: %s(*%s, **%s). See %s"
                     % (function, args, kwargs, sub_job),
                     level=LOG_INFO,
                 )
@@ -240,7 +240,7 @@ class SyncProject(models.Model):
             "webhooks": webhooks,
             "user": self.env.user,
             "trigger_name": job.trigger_name,
-            "call_async": call_async,
+            "add_job": add_job,
             "json": json,
             "UserError": UserError,
             "ValidationError": ValidationError,

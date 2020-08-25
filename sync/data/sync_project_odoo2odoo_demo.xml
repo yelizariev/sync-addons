@@ -101,7 +101,7 @@ def handle_button():
     chunk = None
     CHUNK_SIZE = 10
     def process_chunk(chunk):
-        call_async("create_external_partners")(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
+        add_job("create_external_partners")(chunk, name_prefix=params.UPLOAD_ALL_PARTNER_PREFIX)
 
     for r in env["res.partner"].search([]):
         # check that record is not created yet
