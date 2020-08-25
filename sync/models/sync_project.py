@@ -1,15 +1,20 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
+import base64
+import datetime
 import json
 import logging
 import time
+
+from pytz import timezone
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval, test_python_expr
 from odoo.tools.translate import _
 
+from odoo.addons.base.models.ir_actions import dateutil
 from odoo.addons.queue_job.exception import RetryableJobError
 
 from ..tools import safe_eval_extra, test_python_expr_extra
@@ -225,40 +230,45 @@ class SyncProject(models.Model):
                 raise ValidationError(_("You cannot use %s with setattr") % k)
             return setattr(o, k, v)
 
-        # TODO: add links functions
-        eval_context = {
-            "env": self.env,
-            "log": log,
-            "log_transmission": log_transmission,
-            "LOG_DEBUG": LOG_DEBUG,
-            "LOG_INFO": LOG_INFO,
-            "LOG_WARNING": LOG_WARNING,
-            "LOG_ERROR": LOG_ERROR,
-            "LOG_CRITICAL": LOG_CRITICAL,
-            "params": params,
-            "secrets": secrets,
-            "webhooks": webhooks,
-            "user": self.env.user,
-            "trigger_name": job.trigger_name,
-            "add_job": add_job,
-            "json": json,
-            "UserError": UserError,
-            "ValidationError": ValidationError,
-            "OSError": OSError,
-            "RetryableJobError": RetryableJobError,
-            "getattr": safe_getattr,
-            "setattr": safe_setattr,
-        }
-        log("Reading project data: %05.3f sec" % (time.time() - start_time), LOG_DEBUG)
+        eval_context = dict(
+            **self.env["sync.link"]._get_eval_context(),
+            **{
+                "env": self.env,
+                "log": log,
+                "log_transmission": log_transmission,
+                "LOG_DEBUG": LOG_DEBUG,
+                "LOG_INFO": LOG_INFO,
+                "LOG_WARNING": LOG_WARNING,
+                "LOG_ERROR": LOG_ERROR,
+                "LOG_CRITICAL": LOG_CRITICAL,
+                "params": params,
+                "secrets": secrets,
+                "webhooks": webhooks,
+                "user": self.env.user,
+                "trigger_name": job.trigger_name,
+                "add_job": add_job,
+                "json": json,
+                "UserError": UserError,
+                "ValidationError": ValidationError,
+                "OSError": OSError,
+                "RetryableJobError": RetryableJobError,
+                "getattr": safe_getattr,
+                "setattr": safe_setattr,
+                "time": time,
+                "datetime": datetime,
+                "dateutil": dateutil,
+                "timezone": timezone,
+                "b64encode": base64.b64encode,
+                "b64decode": base64.b64decode,
+            }
+        )
+        reading_time = time.time() - start_time
 
         start_time = time.time()
         safe_eval_extra(
             self.secret_code_readonly, eval_context, mode="exec", nocopy=True
         )
-        log(
-            "Executing Protected Code: %05.3f sec" % (time.time() - start_time),
-            LOG_DEBUG,
-        )
+        executing_secret_code = time.time() - start_time
         del eval_context["secrets"]
         cleanup_eval_context(eval_context)
 
@@ -266,7 +276,12 @@ class SyncProject(models.Model):
         safe_eval(
             (self.common_code or "").strip(), eval_context, mode="exec", nocopy=True
         )
-        log("Executing Common Code: %05.3f sec" % (time.time() - start_time), LOG_DEBUG)
+        executing_common_code = time.time() - start_time
+        log(
+            "Evalution context is prepared. Reading project data: %05.3f sec; Executing secret code: %05.3f sec; Executing Common Code: %05.3f sec"
+            % (reading_time, executing_secret_code, executing_common_code),
+            LOG_DEBUG,
+        )
         cleanup_eval_context(eval_context)
         return eval_context
 

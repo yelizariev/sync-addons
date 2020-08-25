@@ -17,7 +17,7 @@ def generate_ref():
 class TestLink(TransactionCase):
     def setUp(self):
         super(TestLink, self).setUp()
-        funcs = self.env["ir.actions.server"]._get_links_functions()
+        funcs = self.env["sync.link"]._get_eval_context()
         self.get_link = funcs["get_link"]
         self.set_link = funcs["set_link"]
         self.search_links = funcs["search_links"]

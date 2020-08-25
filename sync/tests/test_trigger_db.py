@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 class TestTriggerDB(TransactionCase):
     def setUp(self):
         super(TestTriggerDB, self).setUp()
-        funcs = self.env["ir.actions.server"]._get_links_functions()
+        funcs = self.env["sync.link"]._get_eval_context()
         self.get_link = funcs["get_link"]
 
     def test_trigger_db(self):

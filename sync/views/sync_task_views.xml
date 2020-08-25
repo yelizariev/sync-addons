@@ -35,6 +35,22 @@
                                 options='{"terminology": "archive"}'
                             />
                         </button>
+                        <button
+                            type="action"
+                            name="%(sync.sync_job_action_from_task)d"
+                            class="oe_stat_button"
+                            icon="fa-check-circle-o"
+                        >
+                            <field string="Jobs" name="job_count" widget="statinfo" />
+                        </button>
+                        <button
+                            type="action"
+                            name="%(sync.ir_logging_action_from_task)d"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                        >
+                            <field string="Logs" name="log_count" widget="statinfo" />
+                        </button>
                     </div>
                     <!-- Uncomment in Odoo 13
                     <widget name="web_ribbon" text="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>

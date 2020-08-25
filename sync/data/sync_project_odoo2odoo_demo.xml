@@ -28,6 +28,7 @@ def _odoo_execute_kw(secrets):
 
 odoo_execute_kw = _odoo_execute_kw(secrets)
 
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 ]]>
         </field>
         <field name="common_code">
@@ -44,7 +45,7 @@ def partner2vals(partner):
     return res
 
 def parse_date(s):
-    raise NotImplementedError(s)
+    return datetime.datetime.strptime(s, DEFAULT_SERVER_DATETIME_FORMAT)
 ]]>
         </field>
     </record>
@@ -90,8 +91,8 @@ def create_external_partners(partners, name_prefix=""):
             vals["name"] = name_prefix + " " + vals["name"]
         external_partner_id = odoo_execute_kw("res.partner", "create", vals)
         res = odoo_execute_kw("res.partner", "read", [external_partner_id], fields=["create_date"])
-        date_update = res[0]["create_date"]
-        partner.set_link(PARTNER_REL, external_partner_id, date_update)
+        sync_date = res[0]["create_date"]
+        partner.set_link(PARTNER_REL, external_partner_id, sync_date)
 
 def handle_db(records):
     # records are instances of created res.partner
@@ -127,7 +128,7 @@ def handle_button():
         <field name="project_id" ref="sync.odoo2odoo_project" />
         <field name="code">
 <![CDATA[
-def handle_cron(records):
+def handle_cron():
     links = env["res.partner"].search([]).search_links(PARTNER_REL)
     if not links:
         log("Cron: there are no associated partners")
@@ -135,15 +136,16 @@ def handle_cron(records):
     external_partners = odoo_execute_kw(
         "res.partner",
         "search_read",
-        [["id", "in", links.external], ["write_date", ">", links.sync_date]],
+        [["id", "in", links.external], ["write_date", ">", links.sync_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)]],
         fields=["write_date", IMAGE_FIELD]
     )
     for ep in external_partners:
-        link = get_link(PARTNER,  ep["id"])
+        link = get_link(PARTNER_REL,  ep["id"])
         p = link.odoo
-        if parse_date(ep["write_date"]) > link.sync_date:
+        sync_date = parse_date(ep["write_date"])
+        if sync_date > link.sync_date:
             p.write({IMAGE_FIELD: ep[IMAGE_FIELD]})
-            link.update(date_update)
+            link.update_links(sync_date)
 ]]>
         </field>
     </record>

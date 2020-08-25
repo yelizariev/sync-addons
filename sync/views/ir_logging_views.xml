@@ -95,8 +95,20 @@
                                      (0, 0, {'view_mode': 'form', 'view_id': ref('ir_logging_view_form')})]"
         />
     </record>
+    <record id="ir_logging_action_from_task" model="ir.actions.act_window">
+        <field name="name">Task Logs</field>
+        <field name="res_model">ir.logging</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('sync_task_id', '=', active_id)]</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                                     (0, 0, {'view_mode': 'tree', 'view_id': ref('ir_logging_view_tree')}),
+                                     (0, 0, {'view_mode': 'form', 'view_id': ref('ir_logging_view_form')})]"
+        />
+    </record>
     <record id="ir_logging_action_from_job" model="ir.actions.act_window">
-        <field name="name">Project Logs</field>
+        <field name="name">Job Logs</field>
         <field name="res_model">ir.logging</field>
         <field name="view_mode">tree,form</field>
         <!-- TODO: use search filters instead -->

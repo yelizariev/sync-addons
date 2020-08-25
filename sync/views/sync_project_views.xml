@@ -210,7 +210,7 @@
                                     <field name="sync_task_id" />
                                     <field name="trigger_name" />
                                     <button
-                                        name="run"
+                                        name="start_button"
                                         string="Run Now"
                                         class="oe_highlight"
                                         type="object"

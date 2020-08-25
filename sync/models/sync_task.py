@@ -55,6 +55,20 @@ class SyncTask(models.Model):
         inverse="_inverse_active_triggers",
         context={"active_test": False},
     )
+    job_ids = fields.One2many("sync.job", "task_id")
+    job_count = fields.Integer(compute="_compute_job_count")
+    log_ids = fields.One2many("ir.logging", "sync_task_id")
+    log_count = fields.Integer(compute="_compute_log_count")
+
+    @api.depends("job_ids")
+    def _compute_job_count(self):
+        for r in self:
+            r.job_count = len(r.job_ids)
+
+    @api.depends("log_ids")
+    def _compute_log_count(self):
+        for r in self:
+            r.log_count = len(r.log_ids)
 
     @api.constrains("code")
     def _check_python_code(self):

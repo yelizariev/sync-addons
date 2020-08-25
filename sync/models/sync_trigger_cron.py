@@ -4,6 +4,8 @@
 from odoo import api, fields, models
 from odoo.tools.translate import _
 
+from ..hooks import MODULE
+
 
 class SyncTriggerCron(models.Model):
 
@@ -20,7 +22,42 @@ class SyncTriggerCron(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             vals.setdefault("name", vals.get("trigger_name", "Sync"))
-        return super(SyncTriggerCron, self).create(vals_list)
+        records = super(SyncTriggerCron, self).create(vals_list)
+        for r in records:
+            r.code = r.get_code()
+            # create ir.model.data record to safely remove base.automation records on module uninstallation
+            self.env["ir.model.data"].create(
+                {
+                    "module": MODULE,
+                    "model": "ir.cron",
+                    "res_id": r.cron_id.id,
+                    "name": "_auto__ir_cron_%s" % r.cron_id.id,
+                }
+            )
+        return records
+
+    def start_button(self):
+        job = self.start(force=True)
+        return {
+            "name": "Job triggered by clicking Button",
+            "type": "ir.actions.act_window",
+            "view_type": "form",
+            "view_mode": "form",
+            "res_model": "sync.job",
+            "res_id": job.id,
+            "target": "self",
+        }
+
+    def start(self, force=False):
+        return self.sync_task_id.start(self, with_delay=True, force=force)
+
+    def get_code(self):
+        return (
+            """
+env["sync.trigger.cron"].browse(%s).start()
+"""
+            % self.id
+        )
 
     def name_get(self):
         result = []

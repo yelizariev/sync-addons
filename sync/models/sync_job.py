@@ -69,7 +69,7 @@ class SyncJob(models.Model):
             else:
                 r.max_retries_str = str(max_retries)
 
-    @api.depends("queue_job_id", "job_ids.queue_job_id.state", "log_ids.level")
+    @api.depends("queue_job_id.state", "job_ids.queue_job_id.state", "log_ids.level")
     def _compute_state(self):
         for r in self:
             jobs = r + r.job_ids
@@ -78,7 +78,7 @@ class SyncJob(models.Model):
             computed_state = DONE
             has_errors = any(lev in [LOG_CRITICAL, LOG_ERROR] for lev in levels)
             has_warnings = any(lev == LOG_WARNING for lev in levels)
-            if jobs:
+            if r.job_ids:
                 for s in [FAILED, STARTED, ENQUEUED, PENDING]:
                     if any(s == ss for ss in states):
                         computed_state = s

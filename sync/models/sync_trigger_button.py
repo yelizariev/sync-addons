@@ -18,7 +18,7 @@ class SyncTriggerButton(models.Model):
     )
     active = fields.Boolean(default=True)
 
-    def run(self):
+    def start_button(self):
         job = self.sync_task_id.start(self, force=True)
         return {
             "name": "Job triggered by clicking Button",

@@ -275,6 +275,12 @@ Libs
 ~~~~
 
 * ``json``
+* ``time``
+* ``datetime``
+* ``dateutil``
+* ``timezone``
+* ``b64encode``
+* ``b64decode``
 
 Exceptions
 ~~~~~~~~~~
@@ -295,13 +301,13 @@ Depending on Trigger, a job may:
 Cron
 ----
 
-* job is added to queue only if previous job has finished
+* job is added to the queue before run
 * failed job can be retried if failed
 
 DB
 --
 
-* job is always added to the queue before run
+* job is added to the queue before run
 * failed job can be retried if failed
 
 Webhook

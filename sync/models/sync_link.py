@@ -203,3 +203,26 @@ class SyncLink(models.Model):
 
     def __xor__(self, other):
         return (self | other) - (self & other)
+
+    @api.model
+    def _get_eval_context(self):
+        env = self.env
+
+        def set_link(rel, external_refs, sync_date=None, allow_many2many=False):
+            # Works for external links only
+            return env["sync.link"]._set_link_external(
+                rel, external_refs, sync_date, allow_many2many
+            )
+
+        def search_links(rel, external_refs):
+            # Works for external links only
+            return env["sync.link"]._search_links_external(rel, external_refs)
+
+        def get_link(rel, ref_info):
+            return env["sync.link"]._get_link(rel, ref_info)
+
+        return {
+            "set_link": set_link,
+            "search_links": search_links,
+            "get_link": get_link,
+        }

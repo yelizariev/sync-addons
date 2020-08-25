@@ -23,7 +23,30 @@
         <field name="model">sync.trigger.cron</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button
+                        name="start_button"
+                        type="object"
+                        string="Run Manually"
+                        class="oe_highlight"
+                        attrs="{'invisible': [('active', '=', False)]}"
+                    />
+                </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="toggle_active"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-archive"
+                        >
+                            <field
+                                name="active"
+                                widget="boolean_button"
+                                options='{"terminology": "archive"}'
+                            />
+                        </button>
+                    </div>
                     <group>
                         <field name="trigger_name" />
                         <label for="interval_number" string="Execute Every" />

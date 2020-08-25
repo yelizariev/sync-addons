@@ -6,9 +6,14 @@
         <field name="name">sync.job.tree</field>
         <field name="model">sync.job</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree
+                decoration-danger="state == 'failed'"
+                decoration-success="state == 'done'"
+                decoration-warning="state == 'done_warning'"
+            >
                 <field name="create_date" />
                 <field name="trigger_name" />
+                <field name="state" />
                 <field name="project_id" />
                 <field name="task_id" />
             </tree>
@@ -147,6 +152,12 @@
         <field name="res_model">sync.job</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('project_id', '=', active_id)]</field>
+    </record>
+    <record id="sync_job_action_from_task" model="ir.actions.act_window">
+        <field name="name">Task Jobs</field>
+        <field name="res_model">sync.job</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('task_id', '=', active_id)]</field>
     </record>
     <record id="sync_job_action" model="ir.actions.act_window">
         <field name="name">Jobs</field>
