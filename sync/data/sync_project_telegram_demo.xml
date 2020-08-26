@@ -4,6 +4,7 @@
 <odoo>
     <record id="telegram_project" model="sync.project">
         <field name="name">Demo Telegram Integration</field>
+        <field name="active" eval="False" />
         <field name="secret_code">
 <![CDATA[
 from odoo.tools import html2plaintext
@@ -66,9 +67,10 @@ def html_sanitize_telegram(html):
     </record>
     <record id="telegram_project_secret" model="sync.project.secret">
         <field name="key">TELEGRAM_BOT_TOKEN</field>
-        <field name="description">
-            Authentication token provided by https://t.me/BotFather
-        </field>
+        <field
+            name="description"
+            eval="'Authentication token provided by https://t.me/BotFather'"
+        />
         <field name="project_id" ref="sync.telegram_project" />
     </record>
     <!-- telegram: task setup -->
@@ -141,7 +143,7 @@ def handle_db(records):
         <field name="trigger_name">TELEGRAM</field>
     </record>
     <record id="telegram_trigger_automation" model="sync.trigger.automation">
-        <field name="name">On new message posted</field>
+        <field name="trigger_name">ON_MESSAGE_POSTED</field>
         <field name="sync_task_id" ref="sync.telegram_task_main" />
         <field name="model_id" ref="mail.model_mail_message" />
         <field name="trigger">on_create</field>

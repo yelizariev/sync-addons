@@ -387,6 +387,7 @@ In Odoo:
 
   * TELEGRAM_BOT_TOKEN
 
+* Unarchive project
 * Select task *Setup*
 * Select Button Trigger *Setup webhook*
 * Click button ``[Run Now]``
