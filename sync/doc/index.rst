@@ -298,6 +298,14 @@ Depending on Trigger, a job may:
 * be added to a queue or runs immediatly
 * be retried in case of failure
 
+  * if ``RetryableJobError`` is raised, then job is retried automatically in following scheme:
+
+    * After first failure wait 5 minute
+    * If it's not succedded again, then wait another 15 minutes
+    * If it's not succedded again, then wait another 60 minutes
+    * If it's not succedded again, then wait another 3 hours
+    * Try again for the fifth time and stop retrying if it's still failing
+
 Cron
 ----
 
@@ -320,7 +328,7 @@ Button
 ------
 
 * runs immediatly
-* failed job can be retried if failed, though it's same as new button click
+* to retry click the button again
 
 Execution Logs
 ==============

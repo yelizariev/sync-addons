@@ -68,13 +68,6 @@ class SyncProject(models.Model):
     secret_ids = fields.One2many("sync.project.secret", "project_id")
     task_ids = fields.One2many("sync.task", "project_id")
     task_count = fields.Integer(compute="_compute_task_count")
-    active_task_ids = fields.Many2many(
-        "sync.task",
-        string="Enabled Tasks",
-        compute="_compute_active_task_ids",
-        inverse="_inverse_active_task_ids",
-        context={"active_test": False},
-    )
     trigger_cron_count = fields.Integer(
         compute="_compute_triggers", help="Enabled Crons"
     )
@@ -85,10 +78,10 @@ class SyncProject(models.Model):
         compute="_compute_triggers", help="Enabled Webhooks"
     )
     trigger_button_count = fields.Integer(
-        compute="_compute_triggers", help="Enabled Buttons"
+        compute="_compute_triggers", help="Manual Triggers"
     )
     trigger_button_ids = fields.Many2many(
-        "sync.trigger.button", compute="_compute_triggers"
+        "sync.trigger.button", compute="_compute_triggers", string="Manual Triggers"
     )
     job_ids = fields.One2many("sync.job", "project_id")
     job_count = fields.Integer(compute="_compute_job_count")
@@ -125,15 +118,6 @@ class SyncProject(models.Model):
             r.trigger_webhook_count = len(r.mapped("task_ids.webhook_ids"))
             r.trigger_button_count = len(r.mapped("task_ids.button_ids"))
             r.trigger_button_ids = r.mapped("task_ids.button_ids")
-
-    def _compute_active_task_ids(self):
-        for r in self:
-            r.active_task_ids = r.task_ids
-
-    def _inverse_active_task_ids(self):
-        for r in self:
-            (r.active_task_ids - r.task_ids).write({"active": True})
-            (r.task_ids - r.active_task_ids).write({"active": False})
 
     @api.constrains("secret_code", "common_code")
     def _check_python_code(self):

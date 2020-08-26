@@ -99,6 +99,7 @@ def handle_db(records):
     create_external_partners(records)
 
 def handle_button():
+    # PUSH_ALL_LOCAL_PARTNERS
     chunk = None
     CHUNK_SIZE = 10
     def process_chunk(chunk):
@@ -133,12 +134,14 @@ def handle_cron():
     if not links:
         log("Cron: there are no associated partners")
         return
+    # Fetch external partners with new updates
     external_partners = odoo_execute_kw(
         "res.partner",
         "search_read",
         [["id", "in", links.external], ["write_date", ">", links.sync_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)]],
         fields=["write_date", IMAGE_FIELD]
     )
+    # Save fetched data in local Odoo
     for ep in external_partners:
         link = get_link(PARTNER_REL,  ep["id"])
         p = link.odoo

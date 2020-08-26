@@ -26,33 +26,31 @@ class SyncTask(models.Model):
     cron_ids = fields.One2many("sync.trigger.cron", "sync_task_id")
     automation_ids = fields.One2many("sync.trigger.automation", "sync_task_id")
     webhook_ids = fields.One2many("sync.trigger.webhook", "sync_task_id")
-    button_ids = fields.One2many("sync.trigger.button", "sync_task_id")
+    button_ids = fields.One2many(
+        "sync.trigger.button", "sync_task_id", string="Manual Triggers"
+    )
     active_cron_ids = fields.Many2many(
         "sync.trigger.cron",
         string="Enabled Crons",
         compute="_compute_active_triggers",
-        inverse="_inverse_active_triggers",
         context={"active_test": False},
     )
     active_automation_ids = fields.Many2many(
         "sync.trigger.automation",
         string="Enabled DB Triggers",
         compute="_compute_active_triggers",
-        inverse="_inverse_active_triggers",
         context={"active_test": False},
     )
     active_webhook_ids = fields.Many2many(
         "sync.trigger.webhook",
         string="Enabled Webhooks",
         compute="_compute_active_triggers",
-        inverse="_inverse_active_triggers",
         context={"active_test": False},
     )
     active_button_ids = fields.Many2many(
         "sync.trigger.button",
         string="Enabled Buttons",
         compute="_compute_active_triggers",
-        inverse="_inverse_active_triggers",
         context={"active_test": False},
     )
     job_ids = fields.One2many("sync.job", "task_id")
@@ -77,26 +75,18 @@ class SyncTask(models.Model):
             if msg:
                 raise ValidationError(msg)
 
+    @api.depends(
+        "cron_ids.active",
+        "automation_ids.active",
+        "webhook_ids.active",
+        "button_ids.active",
+    )
     def _compute_active_triggers(self):
-        for r in self:
-            r.active_cron_ids = r.cron_ids
-            r.active_automation_ids = r.automation_ids
-            r.active_webhook_ids = r.webhook_ids
-            r.active_button_ids = r.button_ids
-
-    def _inverse_active_triggers(self):
-        for r in self:
-            (r.active_cron_ids - r.cron_ids).write({"active": True})
-            (r.cron_ids - r.active_cron_ids).write({"active": False})
-
-            (r.active_automation_ids - r.automation_ids).write({"active": True})
-            (r.automation_ids - r.active_automation_ids).write({"active": False})
-
-            (r.active_webhook_ids - r.webhook_ids).write({"active": True})
-            (r.webhook_ids - r.active_webhook_ids).write({"active": False})
-
-            (r.active_button_ids - r.button_ids).write({"active": True})
-            (r.button_ids - r.active_button_ids).write({"active": False})
+        for r in self.with_context(active_test=False):
+            r.active_cron_ids = r.with_context(active_test=True).cron_ids
+            r.active_automation_ids = r.with_context(active_test=True).automation_ids
+            r.active_webhook_ids = r.with_context(active_test=True).webhook_ids
+            r.active_button_ids = r.with_context(active_test=True).button_ids
 
     def start(self, trigger, args=None, with_delay=False, force=False):
         self.ensure_one()
@@ -115,7 +105,7 @@ class SyncTask(models.Model):
 
         return job
 
-    @job
+    @job(retry_pattern={1: 5 * 60, 2: 15 * 60, 3: 60 * 60, 4: 3 * 60 * 60})
     def run(self, job, function, args=None, kwargs=None):
         log = self.project_id._get_log_function(job, function)
         try:

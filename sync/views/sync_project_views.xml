@@ -43,6 +43,23 @@
                         </button>
                         <button
                             type="action"
+                            name="%(sync.sync_job_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-check-circle-o"
+                        >
+                            <field string="Jobs" name="job_count" widget="statinfo" />
+                        </button>
+                        <button
+                            type="action"
+                            name="%(sync.ir_logging_action_from_project)d"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                        >
+                            <field string="Logs" name="log_count" widget="statinfo" />
+                        </button>
+                        <!--
+                        <button
+                            type="action"
                             name="%(sync.sync_task_action_from_project)d"
                             class="oe_stat_button"
                             icon="fa-tasks"
@@ -53,6 +70,7 @@
                                 widget="statinfo"
                             />
                         </button>
+                        -->
                         <button
                             type="action"
                             name="%(sync.sync_trigger_cron_action_from_project)d"
@@ -89,22 +107,6 @@
                                 widget="statinfo"
                             />
                         </button>
-                        <button
-                            type="action"
-                            name="%(sync.sync_job_action_from_project)d"
-                            class="oe_stat_button"
-                            icon="fa-check-circle-o"
-                        >
-                            <field string="Jobs" name="job_count" widget="statinfo" />
-                        </button>
-                        <button
-                            type="action"
-                            name="%(sync.ir_logging_action_from_project)d"
-                            class="oe_stat_button"
-                            icon="fa-book"
-                        >
-                            <field string="Logs" name="log_count" widget="statinfo" />
-                        </button>
                         <!--
                         <button
                             type="action"
@@ -129,14 +131,6 @@
                             <field name="name" placeholder="E.g. Legacy Migration" />
                         </h1>
                     </div>
-                    <group>
-                        <field
-                            name="active_task_ids"
-                            widget="many2many_tags"
-                            options="{'no_create': True}"
-                            domain="[('project_id', '=', active_id)]"
-                        />
-                    </group>
                     <notebook>
                         <page name="params" string="Parameters">
                             <separator string="Parameters" />
@@ -166,7 +160,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page name="code" string="Code">
+                        <page name="code" string="Shared Code">
                             <separator string="Protected Code" />
                             <p>
                                 <em>
@@ -203,6 +197,33 @@
                                 widget="ace"
                                 options="{'mode': 'python'}"
                             />
+                        </page>
+                        <page name="tasks" string="Available Tasks">
+                            <field name="task_ids" context="{'active_test': False}">
+                                <tree decoration-muted="not active">
+                                    <field name="name" />
+                                    <field name="active" />
+                                    <field
+                                        name="active_cron_ids"
+                                        widget="many2many_tags"
+                                    />
+                                    <field
+                                        name="active_automation_ids"
+                                        widget="many2many_tags"
+                                    />
+                                    <field
+                                        name="active_webhook_ids"
+                                        widget="many2many_tags"
+                                    />
+                                </tree>
+                            </field>
+                            <p>
+                                <em>
+                                    Cron, Webhooks and DB Triggers are not executed
+                                    until both the Project and the Task are active (i.e.
+                                    not Archived)
+                                </em>
+                            </p>
                         </page>
                         <page name="buttons" string="Manual Triggers">
                             <field name="trigger_button_ids">
