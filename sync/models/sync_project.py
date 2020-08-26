@@ -230,10 +230,12 @@ class SyncProject(models.Model):
                 raise ValidationError(_("You cannot use %s with setattr") % k)
             return setattr(o, k, v)
 
+        context = dict(self.env.context, log_function=log)
+        env = self.env(context=context)
         eval_context = dict(
-            **self.env["sync.link"]._get_eval_context(),
+            **env["sync.link"]._get_eval_context(),
             **{
-                "env": self.env,
+                "env": env,
                 "log": log,
                 "log_transmission": log_transmission,
                 "LOG_DEBUG": LOG_DEBUG,

@@ -1,9 +1,15 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
+import logging
+
 from odoo import api, fields, models, tools
 from odoo.exceptions import ValidationError
 from odoo.tools.translate import _
+
+from .ir_logging import LOG_DEBUG
+
+_logger = logging.getLogger(__name__)
 
 ODOO = "__odoo__"
 ODOO_REF = "ref2"
@@ -36,6 +42,15 @@ class SyncLink(models.Model):
             ["relation", "system1", "system2", "ref1", "ref2"],
         )
         return res
+
+    @api.model
+    def _log(self, *args, **kwargs):
+        log = self.env.context.get("log_function")
+        if not log:
+            return
+        kwargs.setdefault("name", "sync.link")
+        kwargs.setdefault("level", LOG_DEBUG)
+        return log(*args, **kwargs)
 
     # External links
     @api.model
@@ -97,6 +112,7 @@ class SyncLink(models.Model):
                 )
 
         if existing:
+            self._log("Use existing link: %s" % vals)
             existing.update_links(sync_date)
             return existing
 
@@ -105,6 +121,7 @@ class SyncLink(models.Model):
         vals["relation"] = relation
         if model:
             vals["model"] = model
+        self._log("Create link: %s" % vals)
         return self.create(vals)
 
     @api.model
@@ -116,6 +133,7 @@ class SyncLink(models.Model):
                     "get_link found multiple links. Use search_links for many2many relations"
                 )
             )
+        self._log("Get link: {} {} -> {}".format(relation, external_refs, links))
         return links
 
     @api.model
@@ -129,7 +147,10 @@ class SyncLink(models.Model):
                 continue
             operator = "in" if isinstance(v, list) else "="
             domain.append((k, operator, v))
-        return self.search(domain)
+        links = self.search(domain)
+        if self.env.context.get("make_logs"):
+            self._log("Search links: {} -> {}".format(domain, links))
+        return links
 
     def get(self, system):
         res = []
@@ -178,7 +199,9 @@ class SyncLink(models.Model):
 
     def _search_links_odoo(self, records, relation, refs=None):
         refs = {ODOO: records.ids, EXTERNAL: refs}
-        return self._search_links_external(relation, refs, model=records._name)
+        return self.with_context(make_logs=True)._search_links_external(
+            relation, refs, model=records._name
+        )
 
     # Common API
     def _get_link(self, rel, ref_info):
@@ -204,6 +227,10 @@ class SyncLink(models.Model):
     def __xor__(self, other):
         return (self | other) - (self & other)
 
+    def unlink(self):
+        self._log("Delete links: %s" % self)
+        return super(SyncLink, self).unlink()
+
     @api.model
     def _get_eval_context(self):
         env = self.env
@@ -216,7 +243,11 @@ class SyncLink(models.Model):
 
         def search_links(rel, external_refs):
             # Works for external links only
-            return env["sync.link"]._search_links_external(rel, external_refs)
+            return (
+                env["sync.link"]
+                .with_context(make_logs=True)
+                ._search_links_external(rel, external_refs)
+            )
 
         def get_link(rel, ref_info):
             return env["sync.link"]._get_link(rel, ref_info)
