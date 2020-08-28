@@ -1,6 +1,7 @@
 # Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
 # License MIT (https://opensource.org/licenses/MIT).
 
+import logging
 import time
 import traceback
 from io import StringIO
@@ -12,6 +13,8 @@ from odoo.tools.safe_eval import safe_eval, test_python_expr
 from odoo.addons.queue_job.job import job
 
 from .ir_logging import LOG_CRITICAL, LOG_DEBUG
+
+_logger = logging.getLogger(__name__)
 
 
 class SyncTask(models.Model):
@@ -88,9 +91,14 @@ class SyncTask(models.Model):
             r.active_webhook_ids = r.with_context(active_test=True).webhook_ids
             r.active_button_ids = r.with_context(active_test=True).button_ids
 
-    def start(self, trigger, args=None, with_delay=False, force=False):
+    def start(
+        self, trigger, args=None, with_delay=False, force=False, raise_on_error=True
+    ):
         self.ensure_one()
         if not force and not (self.active and self.project_id.active):
+            _logger.info(
+                "Triggering archived project or task: %s", trigger.trigger_name
+            )
             return None
 
         job = self.env["sync.job"].create_trigger_job(trigger)
@@ -99,14 +107,16 @@ class SyncTask(models.Model):
             # log records are created via new cursor and they use job.id value for sync_job_id field
             self.env.cr.commit()  # pylint: disable=invalid-commit
 
-        queue_job_or_none = run(job, trigger._sync_handler, args)
+        queue_job_or_none = run(
+            job, trigger._sync_handler, args, raise_on_error=raise_on_error
+        )
         if with_delay:
             job.queue_job_id = queue_job_or_none.db_record()
 
         return job
 
     @job(retry_pattern={1: 5 * 60, 2: 15 * 60, 3: 60 * 60, 4: 3 * 60 * 60})
-    def run(self, job, function, args=None, kwargs=None):
+    def run(self, job, function, args=None, kwargs=None, raise_on_error=True):
         log = self.project_id._get_log_function(job, function)
         try:
             eval_context = self.project_id._get_eval_context(job, log)
@@ -130,7 +140,8 @@ class SyncTask(models.Model):
             buff = StringIO()
             traceback.print_exc(file=buff)
             log(buff.getvalue(), LOG_CRITICAL)
-            raise
+            if raise_on_error:
+                raise
 
     @api.model
     def _eval(self, code, function, args, kwargs, eval_context):

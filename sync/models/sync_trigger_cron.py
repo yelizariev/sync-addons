@@ -49,7 +49,8 @@ class SyncTriggerCron(models.Model):
         }
 
     def start(self, force=False):
-        return self.sync_task_id.start(self, with_delay=True, force=force)
+        if self.active:
+            return self.sync_task_id.start(self, with_delay=True, force=force)
 
     def get_code(self):
         return (

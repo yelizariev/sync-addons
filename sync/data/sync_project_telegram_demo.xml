@@ -10,28 +10,45 @@
 from odoo.tools import html2plaintext
 from lxml.html import clean
 
-# https://github.com/python-telegram-bot/python-telegram-bot
-from telegram import Bot as _Bot, Update
-_bot = None
-if secrets.TELEGRAM_BOT_TOKEN:
-    _bot = _Bot(token=secrets.TELEGRAM_BOT_TOKEN)
-else:
-    raise Exception("bot token is not set")
+def _exports(secrets):
+    # https://github.com/python-telegram-bot/python-telegram-bot
+    from telegram import Bot, Update
+    bot = None
+    if secrets.TELEGRAM_BOT_TOKEN:
+        bot = Bot(token=secrets.TELEGRAM_BOT_TOKEN)
+    else:
+        raise Exception("Telegram bot token is not set")
 
-def sendMessage(chat_id, *args, **kwargs):
-    log_transmission("%s@telegram" % chat_id, json.dumps([args, kwargs]))
-    _bot.sendMessage(chat_id, *args, **kwargs)
+    def sendMessage(chat_id, *args, **kwargs):
+        log_transmission("Message to %s@telegram" % chat_id, json.dumps([args, kwargs]))
+        bot.sendMessage(chat_id, *args, **kwargs)
+
+    def setWebhook(*args, **kwargs):
+        log_transmission("Telegram->setWebhook", json.dumps([args, kwargs]))
+        bot.setWebhook(*args, **kwargs)
+
+    def parse_data(data):
+        return Update.de_json(data, bot)
+
+    return {
+        "sendMessage": sendMessage,
+        "setWebhook": setWebhook,
+        "parse_data": parse_data,
+    }
+
+bot = _exports(secrets)
+
 ]]>
         </field>
         <field name="common_code">
 <![CDATA[
 def user2name(user):
-    if user.get('username'):
-        return '@%s' % (user.get('username'))
+    if user.username:
+        return '@%s' % (user.username)
 
-    name = user.get('first_name')
-    if user.get('last_name'):
-        name += ' %s' % user.get('last_name')
+    name = user.first_name
+    if user.last_name:
+        name += ' %s' % user.last_name
 
     return name
 
@@ -80,44 +97,54 @@ def html_sanitize_telegram(html):
         <field name="code">
 <![CDATA[
 def handle_button():
-    bot.setWebhook(webhooks.TELEGRAM, allowed_updates=["message", "edited_message"])
+    bot["setWebhook"](webhooks.TELEGRAM, allowed_updates=["message", "edited_message"])
 ]]>
         </field>
     </record>
     <record id="telegram_trigger_button" model="sync.trigger.button">
-        <field name="name">Setup Webhook</field>
         <field name="sync_task_id" ref="sync.telegram_task_setup" />
-        <field name="trigger_name">TELEGRAM</field>
+        <field name="trigger_name">SETUP_TELEGRAM</field>
     </record>
-    <!-- telegram: task main -->
-    <record id="telegram_task_main" model="sync.task">
-        <field name="name">Handle Messages</field>
+    <record id="telegram_task_tele2odoo" model="sync.task">
+        <field name="name">Process Telegram Messages</field>
         <field name="project_id" ref="sync.telegram_project" />
         <field name="code">
 <![CDATA[
 def handle_webhook(httprequest):
-    telegram_payload = httprequest.form
-    update = Update.de_json(telegram_payload, bot)
+    data = json.loads(httprequest.data.decode("utf-8"))
+    log("Raw data: %s" % data, LOG_DEBUG)
+    update = bot["parse_data"](data)
     message = update.message or update.edited_message
     is_edit = bool(update.edited_message)
-    user_ref = "%s@telegram" % message.user.id
+    user_ref = "%s@telegram" % message.from_user.id
     partner = env["res.partner"].search([("ref", "=", user_ref)])
     if not partner:
-        name = "%s%s" % (params.PARTNER_NAME_PREFIX, user2name(message.user))
+        name = "%s%s" % (params.PARTNER_NAME_PREFIX, user2name(message.from_user))
         partner = env["res.partner"].create({"name": name, "ref": user_ref})
 
     odoo_message_text = "From Telegram:"
 
     if message.text == "/start":
-        sendMessage(message.chat.id, params.TELEGRAM_WELCOME_MESSAGE)
+        bot["sendMessage"](message.chat.id, params.TELEGRAM_WELCOME_MESSAGE)
     elif is_edit:
         odoo_message_text = "Contact has updated his message:"
 
     odoo_message_text = "%s\n\n%s" % (odoo_message_text, message.text)
 
     partner.message_post(body=odoo_message_text)
-
-
+]]>
+        </field>
+    </record>
+    <record id="telegram_trigger_webhook" model="sync.trigger.webhook">
+        <field name="name">Telegram updates</field>
+        <field name="sync_task_id" ref="sync.telegram_task_tele2odoo" />
+        <field name="trigger_name">TELEGRAM</field>
+    </record>
+    <record id="telegram_task_odoo2tele" model="sync.task">
+        <field name="name">Send response via Odoo</field>
+        <field name="project_id" ref="sync.telegram_project" />
+        <field name="code">
+<![CDATA[
 def handle_db(records):
     # records are instances of mail.message
     for r in records:
@@ -130,21 +157,16 @@ def handle_db(records):
         telegram_user_id = user_ref.split("@telegram")[0]
         telegram_message_html = html_sanitize_telegram(r.body)
         telegram_message_html = telegram_message_html.replace("/telegram", "")
-        sendMessage(telegram_user_id, telegram_message_html)
+        bot["sendMessage"](telegram_user_id, telegram_message_html)
 
         odoo_message_text = "%s:\n\n%s" % (params.TELEGRAM_MESSAGE_SENT, telegram_message_html)
         partner.message_post(body=odoo_message_text)
 ]]>
         </field>
     </record>
-    <record id="telegram_trigger_webhook" model="sync.trigger.webhook">
-        <field name="name">Telegram updates</field>
-        <field name="sync_task_id" ref="sync.telegram_task_main" />
-        <field name="trigger_name">TELEGRAM</field>
-    </record>
     <record id="telegram_trigger_automation" model="sync.trigger.automation">
         <field name="trigger_name">ON_MESSAGE_POSTED</field>
-        <field name="sync_task_id" ref="sync.telegram_task_main" />
+        <field name="sync_task_id" ref="sync.telegram_task_odoo2tele" />
         <field name="model_id" ref="mail.model_mail_message" />
         <field name="trigger">on_create</field>
         <field name="filter_domain">

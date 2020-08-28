@@ -20,6 +20,9 @@ Installation
     sudo pip3 install python-telegram-bot
     sudo pip3 install PyGithub
 
+* If your Sync projects use webhooks (most likely), be sure that url opens correct database without asking to select one
+
+
 User Access Levels
 ==================
 
@@ -54,7 +57,7 @@ Project
         * ``records``: all records on which this task is triggered
       * ``handle_webhook(httprequest)``
         * ``httprequest``: contains information about request, e.g.
-          * `httprequest.form <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.form>`__: request args
+          * `httprequest.data <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.data>`__: request data
           * `httprequest.files <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.files>`__: uploaded files
           * `httprequest.remote_addr <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.remote_addr>`__: ip address of the caller.
           * see `Werkzeug doc
@@ -350,7 +353,8 @@ In this project we create new partners and attach messages sent to telegram bot.
 Odoo Messages prefixed with ``/telegram`` are sent back to telegram.
 
 To try it, you need to install this module in demo mode. Also, your odoo
-instance must be accessable over internet to receive telegram webhooks.
+instance must be accessable over internet to receive telegram webhooks. Due to
+telegram requirements, your web server must use http**s** connection.
 
 How it works
 ------------
@@ -388,9 +392,8 @@ In Odoo:
   * TELEGRAM_BOT_TOKEN
 
 * Unarchive project
-* Select task *Setup*
-* Select Button Trigger *Setup webhook*
-* Click button ``[Run Now]``
+* Open *Manual Triggers* Tab
+* Click button ``[Run Now]`` near to *Setup* task
 
 Usage
 -----

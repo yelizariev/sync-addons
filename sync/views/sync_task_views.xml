@@ -124,7 +124,9 @@
                                 <tree editable="bottom" decoration-muted="not active">
                                     <field name="trigger_name" />
                                     <field name="active" />
+                                    <field name="webhook_type" />
                                     <field name="website_url" />
+                                    <field name="action_server_id" invisible="1" />
                                 </tree>
                             </field>
                             <separator

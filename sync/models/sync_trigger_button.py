@@ -19,7 +19,7 @@ class SyncTriggerButton(models.Model):
     active = fields.Boolean(default=True)
 
     def start_button(self):
-        job = self.sync_task_id.start(self, force=True)
+        job = self.start(raise_on_error=False)
         return {
             "name": "Job triggered by clicking Button",
             "type": "ir.actions.act_window",
@@ -29,3 +29,6 @@ class SyncTriggerButton(models.Model):
             "res_id": job.id,
             "target": "self",
         }
+
+    def start(self, raise_on_error=True):
+        return self.sync_task_id.start(self, force=True, raise_on_error=raise_on_error)

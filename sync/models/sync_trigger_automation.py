@@ -41,7 +41,8 @@ class SyncTriggerAutomation(models.Model):
         return record
 
     def start(self, records):
-        self.sync_task_id.start(self, args=(records,))
+        if self.active:
+            self.sync_task_id.start(self, args=(records,))
 
     def get_code(self):
         return (

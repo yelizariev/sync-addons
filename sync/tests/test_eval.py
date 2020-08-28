@@ -70,7 +70,7 @@ class TestEval(TransactionCase):
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
-        t.button_ids.start_button()
+        t.button_ids.start()
         self.print_last_logs(2)
 
         # import in common_code
@@ -134,7 +134,7 @@ def handle_button():
         }
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
-        t.button_ids.start_button()
+        t.button_ids.start()
         self.print_last_logs(2)
 
         # using in common_code
@@ -148,7 +148,7 @@ def handle_button():
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
         with self.assertRaises(ValueError):
-            t.button_ids.start_button()
+            t.button_ids.start()
 
         # using in task's code
         pvals["common_code"] = "log('xxx in common_code: %s' % xxx)"
@@ -164,4 +164,4 @@ def handle_button():
         p, t = self.create_project_task(pvals, tvals)
         t.button_ids.ensure_one()
         with self.assertRaises(ValueError):
-            t.button_ids.start_button()
+            t.button_ids.start()
