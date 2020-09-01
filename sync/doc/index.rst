@@ -63,12 +63,17 @@ Project
           * see `Werkzeug doc
             <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest>`__
             for more information.
-        * optionally can return data as a response to the webhook request; any data transferred in this way are logged via ``log_outgoing_data`` function:
+        * optionally can return data as a response to the webhook request; any data transferred in this way are logged via ``log_transmission`` function:
 
-          * ``return data_str``
-          * ``return data, headers``
+          * for *json* webhook:
+            * ``return json_data``
+          * for *x-www-form-urlencoded* webhook:
+            * ``return data_str``
+            * ``return data_str, status``
+            * ``return data_str, status, headers``
 
-            * ``headers`` is a list of key-value turples, e.g. ``[('Content-Type', 'text/html')]``
+              * ``status`` is a response code, e.g. ``200``, ``403``, etc.
+              * ``headers`` is a list of key-value turples, e.g. ``[('Content-Type', 'text/html')]``
       * ``handle_button()``
 
     * **Cron Triggers**, **DB Triggers**, **Webhook Triggers**, **Manual
@@ -109,6 +114,8 @@ Webhook
 -------
 
 * **Trigger Name**, e.g. ``ON_EXTERNAL_UPDATE``
+* **Webhook Type**: *application/x-www-form-urlencoded* or *application/json*
+
 * **Webhook URL**: readonly.
 
 Button

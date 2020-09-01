@@ -113,6 +113,7 @@ def handle_button():
 def handle_webhook(httprequest):
     data = json.loads(httprequest.data.decode("utf-8"))
     log("Raw data: %s" % data, LOG_DEBUG)
+
     update = bot["parse_data"](data)
     message = update.message or update.edited_message
     is_edit = bool(update.edited_message)

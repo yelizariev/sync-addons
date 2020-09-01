@@ -8,7 +8,11 @@ from odoo.tools.translate import _
 class SyncTriggerCron(models.Model):
 
     _name = "sync.trigger.cron"
-    _inherit = ["sync.trigger.mixin", "sync.trigger.mixin.model_id", "sync.trigger.mixin.actions"]
+    _inherit = [
+        "sync.trigger.mixin",
+        "sync.trigger.mixin.model_id",
+        "sync.trigger.mixin.actions",
+    ]
     _description = "Cron Trigger"
     _sync_handler = "handle_cron"
 

@@ -2,15 +2,17 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 from odoo import api, fields, models
-from odoo.http import request, HttpRequest, JsonRequest
-
-from ..hooks import MODULE
+from odoo.http import Response, request
 
 
 class SyncTriggerWebhook(models.Model):
 
     _name = "sync.trigger.webhook"
-    _inherit = ["sync.trigger.mixin", "sync.trigger.mixin.model_id", "sync.trigger.mixin.actions"]
+    _inherit = [
+        "sync.trigger.mixin",
+        "sync.trigger.mixin.model_id",
+        "sync.trigger.mixin.actions",
+    ]
     _description = "Webhook Trigger"
     _sync_handler = "handle_webhook"
     _default_name = "Webhook"
@@ -52,31 +54,42 @@ class SyncTriggerWebhook(models.Model):
 
     def start(self):
         record = self.sudo()
-        # import wdb; wdb.set_trace()
         if record.active:
-            record.sync_task_id.start(record, args=(request.httprequest,))
+            start_result = record.sync_task_id.start(
+                record, args=(request.httprequest,)
+            )
+            if not start_result:
+                return self.make_response("Task or Project is disabled", 404)
+
+            _job, result = start_result
+            return self._process_handler_result(result)
         else:
-            request.make_response("This webhook is disabled")
+            return self.make_response("This webhook is disabled", 404)
 
     def get_code(self):
         return (
             """
-env["sync.trigger.webhook"].browse(%s).start()
+action = env["sync.trigger.webhook"].browse(%s).start()
 """
             % self.id
         )
 
     @api.model
-    def _sync_post_handler(self, args, result):
+    def _process_handler_result(self, result):
         if not result:
             result = "OK"
-        data_str = None
+        data = None
         headers = []
+        status = 200
         if isinstance(result, tuple):
-            data_str, headers = result
+            if len(result) == 3:
+                data, status, headers = result
+            elif len(result) == 2:
+                data, status = result
         else:
-            data_str = result
+            data = result
+        return self.make_response(data, status, headers)
 
-        # odoo_1                    | ValueError: <class 'AttributeError'>: "'JsonRequest' object has no attribute 'make_response'" while evaluating
-        request.make_response(data_str, headers)
-        return True
+    @api.model
+    def make_response(self, data, status=200, headers=None):
+        return Response(data, status=status, headers=headers)

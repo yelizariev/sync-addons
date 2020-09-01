@@ -17,4 +17,5 @@ class Webhook(http.Controller):
         website=True,
     )
     def actions_server(self, path_or_xml_id_or_id, **post):
-        return Website().actions_server(path_or_xml_id_or_id, **post)
+        res = Website().actions_server(path_or_xml_id_or_id, **post)
+        return res.data

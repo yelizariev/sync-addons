@@ -107,13 +107,14 @@ class SyncTask(models.Model):
             # log records are created via new cursor and they use job.id value for sync_job_id field
             self.env.cr.commit()  # pylint: disable=invalid-commit
 
-        queue_job_or_none = run(
+        queue_job_or_result = run(
             job, trigger._sync_handler, args, raise_on_error=raise_on_error
         )
         if with_delay:
-            job.queue_job_id = queue_job_or_none.db_record()
-
-        return job
+            job.queue_job_id = queue_job_or_result.db_record()
+            return job
+        else:
+            return job, queue_job_or_result
 
     @job(retry_pattern={1: 5 * 60, 2: 15 * 60, 3: 60 * 60, 4: 3 * 60 * 60})
     def run(self, job, function, args=None, kwargs=None, raise_on_error=True):
@@ -127,15 +128,8 @@ class SyncTask(models.Model):
                 "Executing {}: {:05.3f} sec".format(function, time.time() - start_time),
                 LOG_DEBUG,
             )
-            start_time = time.time()
-            has_post_handler = job.post_handler(args, kwargs, result)
-            if has_post_handler:
-                log(
-                    "Executing _sync_post_handler: %05.3f sec"
-                    % (time.time() - start_time),
-                    LOG_DEBUG,
-                )
             log("Job finished")
+            return result
         except Exception:
             buff = StringIO()
             traceback.print_exc(file=buff)

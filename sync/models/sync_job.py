@@ -121,15 +121,6 @@ class SyncJob(models.Model):
                     r.trigger_name = t.trigger_name
                     break
 
-    def post_handler(self, args, kwargs, result):
-        self.ensure_one()
-        for f in TRIGGER_FIELDS:
-            trigger = getattr(self, f)
-            if not trigger:
-                continue
-            if hasattr(trigger, "_sync_post_handler"):
-                return trigger._sync_post_handler(args, result)
-
     def create_trigger_job(self, trigger):
         return self.create({TRIGGER_MODEL2FIELD[trigger._name]: trigger.id})
 
