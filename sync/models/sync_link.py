@@ -25,8 +25,8 @@ class SyncLink(models.Model):
     relation = fields.Char("Relation Name", required=True)
     system1 = fields.Char("System 1", required=True)
     system2 = fields.Char("System 2", required=True)
-    ref1 = fields.Char("System 1 Ref", required=True)
-    ref2 = fields.Char("System 2 Ref", required=True)
+    ref1 = fields.Char("Ref 1", required=True)
+    ref2 = fields.Char("Ref 2", required=True)
     date = fields.Datetime(
         string="Sync Date", default=fields.Datetime.now, required=True
     )

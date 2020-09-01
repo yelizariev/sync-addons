@@ -25,7 +25,6 @@ Roadmap
 =======
 
 * Github<->Trello: implement API via Odoo UI and use button "Export to XML" to package into the module
-* Menu and views for links
 
 Credits
 =======

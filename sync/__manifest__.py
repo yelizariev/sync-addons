@@ -26,6 +26,7 @@
         "views/sync_trigger_button_views.xml",
         "views/sync_task_views.xml",
         "views/sync_project_views.xml",
+        "views/sync_link_views.xml",
     ],
     "demo": [
         "data/sync_project_telegram_demo.xml",
