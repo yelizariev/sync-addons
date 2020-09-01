@@ -412,7 +412,7 @@ In Telegram:
 In Odoo:
 
 * Open Contacts/Customers menu
-* RESULT: there is new partner with name *Telegram: <YOUR TELEGRAM NAME>* (the prefix can be configured in project parameter PARTNER_NAME_PREFIX)
+* RESULT: there is new partner with name *Telegram:<YOUR TELEGRAM NAME>* (the prefix can be configured in project parameter PARTNER_NAME_PREFIX)
 * Open the partner and attach a log/message with prefix ``/telegram``, e.g. ``/telegram Hello! How can I help you?``
 * Wait few seconds to get confirmation
 * RESULT: you will see new attached message from Odoo Bot with confirmation that message is sent to telegram

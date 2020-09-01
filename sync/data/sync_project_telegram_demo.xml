@@ -53,10 +53,11 @@ def user2name(user):
     return name
 
 def html_sanitize_telegram(html):
-    allowed_tags = frozenset({"b", "i", "u", "s", "a", "code", "pre"})
-    cleaner = clean.Cleaner(safe_attrs_only=True, safe_attrs=frozenset(), allow_tags=allowed_tags)
+    allowed_tags = set({"b", "i", "u", "s", "a", "code", "pre"})
+    cleaner = clean.Cleaner(safe_attrs_only=True, safe_attrs=set(), allow_tags=allowed_tags, remove_unknown_tags=False)
     html = cleaner.clean_html(html)
-    return html
+    # remove surrounding div
+    return html[5:-6]
 ]]>
         </field>
     </record>
