@@ -24,8 +24,6 @@ class SyncTriggerMixin(models.AbstractModel):
     @api.model
     def default_get(self, fields):
         vals = super(SyncTriggerMixin, self).default_get(fields)
-        if self._fields.get("state"):
-            vals["state"] = "code"
         if self._default_name:
             vals["name"] = self._default_name
         return vals
@@ -51,3 +49,22 @@ class SyncTriggerMixinModelId(models.AbstractModel):
         for vals in vals_list:
             vals.setdefault("model_id", model_id)
         return super(SyncTriggerMixinModelId, self).create(vals_list)
+
+
+class SyncTriggerMixinActions(models.AbstractModel):
+
+    _name = "sync.trigger.mixin.actions"
+    _description = "Mixing for triggers that inherit actions"
+
+    @api.model
+    def default_get(self, fields):
+        vals = super().default_get(fields)
+        vals["state"] = "code"
+        return vals
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for r in records:
+            r.code = r.get_code()
+        return records

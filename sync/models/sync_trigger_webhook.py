@@ -2,7 +2,7 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 from odoo import api, fields, models
-from odoo.http import request
+from odoo.http import request, HttpRequest, JsonRequest
 
 from ..hooks import MODULE
 
@@ -10,7 +10,7 @@ from ..hooks import MODULE
 class SyncTriggerWebhook(models.Model):
 
     _name = "sync.trigger.webhook"
-    _inherit = ["sync.trigger.mixin", "sync.trigger.mixin.model_id"]
+    _inherit = ["sync.trigger.mixin", "sync.trigger.mixin.model_id", "sync.trigger.mixin.actions"]
     _description = "Webhook Trigger"
     _sync_handler = "handle_webhook"
     _default_name = "Webhook"
@@ -47,25 +47,8 @@ class SyncTriggerWebhook(models.Model):
     @api.model
     def default_get(self, fields):
         vals = super(SyncTriggerWebhook, self).default_get(fields)
-        vals["state"] = "code"
         vals["website_published"] = True
         return vals
-
-    @api.model
-    def create(self, vals):
-        record = super(SyncTriggerWebhook, self).create(vals)
-        record.code = record.get_code()
-        # create ir.model.data record to safely remove ir.actions.server records on module uninstallation
-        self.env["ir.model.data"].create(
-            {
-                "module": MODULE,
-                "model": "ir.actions.server",
-                "res_id": record.action_server_id.id,
-                "name": "_auto__ir_action_server_%s" % record.action_server_id.id,
-            }
-        )
-
-        return record
 
     def start(self):
         record = self.sudo()
