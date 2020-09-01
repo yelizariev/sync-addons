@@ -225,40 +225,28 @@ External Link is similar to Odoo link with the following differences:
 Network
 ~~~~~~~
 
-* ``log_transmission(recipient_str, data_str)``: report on data transfer to external recipients
+* ``log_transmission(recipient_str, data_str)``: report on data transfer to external recipients; example of a function in *Protected Code*:
 
-  * available in **Protected Code** only; examples:
-
-    * allow single request to specific server:
-
-          import requests as _requests
-          def notifyMyServer():
-              url = "https://my-server.example/api/on-update"
-              log_transmission(url, "")
-              r = _requests.get(url)
-              return r.json()
-
-    * allow POST requests only
-
-          import requests as _requests
-          def httpPOST(url, *args, **kwargs):
-              log_transmission(url, json.dumps([args, kwargs]))
-              r = _requests.post(url, *args, **kwargs)
-              return r.text
-
-    * allow any requests
-
-          import requests as _requests
-          def make_request(method, url, *args, **kwargs):
-              log_transmission(url, json.dumps([method, args, kwargs]))
-              return _requests.request(url, *args, **kwargs)
+    def httpPOST(url, *args, **kwargs):
+        import requests
+        log_transmission(url, json.dumps([args, kwargs]))
+        r = requests.post(url, *args, **kwargs)
+        return r.text
 
 
 Project Values
 ~~~~~~~~~~~~~~
 
 * ``params.<PARAM_NAME>``: project params
-* ``secrets.<SECRET_NAME>``: available in **Protected Code** only
+* ``secrets.<SECRET_NAME>``: available in **Protected Code** only; you need to use closure to use it, for example:
+
+      def _make_request(secrets):
+          import requests
+          def f(data):
+              return requests.post(params.API_URL, data=data, auth=(secrets.API_USER, secrets.API_PASSWORD))
+          return f
+      make_request = _make_request(secrets)
+
 * ``webhooks.<WEBHOOK_NAME>``: contains webhook url; only in tasks' code
 
 Event
