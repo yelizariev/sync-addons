@@ -129,7 +129,7 @@ class SyncTask(models.Model):
                 LOG_DEBUG,
             )
             log("Job finished")
-            return result
+            return result, log
         except Exception:
             buff = StringIO()
             traceback.print_exc(file=buff)

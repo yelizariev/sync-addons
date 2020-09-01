@@ -4,6 +4,8 @@
 from odoo import api, fields, models
 from odoo.http import Response, request
 
+from .ir_logging import LOG_DEBUG
+
 
 class SyncTriggerWebhook(models.Model):
 
@@ -61,8 +63,8 @@ class SyncTriggerWebhook(models.Model):
             if not start_result:
                 return self.make_response("Task or Project is disabled", 404)
 
-            _job, result = start_result
-            return self._process_handler_result(result)
+            _job, (result, log) = start_result
+            return self._process_handler_result(result, log)
         else:
             return self.make_response("This webhook is disabled", 404)
 
@@ -75,7 +77,7 @@ action = env["sync.trigger.webhook"].browse(%s).start()
         )
 
     @api.model
-    def _process_handler_result(self, result):
+    def _process_handler_result(self, result, log):
         if not result:
             result = "OK"
         data = None
@@ -88,6 +90,7 @@ action = env["sync.trigger.webhook"].browse(%s).start()
                 data, status = result
         else:
             data = result
+        log("Webhook response: {} {}\n{}".format(status, headers, data), LOG_DEBUG)
         return self.make_response(data, status, headers)
 
     @api.model
