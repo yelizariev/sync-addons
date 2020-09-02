@@ -27,11 +27,12 @@
         "views/sync_task_views.xml",
         "views/sync_project_views.xml",
         "views/sync_link_views.xml",
+        "wizard/sync_make_module_views.xml",
     ],
     "demo": [
         "data/sync_project_telegram_demo.xml",
         "data/sync_project_odoo2odoo_demo.xml",
-        # "data/sync_project_trello_github_demo.xml",
+        "data/sync_project_trello_github_demo.xml",
         "data/sync_project_unittest_demo.xml",
     ],
     "qweb": [],

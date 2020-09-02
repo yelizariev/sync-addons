@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
@@ -6,22 +6,51 @@
         <field name="model">sync.make.module</field>
         <field name="arch" type="xml">
             <form>
-                <field invisible="1" name="state"/>
+                <field invisible="1" name="state" />
                 <group states="choose" string="Export Settings">
-                    <field name="copyright_years"/>
-                    <field name="author_name"/>
-                    <field name="author_url"/>
-                    <field name="license"/>
+                    <field name="copyright_years" />
+                    <field name="author_name" />
+                    <field name="author_url" />
+                    <field name="license" />
+                    <field name="name" invisible="1" />
                 </group>
                 <div states="get">
-                    <p>Here is the xml file to be put into your module: <field name="data" readonly="1" filename="name"/></p>
+                    <p>
+                        Here is the xml file to be put into your module:
+                        <field name="data" readonly="1" filename="name" />
+                    </p>
+                    <p>
+                        <field name="write_date" />
+                    </p>
                 </div>
                 <footer states="choose">
-                    <button name="act_makefile" string="Export" type="object" class="btn-primary"/>
-                    <button special="cancel" string="Cancel" type="object" class="btn-secondary"/>
+                    <button
+                        name="act_makefile"
+                        string="Export"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button
+                        special="cancel"
+                        string="Cancel"
+                        type="object"
+                        class="btn-secondary"
+                    />
                 </footer>
                 <footer states="get">
-                    <button special="cancel" string="Close" type="object" class="btn-primary"/>
+                    <button
+                        name="act_makefile"
+                        string="Update"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="act_configure"
+                        string="Configure"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button special="cancel" string="Close" type="object" />
                 </footer>
             </form>
         </field>
