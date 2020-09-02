@@ -120,8 +120,8 @@ class SyncMakeModule(models.TransientModel):
         field = record._fields[fname]
         value = getattr(record, fname)
         xml = etree.Element("field", name=fname)
-        if field.type == "char":
-            xml.text = value or ""
+        if field.type in ["char", "selection", "integer"]:
+            xml.text = str(value) if value else ""
         elif field.type == "text":
             xml.text = etree.CDATA(value)
         elif field.type == "many2one":
