@@ -1,12 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version='1.0' encoding='UTF-8' ?>
 <!-- Copyright 2020 Ivan Yelizariev <https://twitter.com/yelizariev>
      License MIT (https://opensource.org/licenses/MIT). -->
 <odoo>
-    <!-- Trello-Github -->
     <record id="trello-github_project" model="sync.project">
         <field name="name">Demo Trello-Github Integration</field>
-        <field name="secret_code">
-<![CDATA[
+        <field name="active" eval="True" />
+        <field
+            name="secret_code"
+        ><![CDATA[
+
 # consts
 GITHUB="github"
 TRELLO="trello"
@@ -74,10 +76,12 @@ def github_label_delete(glabel_id):
 
 def github_label_update(glabel_id, new_name):
     pass
-]]>
-        </field>
-        <field name="common_code">
-<![CDATA[
+
+        ]]></field>
+        <field
+            name="common_code"
+        ><![CDATA[
+
 ISSUES_REL="TRELLO_GITHUB_ISSUES_REL"
 LABELS_REL="TRELLO_GITHUB_LABELS_REL"
 
@@ -100,17 +104,16 @@ def github2trello_labels(labels):
         tlabel_ids.append(tlabel_id)
     return tlabel_ids
 
-]]>
-        </field>
+
+        ]]></field>
     </record>
     <record id="trello-github_project_secret_github_token" model="sync.project.secret">
         <field name="key">GITHUB_TOKEN</field>
-        <field name="description">
-<![CDATA[
-            Token with access to read issues and create webhooks. See
-            https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
-]]>
-        </field>
+        <field
+            name="description"
+        ><![CDATA[
+Token with access to read issues and create webhooks. See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+]]></field>
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_project_secret_github_repo" model="sync.project.secret">
@@ -121,11 +124,13 @@ def github2trello_labels(labels):
     <record id="trello-github_project_param_prefix_name" model="sync.project.param">
         <field name="key">ISSUE_FROM_GITHUB_PREFIX</field>
         <field name="value">GITHUB:</field>
+        <field name="description" />
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_project_param_prefix_message" model="sync.project.param">
         <field name="key">MESSAGE_PREFIX</field>
         <field name="value">A Message posted on GitHub:</field>
+        <field name="description" />
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record
@@ -133,6 +138,7 @@ def github2trello_labels(labels):
         model="sync.project.param"
     >
         <field name="key">LABELS_MERGE_STRATEGY</field>
+        <field name="value" />
         <field name="description">
             Possible values:
 USE_TRELLO, USE_GITHUB: use version from one side and override values from another
@@ -143,9 +149,12 @@ INTERSECTION: remove labes that are not attached on another side
     </record>
     <record id="trello-github_task_setup" model="sync.task">
         <field name="name">Setup</field>
+        <field name="active" eval="True" />
         <field name="project_id" ref="sync.trello-github_project" />
-        <field name="code">
-<![CDATA[
+        <field
+            name="code"
+        ><![CDATA[
+
 def handle_button():
     if TRIGGER_NAME == "SETUP_GITHUB":
         github_set_webhook(webhooks.GITHUB_ISSUE_UPDATES, ["issues"])
@@ -154,30 +163,33 @@ def handle_button():
         TODO
     else:
         raise Exception("Unknown button event: %s" % TRIGGER_NAME)
-]]>
-        </field>
+
+        ]]></field>
     </record>
     <record
         id="trello-github_task_setup_trigger_button_github"
         model="sync.trigger.button"
     >
+        <field name="trigger_name">SETUP_GITHUB</field>
         <field name="name">Setup Github Webhook</field>
         <field name="sync_task_id" ref="sync.trello-github_task_setup" />
-        <field name="trigger_name">SETUP_GITHUB</field>
     </record>
     <record
         id="trello-github_task_setup_trigger_button_trello"
         model="sync.trigger.button"
     >
+        <field name="trigger_name">SETUP_TRELLO</field>
         <field name="name">Setup Trello Webhook</field>
         <field name="sync_task_id" ref="sync.trello-github_task_setup" />
-        <field name="trigger_name">SETUP_TRELLO</field>
     </record>
     <record id="trello-github_task_issues" model="sync.task">
         <field name="name">Sync Github Issues to Trello (name, messages, labels)</field>
+        <field name="active" eval="True" />
         <field name="project_id" ref="sync.trello-github_project" />
-        <field name="code">
-<![CDATA[
+        <field
+            name="code"
+        ><![CDATA[
+
 def handle_webhook(httprequest):
     issue_id = TODO
     issue_name = TODO
@@ -226,41 +238,49 @@ def process_github_issues():
     # Should be similar to process a single issue (see handle_webhook)
     TODO
 
-]]>
-        </field>
+
+        ]]></field>
     </record>
     <record
         id="trello-github_task_issues_trigger_webhook_github"
         model="sync.trigger.webhook"
     >
+        <field name="trigger_name">GITHUB_ISSUE_UPDATES</field>
+        <field name="active" eval="True" />
         <field name="name">Github Issue updates</field>
         <field name="sync_task_id" ref="sync.trello-github_task_issues" />
-        <field name="trigger_name">GITHUB_ISSUE_UPDATES</field>
     </record>
     <record id="trello-github_task_cards" model="sync.task">
         <field name="name">Sync Trello Cards to Github (labels)</field>
+        <field name="active" eval="True" />
         <field name="project_id" ref="sync.trello-github_project" />
-        <field name="code">
-<![CDATA[
+        <field
+            name="code"
+        ><![CDATA[
+
 def handle_webhook(httprequest):
     # Code is similar to github to trello sync
     pass
-]]>
-        </field>
+
+        ]]></field>
     </record>
     <record
         id="trello-github_task_issues_trigger_webhook_trello"
         model="sync.trigger.webhook"
     >
+        <field name="trigger_name">TRELLO_CARD_UPDATES</field>
+        <field name="active" eval="True" />
         <field name="name">Trello Card updates</field>
         <field name="sync_task_id" ref="sync.trello-github_task_cards" />
-        <field name="trigger_name">TRELLO_CARD_UPDATES</field>
     </record>
     <record id="trello-github_task_labels" model="sync.task">
         <field name="name">Sync labels Updating/Deleting</field>
+        <field name="active" eval="True" />
         <field name="project_id" ref="sync.trello-github_project" />
-        <field name="code">
-<![CDATA[
+        <field
+            name="code"
+        ><![CDATA[
+
 def handle_webhook(httprequest):
     glabel_id = None
     tlabel_id = None
@@ -294,30 +314,35 @@ def handle_webhook(httprequest):
         else:
             trello_label_detele(tlabel_id)
 
-]]>
-        </field>
+
+        ]]></field>
     </record>
     <record
         id="trello-github_task_labels_trigger_webhook_trello"
         model="sync.trigger.webhook"
     >
+        <field name="trigger_name">TRELLO_LABEL_UPDATES</field>
+        <field name="active" eval="True" />
         <field name="name">Trello Label updates</field>
         <field name="sync_task_id" ref="sync.trello-github_task_labels" />
-        <field name="trigger_name">TRELLO_LABEL_UPDATES</field>
     </record>
     <record
         id="trello-github_task_labels_trigger_webhook_github"
         model="sync.trigger.webhook"
     >
+        <field name="trigger_name">GITHUB_LABEL_UPDATES</field>
+        <field name="active" eval="True" />
         <field name="name">Github Label updates</field>
         <field name="sync_task_id" ref="sync.trello-github_task_labels" />
-        <field name="trigger_name">GITHUB_LABEL_UPDATES</field>
     </record>
     <record id="trello-github_task_conflicts_resolving" model="sync.task">
         <field name="name">Labels Conflict Resolving</field>
+        <field name="active" eval="True" />
         <field name="project_id" ref="sync.trello-github_project" />
-        <field name="code">
-<![CDATA[
+        <field
+            name="code"
+        ><![CDATA[
+
 def handle_cron():
     elinks = search_links(ISSUES_REL, {GITHUB: None, TRELLO: None})
     issue_ids = elinks.get(GITHUB)
@@ -381,11 +406,12 @@ def handle_cron():
         if glinks_remove:
             github_issue_remove_labels(card_id, glinks_remove.get(GITHUB))
 
-]]>
-        </field>
+
+        ]]></field>
     </record>
     <record id="trello-github_task_conflicts_resolving_cron" model="sync.trigger.cron">
         <field name="trigger_name">CONFLICT_RESOLVING</field>
+        <field name="active" eval="False" />
         <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resolving" />
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
