@@ -2,9 +2,9 @@
    :target: https://opensource.org/licenses/MIT
    :alt: License: MIT
 
-==================
- Sync Studio Free
-==================
+=============
+ Sync Studio
+=============
 
 Synchronize anything with anything, including Odoo.
 
