@@ -19,6 +19,7 @@ Installation
 
     sudo pip3 install python-telegram-bot
     sudo pip3 install PyGithub
+    sudo pip3 install py-trello
 
 * If your Sync projects use webhooks (most likely), be sure that url opens correct database without asking to select one
 
@@ -542,13 +543,20 @@ Configuration
 
 * Open menu ``[[ Sync Studio ]] >> Projects``
 * Select *Demo Github <-> Trello integration* project
-* Set **Params**:
-  * TODO
-* Set **Secrets**:
-  * TODO
-* Change **Next Execution Date** in *Conflict resolving* webhook to night time
-* Select task *Setup*
-* Click ``[Run Now]`` buttons in triggers *Setup Github webhooks*, *Setup Trello webhooks*
+* Set **Secrets** (check Description and Documentation links near the parameters table about how to get the secret parameters):
+  * ``GITHUB_REPO``
+  * ``GITHUB_TOKEN``
+  * ``TRELLO_BOARD_ID``
+  * ``TRELLO_KEY``
+  * ``TRELLO_TOKEN``
+* In *Available Tasks* tab:
+  * Click ``[Edit]``
+  * Open *Labels Conflict resolving* task
+  * In *Available Triggers* tab:
+    * Open *CONFLICT_RESOLVING* Cron
+    * Change **Next Execution Date** in webhook to night time
+* In project's *Manual Triggers* tab:
+  * Click ``[Run Now]`` buttons in triggers *SETUP_GITHUB*, *SETUP_TRELLO*
 
 Usage
 -----

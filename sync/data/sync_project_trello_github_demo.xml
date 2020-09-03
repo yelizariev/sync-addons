@@ -8,68 +8,101 @@
         <field
             name="secret_code"
         ><![CDATA[
-
 # consts
 GITHUB="github"
 TRELLO="trello"
 
 
-# Trello cards
-def trello_card_create(name, issue_id):
-    log_transmission(TRELLO, "create: %s" % name)
-    return card_id
+def _trello(secrets):
+    for key in ["TRELLO_TOKEN", "TRELLO_KEY", "TRELLO_BOARD_ID"]:
+        if not getattr(secrets, k):
+            raise Exception("{} is not set".format(key))
 
-def trello_card_add_labels(card_id, tlabel_ids):
-    log_transmission(TRELLO, "add labels to card#%s: %s" % (card_id, tlabel_ids))
-    pass
+    # https://github.com/sarumont/py-trello/tree/master/trello
+    from trello import TrelloClient
+    client = TrelloClient(
+        api_key=secrets.TRELLO_KEY,
+        api_secret=secrets.TRELLO_TOKEN,
+    )
+    board = client.get_board(secrets.TRELLO_BOARD_ID)
 
-def trello_card_remove_labels(card_id, tlabel_ids):
-    log_transmission(TRELLO, "remove labels from card#%s: %s" % (card_id, tlabel_ids))
-    pass
+    # Webhook
+    def set_webhook(url):
+        pass
 
-def trello_card_add_message(card_id, message):
-    log_transmission(TRELLO, "add message to card#%s: %s" % (card_id, message))
-    pass
+    # Trello cards
+    def card_create(name, issue_id):
+        description = "https://github.com/{}/issues/{}".format(secrets.GITHUB_REPO, issue_id)
+        log_transmission(TRELLO, "create: {}".format([name, description]))
+        card_list = board.open_lists()[0]
+        card = card_list.add_card(name, description)
+        return card.id
 
-# Trello labels
-def trello_label_create(name):
-    log_transmission(TRELLO, "create label: %s" % (name))
-    return label_id
+    def card_add_labels(card_id, tlabel_ids):
+        log_transmission(TRELLO, "add labels to card#%s: %s" % (card_id, tlabel_ids))
+        pass
 
-def trello_label_delete(tlabel_id):
-    log_transmission(TRELLO, "delete label: %s" % (tlabel_id))
-    pass
+    def card_remove_labels(card_id, tlabel_ids):
+        log_transmission(TRELLO, "remove labels from card#%s: %s" % (card_id, tlabel_ids))
+        pass
 
-def trello_label_update(tlabel_id, new_name):
-    log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
-    pass
+    def card_add_message(card_id, message):
+        log_transmission(TRELLO, "add message to card#%s: %s" % (card_id, message))
+        pass
+
+    # Trello labels
+    def label_create(name):
+        log_transmission(TRELLO, "create label: %s" % (name))
+        return label_id
+
+    def label_delete(tlabel_id):
+        log_transmission(TRELLO, "delete label: %s" % (tlabel_id))
+        pass
+
+    def label_update(tlabel_id, new_name):
+        log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
+        pass
+
+    return {
+        "set_webhook": set_webhook,
+        "card_create": card_create,
+        "card_add_labels": card_add_labels,
+        "card_remove_labels": card_remove_labels,
+        "card_add_message": card_add_message,
+        "issue_add_labels": issue_add_labels,
+        "label_create": label_create,
+        "label_delete": label_delete,
+        "label_update": label_update,
+    }
+
 
 # Github
 def _github(secrets):
     from github import Github
     if not secrets.GITHUB_TOKEN:
-        raise Exception("bot token is not set")
+        raise Exception("github token is not set")
     if not secrets.GITHUB_REPO:
         raise Exception("github repo is not set")
 
     g = Github(secrets.GITHUB_TOKEN)
     repo = g.get_repo(secrets.GITHUB_REPO)
 
-    # Webhook
+    # Github Webhook
     def set_webhook(url, events):
         # API: https://docs.github.com/en/rest/reference/repos#create-a-repository-webhook
         # Events: https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
         config = {"url": url}
+        log_transmission(GITHUB, "set webhook: {}".format([config, events]))
         repo.create_hook("web", config, events)
 
-    # Issues
+    # Github Issues
     def issue_add_labels(issue_id, glabel_ids):
         pass
 
     def issue_remove_labels(issue_id, glabel_ids):
         pass
 
-    # Labels
+    # Github Labels
     def label_create(name):
         return glabel_id
 
@@ -88,6 +121,8 @@ def _github(secrets):
     }
 
 github = _github(secrets)
+trello = _trello(secrets)
+
 ]]></field>
         <field
             name="common_code"
@@ -132,6 +167,35 @@ def github2trello_labels(labels):
         <field name="key">GITHUB_REPO</field>
         <field name="description">owner/repo_name</field>
         <field name="url" />
+        <field name="project_id" ref="sync.trello-github_project" />
+    </record>
+    <record id="trello-token_project-secret-parameter" model="sync.project.secret">
+        <field name="key">TRELLO_TOKEN</field>
+        <field name="description">
+            Trello token to make API calls. Don't confuse it with API Key. Once you get
+            API Key in https://trello.com/app-key page, you will see a link to generate
+            token. Click one and you'll get the token
+        </field>
+        <field name="url">
+            https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/
+        </field>
+        <field name="project_id" ref="sync.trello-github_project" />
+    </record>
+    <record id="trello-key_project-secret-parameter" model="sync.project.secret">
+        <field name="key">TRELLO_KEY</field>
+        <field name="description" />
+        <field name="url">https://trello.com/app-key</field>
+        <field name="project_id" ref="sync.trello-github_project" />
+    </record>
+    <record id="trello-board-id_project-secret-parameter" model="sync.project.secret">
+        <field name="key">TRELLO_BOARD_ID</field>
+        <field name="description">
+            You can get one from the board url:
+            https://trello.com/b/TRELLO_BOARD_ID/BOARD-NAME
+        </field>
+        <field name="url">
+            https://community.atlassian.com/t5/Trello-questions/How-to-get-Trello-Board-ID/qaq-p/1347525
+        </field>
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_project_param_prefix_name" model="sync.project.param">
