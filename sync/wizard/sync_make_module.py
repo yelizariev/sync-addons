@@ -9,6 +9,9 @@ from odoo import api, fields, models
 from odoo.addons.http_routing.models.ir_http import slugify
 
 MODULE = "sync"
+PARAM_NAME = "sync.export_project.author_name"
+PARAM_URL = "sync.export_project.author_url"
+PARAM_LICENSE = "sync.export_project.license"
 
 
 class SyncMakeModule(models.TransientModel):
@@ -28,7 +31,22 @@ class SyncMakeModule(models.TransientModel):
     state = fields.Selection([("choose", "choose"), ("get", "get")], default="choose")
     project_id = fields.Many2one("sync.project")
 
+    @api.model
+    def default_get(self, fields):
+        vals = super().default_get(fields)
+        vals["author_name"] = self.env["ir.config_parameter"].get_param(PARAM_NAME, "")
+        vals["author_url"] = self.env["ir.config_parameter"].get_param(PARAM_URL, "")
+        license = self.env["ir.config_parameter"].get_param(PARAM_LICENSE)
+        if license:
+            vals["license"] = license
+        return vals
+
     def act_makefile(self):
+        self.env["ir.config_parameter"].set_param(PARAM_NAME, self.author_name)
+        self.env["ir.config_parameter"].set_param(PARAM_LICENSE, self.license)
+        if self.author_url:
+            self.env["ir.config_parameter"].set_param(PARAM_URL, self.author_url)
+
         url = " <{}>".format(self.author_url) if self.author_url else ""
         copyright_str = "<!-- Copyright {years} {name}{url}\n     {license}. -->".format(
             years=self.copyright_years,
