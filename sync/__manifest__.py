@@ -3,7 +3,7 @@
 
 {
     "name": """Sync Studio""",
-    "summary": """Synchronize anything with anything, including Odoo""",
+    "summary": """Synchronize anything with anything: System X ↔ Odoo, Odoo 1 ↔ Odoo 2, System X ↔ System Y""",
     "category": "Extra Tools",
     "images": [],
     "version": "12.0.1.0.0",

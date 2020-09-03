@@ -6,7 +6,11 @@
  Sync Studio
 =============
 
-Synchronize anything with anything, including Odoo.
+Synchronize anything with anything:
+
+* System X ↔ Odoo
+* Odoo 1 ↔ Odoo 2
+* System X ↔ System Y
 
 Provides a single place to handle synchronization trigered by one of the following events:
 
