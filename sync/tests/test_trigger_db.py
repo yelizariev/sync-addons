@@ -22,7 +22,11 @@ class TestTriggerDB(TransactionCase):
         # activate project
         self.env.ref("sync.test_project").active = True
         # trigger event
-        partner = self.env["res.partner"].create({"name": "Test Partner Name"})
+        partner = (
+            self.env["res.partner"]
+            .with_context(new_cursor_logs=False)
+            .create({"name": "Test Partner Name"})
+        )
         # check that handler is executed
         param = self.env.ref("sync.test_project_param")
         link = self.get_link(param.value, partner.id)
