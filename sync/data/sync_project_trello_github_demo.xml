@@ -13,14 +13,6 @@
 GITHUB="github"
 TRELLO="trello"
 
-from github import Github as _Github
-if not secrets.GITHUB_TOKEN:
-    raise Exception("bot token is not set")
-if not secrets.GITHUB_REPO:
-    raise Exception("github repo is not set")
-
-_g = _Github(secrets.GITHUB_TOKEN)
-_grepo = _g.get_repo(secrets.GITHUB_REPO)
 
 # Trello cards
 def trello_card_create(name, issue_id):
@@ -52,32 +44,51 @@ def trello_label_update(tlabel_id, new_name):
     log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
     pass
 
-# Github webhooks
+# Github
+def _github(secrets):
+    from github import Github
+    if not secrets.GITHUB_TOKEN:
+        raise Exception("bot token is not set")
+    if not secrets.GITHUB_REPO:
+        raise Exception("github repo is not set")
 
-def github_set_webhook(url, events):
-    # API: https://docs.github.com/en/rest/reference/repos#create-a-repository-webhook
-    # Events: https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
-    config = {"url": url}
-    _grepo.create_hook("web", config, events)
+    g = Github(secrets.GITHUB_TOKEN)
+    repo = g.get_repo(secrets.GITHUB_REPO)
 
-# Github issues
-def github_issue_add_labels(issue_id, glabel_ids):
-    pass
+    # Webhook
+    def set_webhook(url, events):
+        # API: https://docs.github.com/en/rest/reference/repos#create-a-repository-webhook
+        # Events: https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
+        config = {"url": url}
+        repo.create_hook("web", config, events)
 
-def github_issue_remove_labels(issue_id, glabel_ids):
-    pass
+    # Issues
+    def issue_add_labels(issue_id, glabel_ids):
+        pass
 
-# Github labels
-def github_label_create(name):
-    return glabel_id
+    def issue_remove_labels(issue_id, glabel_ids):
+        pass
 
-def github_label_delete(glabel_id):
-    pass
+    # Labels
+    def label_create(name):
+        return glabel_id
 
-def github_label_update(glabel_id, new_name):
-    pass
+    def label_delete(glabel_id):
+        pass
 
-        ]]></field>
+    def label_update(glabel_id, new_name):
+        pass
+
+    return {
+        "set_webhook": set_webhook,
+        "issue_add_labels": issue_add_labels,
+        "label_create": label_create,
+        "label_delete": label_delete,
+        "label_update": label_update,
+    }
+
+github = _github(secrets)
+]]></field>
         <field
             name="common_code"
         ><![CDATA[
@@ -110,7 +121,7 @@ def github2trello_labels(labels):
     <record id="trello-github_project_secret_github_token" model="sync.project.secret">
         <field name="key">GITHUB_TOKEN</field>
         <field name="description">
-            Token with access to read issues and create webhooks
+            Token with access to read issues and create webhooks, i.e. "repo" scope
         </field>
         <field name="url">
             https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
@@ -142,7 +153,7 @@ def github2trello_labels(labels):
         model="sync.project.param"
     >
         <field name="key">LABELS_MERGE_STRATEGY</field>
-        <field name="value" />
+        <field name="value">UNION</field>
         <field name="description">
             Possible values:
 USE_TRELLO, USE_GITHUB: use version from one side and override values from another
@@ -161,10 +172,10 @@ INTERSECTION: remove labes that are not attached on another side
         ><![CDATA[
 
 def handle_button():
-    if TRIGGER_NAME == "SETUP_GITHUB":
-        github_set_webhook(webhooks.GITHUB_ISSUE_UPDATES, ["issues"])
-        github_set_webhook(webhooks.GITHUB_LABEL_UPDATES, ["label"])
-    elif TRIGGER_NAME == "SETUP_TRELLO":
+    if trigger_name == "SETUP_GITHUB":
+        github["set_webhook"](webhooks.GITHUB_ISSUE_UPDATES, ["issues"])
+        github["set_webhook"](webhooks.GITHUB_LABEL_UPDATES, ["label"])
+    elif trigger_name == "SETUP_TRELLO":
         TODO
     else:
         raise Exception("Unknown button event: %s" % TRIGGER_NAME)
@@ -416,7 +427,7 @@ def handle_cron():
     </record>
     <record id="trello-github_task_conflicts_resolving_cron" model="sync.trigger.cron">
         <field name="trigger_name">CONFLICT_RESOLVING</field>
-        <field name="active" eval="False" />
+        <field name="active" eval="True" />
         <field name="sync_task_id" ref="sync.trello-github_task_conflicts_resolving" />
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
