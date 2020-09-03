@@ -60,10 +60,12 @@ class SyncMakeModule(models.TransientModel):
             (project, ("name", "active", "secret_code", "common_code")),
         ]
         for secret in project.secret_ids:
-            records.append((secret, ("key", "description", "project_id")))
+            records.append((secret, ("key", "description", "url", "project_id")))
 
         for param in project.param_ids:
-            records.append((param, ("key", "value", "description", "project_id")))
+            records.append(
+                (param, ("key", "value", "description", "url", "project_id"))
+            )
 
         for task in project.task_ids:
             records.append((task, ("name", "active", "project_id", "code")))

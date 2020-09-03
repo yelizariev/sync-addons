@@ -109,28 +109,32 @@ def github2trello_labels(labels):
     </record>
     <record id="trello-github_project_secret_github_token" model="sync.project.secret">
         <field name="key">GITHUB_TOKEN</field>
-        <field
-            name="description"
-        ><![CDATA[
-Token with access to read issues and create webhooks. See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
-]]></field>
+        <field name="description">
+            Token with access to read issues and create webhooks
+        </field>
+        <field name="url">
+            https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+        </field>
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_project_secret_github_repo" model="sync.project.secret">
         <field name="key">GITHUB_REPO</field>
         <field name="description">owner/repo_name</field>
+        <field name="url" />
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_project_param_prefix_name" model="sync.project.param">
         <field name="key">ISSUE_FROM_GITHUB_PREFIX</field>
         <field name="value">GITHUB:</field>
         <field name="description" />
+        <field name="url" />
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_project_param_prefix_message" model="sync.project.param">
         <field name="key">MESSAGE_PREFIX</field>
         <field name="value">A Message posted on GitHub:</field>
         <field name="description" />
+        <field name="url" />
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record
@@ -145,6 +149,7 @@ USE_TRELLO, USE_GITHUB: use version from one side and override values from anoth
 UNION: add missed labels to each side
 INTERSECTION: remove labes that are not attached on another side
         </field>
+        <field name="url" />
         <field name="project_id" ref="sync.trello-github_project" />
     </record>
     <record id="trello-github_task_setup" model="sync.task">

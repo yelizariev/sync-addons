@@ -281,6 +281,7 @@ class SyncProjectParamMixin(models.AbstractModel):
     key = fields.Char("Key", required=True)
     value = fields.Char("Value")
     description = fields.Char("Description", translate=True)
+    url = fields.Char("Documentation")
     project_id = fields.Many2one("sync.project")
 
     _sql_constraints = [("key_uniq", "unique (project_id, key)", "Key must be unique.")]

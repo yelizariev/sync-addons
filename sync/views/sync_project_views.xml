@@ -139,6 +139,7 @@
                                     <field name="key" />
                                     <field name="value" />
                                     <field name="description" />
+                                    <field name="url" widget="url" text="Open Link" />
                                 </tree>
                             </field>
                             <separator string="Secrets" />
@@ -157,6 +158,7 @@
                                         decoration-danger="not value"
                                     />
                                     <field name="description" />
+                                    <field name="url" widget="url" text="Open Link" />
                                 </tree>
                             </field>
                         </page>
@@ -253,6 +255,7 @@
                 <group>
                     <field name="key" />
                     <field name="value" />
+                    <field name="url" widget="url" />
                 </group>
                 <field name="description" />
             </form>
@@ -266,6 +269,7 @@
                 <group>
                     <field name="key" />
                     <field name="value" />
+                    <field name="url" widget="url" />
                 </group>
                 <field name="description" />
             </form>
