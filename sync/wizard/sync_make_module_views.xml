@@ -18,14 +18,15 @@
                     <p>
                         Here is the xml file to be put into a module:
                         <field name="data" readonly="1" filename="name" />
-                        . Generation time:
+                        <br />
+                        Generation time:
                         <field name="write_date" />
                     </p>
                     <div class="alert alert-success" role="alert">
                         <p>
                             You are welcome to make a contribution to our
                             <a href="https://github.com/itpp-labs/sync-addons">
-                                OpenSource integration addons
+                                open source integration addons
                             </a>
                             . It could be either:
                             <ul>
