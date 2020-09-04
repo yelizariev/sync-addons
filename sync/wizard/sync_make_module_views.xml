@@ -16,12 +16,46 @@
                 </group>
                 <div states="get">
                     <p>
-                        Here is the xml file to be put into your module:
+                        Here is the xml file to be put into a module:
                         <field name="data" readonly="1" filename="name" />
-                    </p>
-                    <p>
+                        . Generation time:
                         <field name="write_date" />
                     </p>
+                    <div class="alert alert-success" role="alert">
+                        <p>
+                            You are welcome to make a contribution to our
+                            <a href="https://github.com/itpp-labs/sync-addons">
+                                OpenSource integration addons
+                            </a>
+                            . It could be either:
+                            <ul>
+                                <li>a new module</li>
+                                <li>an update to existing module</li>
+                                <li>
+                                    an issue with the data xml file attached (due to
+                                    github restrictions you need to rename it to txt
+                                    file first)
+                                </li>
+                                <li>a bug report</li>
+                                <li>a feature request</li>
+                            </ul>
+                        </p>
+                        <p>
+                            Your contribution will make other Odoo users happy :), while
+                            <a href="https://itpp.dev/">IT Projects Labs</a>
+                            will assist you on it:
+                            <ul>
+                                <li>we will test the updates</li>
+                                <li>we will check bug reports</li>
+                                <li>we will document the modules</li>
+                                <li>we will port modules to the new Odoo versions</li>
+                            </ul>
+                        </p>
+                        <p>
+                            Sincerely,
+                            <a href="https://twitter.com/yelizariev">Ivan Yelizariev</a>
+                        </p>
+                    </div>
                 </div>
                 <footer states="choose">
                     <button
