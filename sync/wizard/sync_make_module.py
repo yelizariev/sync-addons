@@ -131,9 +131,19 @@ class SyncMakeModule(models.TransientModel):
             else:
                 return existing.complete_name
 
-        return "{}_{}".format(
+        xmlid = "{}_{}".format(
             slugify(record.display_name), slugify(record._description)
         )
+
+        self.env["ir.model.data"].create(
+            {
+                "model": record._name,
+                "res_id": record.id,
+                "module": MODULE,
+                "name": xmlid,
+            }
+        )
+        return xmlid
 
     @api.model
     def _field2xml(self, record, fname):
