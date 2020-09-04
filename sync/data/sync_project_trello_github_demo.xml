@@ -47,7 +47,8 @@ def _trello(secrets):
 
     def card_add_message(card_id, message):
         log_transmission(TRELLO, "add message to card#%s: %s" % (card_id, message))
-        pass
+        card = client.get_card(card_id)
+        card.comment(message)
 
     # Trello labels
     def label_create(name):
@@ -269,31 +270,47 @@ def handle_button():
         ><![CDATA[
 
 def handle_webhook(httprequest):
-    issue_id = TODO
-    issue_name = TODO
+    # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#issues
+    data = json.loads(httprequest.data.decode())
+    log("Github payload:\n{}".format(json.dumps(data, indent=4, sort_keys=True)))
+    if data["action"] not in ["opened", "labeled", "unlabeled"]:
+      # In this demo project we don't process other events
+      return "thank you!"
+    issue = data["issue"]
+    issue_id = issue["number"]
+    issue_name = issue["title"]
     elink = get_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: None})
-    if not elink:
-        card_id = trello_card_create(issue_name, issue_id)
+    card_id = None
+    if elink:
+        card_id = elink.get(TRELLO)[0]
+    else:
+        card_id = trello["card_create"](issue_name, issue_id)
         elink = set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
 
-    issue_message = TODO
+    issue_message = issue["body"]
     if issue_message:
         message = "%s%s" % (params.MESSAGE_PREFIX, issue_message)
-        trello_card_add_message(elink.get(TRELLO), message)
+        trello["card_add_message"](card_id, message)
 
     # attached labels:
-    labels = TODO
-    tlabel_ids = github2trello_labels(labels)
+    labels = []
+    if data["action"] == "opened":
+        labels = issue["labels"]
+    if data["action"] == "labeled":
+        labels = [data["label"]]
+    if labels:
+        tlabel_ids = github2trello_labels(labels)
 
-    if tlabel_ids:
-        trello_card_add_labels(elink.get(TRELLO), tlabel_ids)
+        if tlabel_ids:
+            trello["card_add_labels"](card_id, tlabel_ids)
 
     # detached labels:
-    labels = TODO
-    tlabel_ids = github2trello_labels(labels)
+    if data["action"] == "unlabeled":
+        labels = [data["label"]]
+        tlabel_ids = github2trello_labels(labels)
 
-    if tlabel_ids:
-        trello_card_remove_labels(elink.get(TRELLO), tlabel_ids)
+        if tlabel_ids:
+            trello["card_remove_labels"](card_id, tlabel_ids)
 
 def handle_button():
     # Sync all existing open github issues to trello

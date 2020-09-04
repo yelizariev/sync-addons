@@ -15,6 +15,7 @@ class Webhook(http.Controller):
         type="json",
         auth="public",
         website=True,
+        csrf=False,
     )
     def actions_server(self, path_or_xml_id_or_id, **post):
         res = Website().actions_server(path_or_xml_id_or_id, **post)
