@@ -27,7 +27,7 @@ def _trello(secrets):
 
     # Webhook
     def set_webhook(url):
-        pass
+        TODO
 
     # Trello cards
     def card_create(name, issue_id):
@@ -39,11 +39,17 @@ def _trello(secrets):
 
     def card_add_labels(card_id, tlabel_ids):
         log_transmission(TRELLO, "add labels to card#%s: %s" % (card_id, tlabel_ids))
-        pass
+        card = client.get_card(card_id)
+        for label_id in tlabel_ids:
+            label = client.get_label(label_id, board.id)
+            card.add_label(label)
 
     def card_remove_labels(card_id, tlabel_ids):
         log_transmission(TRELLO, "remove labels from card#%s: %s" % (card_id, tlabel_ids))
-        pass
+        card = client.get_card(card_id)
+        for label_id in tlabel_ids:
+            label = client.get_label(label_id, board.id)
+            card.remove_label(label)
 
     def card_add_message(card_id, message):
         log_transmission(TRELLO, "add message to card#%s: %s" % (card_id, message))
@@ -51,17 +57,18 @@ def _trello(secrets):
         card.comment(message)
 
     # Trello labels
-    def label_create(name):
-        log_transmission(TRELLO, "create label: %s" % (name))
-        return label_id
+    def label_create(name, color):
+        log_transmission(TRELLO, "create label for: %s" % (name))
+        label = board.add_label(name, color)
+        return label.id
 
     def label_delete(tlabel_id):
         log_transmission(TRELLO, "delete label: %s" % (tlabel_id))
-        pass
+        TODO
 
     def label_update(tlabel_id, new_name):
         log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
-        pass
+        TODO
 
     return {
         "set_webhook": set_webhook,
@@ -121,7 +128,7 @@ def _github(secrets):
 
 github = _github(secrets)
 trello = _trello(secrets)
-
+from math import sqrt
 ]]></field>
         <field
             name="common_code"
@@ -130,14 +137,14 @@ trello = _trello(secrets)
 ISSUES_REL="TRELLO_GITHUB_ISSUES_REL"
 LABELS_REL="TRELLO_GITHUB_LABELS_REL"
 
-def get_related_label(from_id, name, from_system, to_system):
+def get_related_label(from_id, name, color, from_system, to_system):
     elink = get_link(LABELS_REL, [(from_system, from_id), (to_system, None)])
 
     if elink:
         return elink.get(to_system)
     else:
-        to_id = github_label_create(name) if to_system == GITHUB else trello_label_create(name)
-        elink = set_link(LABELS_REL, [(from_system, from_id), (to_system, to_id)])
+        to_id = githug["label_create"](name, color) if to_system == GITHUB else trello["label_create"](name, color)
+        elink = set_link(LABELS_REL, {from_system: from_id, to_system: to_id})
         return to_id
 
 def github2trello_labels(labels):
@@ -145,12 +152,36 @@ def github2trello_labels(labels):
     for lb in labels:
         label_id = lb["id"]
         label_name = lb["name"]
-        tlabel_id = get_related_label(label_id, label_name, from_system=GITHUB, to_system=TRELLO)
+        label_color = color2trello(lb["color"])
+        tlabel_id = get_related_label(label_id, label_name, label_color, from_system=GITHUB, to_system=TRELLO)
         tlabel_ids.append(tlabel_id)
     return tlabel_ids
 
 
-        ]]></field>
+def color2trello(hex):
+    # colors list is taken from here: https://developer.atlassian.com/cloud/trello/rest/api-group-labels/#api-labels-post
+    TRELLO_COLORS = {
+      (255, 255, 0): "yellow",
+      (128, 0, 128): "purple",
+      (0, 0, 255): "blue",
+      (255, 0, 0): "red",
+      (0, 128, 0): "green",
+      (255, 159, 26): "orange",
+      (0, 0, 0): "black",
+      (0, 194, 224): "sky",
+      (255, 120, 203): "pink",
+      (0, 255, 0): "lime",
+    }
+    # based on https://stackoverflow.com/a/54242348/222675
+    r, g, b = int(hex[0:2], 16), int(hex[2:4], 16), int(hex[4:6], 16)
+    color_diffs = []
+    for color in TRELLO_COLORS.keys():
+        cr, cg, cb = color
+        color_diff = sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+        color_diffs.append((color_diff, color))
+    best_color = min(color_diffs)[1]
+    return TRELLO_COLORS[best_color]
+]]></field>
     </record>
     <record id="trello-github_project_secret_github_token" model="sync.project.secret">
         <field name="key">GITHUB_TOKEN</field>
