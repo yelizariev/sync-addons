@@ -161,7 +161,7 @@ class SyncProject(models.Model):
                 return _log(self.env.cr, message, level, name, log_type)
 
             with self.env.registry.cursor() as cr:
-                return _log(cr, message, level, name)
+                return _log(cr, message, level, name, log_type)
 
         return log
 
