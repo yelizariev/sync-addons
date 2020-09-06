@@ -27,7 +27,29 @@ def _trello(secrets):
 
     # Webhook
     def set_webhook(url):
-        TODO
+        id_model = board.id
+        desc = "Demo Trello-Github Integration"
+        log_transmission(TRELLO, "set webhook: {}".format([url, id_model, desc]))
+
+        # original create_hook is not used. See: https://github.com/sarumont/py-trello/pull/323
+        # hook = client.create_hook(url, id_model, desc, token=secrets.TRELLO_TOKEN)
+        token = secrets.TRELLO_TOKEN
+        res = client.fetch_json(
+            "tokens/{}/webhooks/".format(token),
+            http_method="POST",
+            post_args={
+                "callbackURL": url,
+                "idModel": id_model,
+                "description": desc,
+            }
+        )
+        log("Trello response: %s" % json.dumps(res))
+
+    def delete_webhooks():
+        for hook in client.list_hooks(secrets.TRELLO_TOKEN):
+            if hook.id_model == board.id:
+                log_transmission(TRELLO, "delete webhook: {}".format([hook.callback_url]))
+                hook.delete()
 
     # Trello cards
     def card_create(name, issue_id):
@@ -72,6 +94,7 @@ def _trello(secrets):
 
     return {
         "set_webhook": set_webhook,
+        "delete_webhooks": delete_webhooks,
         "card_create": card_create,
         "card_add_labels": card_add_labels,
         "card_remove_labels": card_remove_labels,
@@ -270,9 +293,12 @@ def handle_button():
         github["set_webhook"](webhooks.GITHUB_ISSUE_COMMENT, ["issue_comment"])
         github["set_webhook"](webhooks.GITHUB_LABEL_UPDATES, ["label"])
     elif trigger_name == "SETUP_TRELLO":
-        TODO
+        trello["set_webhook"](webhooks.TRELLO_CARD_UPDATES)
+        #trello["set_webhook"](webhooks.TRELLO_LABEL_UPDATES)
+    elif trigger_name == "DELETE_TRELLO_WEBHOOKS":
+        trello["delete_webhooks"]()
     else:
-        raise Exception("Unknown button event: %s" % TRIGGER_NAME)
+        raise Exception("Unknown button event: %s" % trigger_name)
 
         ]]></field>
     </record>
@@ -281,7 +307,9 @@ def handle_button():
         model="sync.trigger.button"
     >
         <field name="trigger_name">SETUP_GITHUB</field>
-        <field name="name">Setup Github Webhook</field>
+        <field
+            name="name"
+        >Setup Github Webhook. To delete webhooks, open github repostory, navigate to Settings &gt;&gt; Webhooks</field>
         <field name="sync_task_id" ref="sync.trello-github_task_setup" />
     </record>
     <record
@@ -289,7 +317,12 @@ def handle_button():
         model="sync.trigger.button"
     >
         <field name="trigger_name">SETUP_TRELLO</field>
-        <field name="name">Setup Trello Webhook</field>
+        <field name="name">Setup Trello Webhook.</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_setup" />
+    </record>
+    <record id="delete-trello-webhooks_manual-trigger" model="sync.trigger.button">
+        <field name="trigger_name">DELETE_TRELLO_WEBHOOKS</field>
+        <field name="name" />
         <field name="sync_task_id" ref="sync.trello-github_task_setup" />
     </record>
     <record id="trello-github_task_issues" model="sync.task">
@@ -338,10 +371,11 @@ def handle_webhook_issues_update(data):
         card_id = trello["card_create"](issue_name, issue_id)
         set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
 
-    issue_message = issue["body"]
-    if issue_message:
-        message = "%s\n%s" % (params.MESSAGE_PREFIX, issue_message)
-        trello["card_add_message"](card_id, message)
+    if data["action"] == "opened":
+        issue_message = issue["body"]
+        if issue_message:
+            message = "%s\n%s" % (params.MESSAGE_PREFIX, issue_message)
+            trello["card_add_message"](card_id, message)
 
     # attached labels:
     labels = []
@@ -417,7 +451,9 @@ def process_github_issues():
 
 def handle_webhook(httprequest):
     # Code is similar to github to trello sync
-    pass
+    data = httprequest.form
+    log(str(data))
+    log("Trello payload:\n{}".format(json.dumps(data, indent=4, sort_keys=True)))
 
         ]]></field>
     </record>
@@ -439,6 +475,7 @@ def handle_webhook(httprequest):
         ><![CDATA[
 
 def handle_webhook(httprequest):
+    return
     glabel_id = None
     tlabel_id = None
     is_updated = None
