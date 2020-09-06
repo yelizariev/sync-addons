@@ -556,7 +556,19 @@ Configuration
     * Open *CONFLICT_RESOLVING* Cron
     * Change **Next Execution Date** in webhook to night time
 * In project's *Manual Triggers* tab:
-  * Click ``[Run Now]`` buttons in triggers *SETUP_GITHUB*, *SETUP_TRELLO*
+  * Click ``[Run Now]`` buttons in trigger *SETUP_GITHUB*
+  * Click ``[Run Now]`` buttons in triggers *SETUP_TRELLO*. Note, that `it doesn't work <https://github.com/odoo/odoo/issues/57133>`_ without one of the following workarounds:
+
+    * open file ``sync/controllers/webhook.py`` and temporarly change ``type="json"`` to ``type="http"``. Revert the changes after successfully setting up trello
+    * add header "Content-Type: application/json" via your web server. Example for nginx:
+
+            location /website/action-json/ {
+                proxy_set_header Content-Type "application/json";
+                proxy_set_header Host $host;
+                proxy_pass http://localhost:8069;
+            }
+
+
 
 Usage
 -----
