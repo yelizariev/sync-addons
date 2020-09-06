@@ -229,6 +229,11 @@
                             </p>
                         </page>
                         <page name="buttons" string="Manual Triggers">
+                            <p class="oe_edit_only">
+                                <br />
+                                Hint: to add manual triggers nagivate to corresponding
+                                Task via "Available Tasks" tab
+                            </p>
                             <field name="trigger_button_ids">
                                 <tree create="0">
                                     <field name="sync_task_id" />
