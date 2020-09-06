@@ -4,7 +4,7 @@
 {
     "name": """Sync Studio""",
     "summary": """Synchronize anything with anything: SystemX↔Odoo, Odoo1↔Odoo2, SystemX↔SystemY""",
-    "category": "Localization",
+    "category": "Extra Tools",
     "images": [],
     "version": "12.0.1.0.0",
     "application": True,
