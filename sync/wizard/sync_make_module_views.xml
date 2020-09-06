@@ -25,7 +25,10 @@
                     <div class="alert alert-success" role="alert">
                         <p>
                             You are welcome to make a contribution to our
-                            <a href="https://github.com/itpp-labs/sync-addons">
+                            <a
+                                target="_blank"
+                                href="https://github.com/itpp-labs/sync-addons"
+                            >
                                 open source integration addons
                             </a>
                             . It could be either:
@@ -43,7 +46,9 @@
                         </p>
                         <p>
                             Your contribution will make other Odoo users happy :), while
-                            <a href="https://itpp.dev/">IT Projects Labs</a>
+                            <a target="_blank" href="https://itpp.dev/">
+                                IT Projects Labs
+                            </a>
                             will assist you on it:
                             <ul>
                                 <li>we will test the updates</li>
@@ -54,7 +59,9 @@
                         </p>
                         <p>
                             Sincerely,
-                            <a href="https://twitter.com/yelizariev">Ivan Yelizariev</a>
+                            <a target="_blank" href="https://twitter.com/yelizariev">
+                                Ivan Yelizariev
+                            </a>
                         </p>
                     </div>
                 </div>

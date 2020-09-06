@@ -60,6 +60,23 @@
                     name="error_and_critical"
                     domain="[('level', 'in', ['error', 'critical'])]"
                 />
+                <group expand="0" string="Group By">
+                    <filter
+                        string="Sync Project"
+                        name='sync_project_id'
+                        context="{'group_by':'sync_project_id'}"
+                    />
+                    <filter
+                        string="Sync Task"
+                        name='sync_task_id'
+                        context="{'group_by':'sync_task_id'}"
+                    />
+                    <filter
+                        string="Sync Job"
+                        name='sync_job_id'
+                        context="{'group_by':'sync_job_id'}"
+                    />
+                </group>
             </search>
         </field>
     </record>

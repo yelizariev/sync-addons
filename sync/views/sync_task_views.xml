@@ -73,6 +73,12 @@
                                     # The code may use functions and variables from
                                     Project's Shared Code
                                 </em>
+                                <em class="oe_edit_only">
+                                    <br />
+                                    # Hint: if you miss some code editor features, just
+                                    copy code to your lovely editor, update there and
+                                    paste here
+                                </em>
                             </p>
                             <field
                                 name="code"

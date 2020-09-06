@@ -221,7 +221,8 @@
                             </field>
                             <p>
                                 <em>
-                                    Cron, Webhooks and DB Triggers are not executed
+                                    Hint: Cron, Webhooks and DB Triggers are not
+                                    executed
                                     until both the Project and the Task are active (i.e.
                                     not Archived)
                                 </em>

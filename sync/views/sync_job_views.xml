@@ -169,7 +169,6 @@
         name="Jobs"
         parent="sync_menu"
         action="sync_job_action"
-        groups="base.group_no_one"
         sequence="20"
     />
 </odoo>
