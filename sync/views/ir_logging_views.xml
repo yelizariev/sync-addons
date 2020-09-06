@@ -13,6 +13,7 @@
             >
                 <field name="create_date" />
                 <field name="level" />
+                <field name="name" />
                 <field name="message_short" />
                 <field name="sync_project_id" />
                 <field name="sync_task_id" />
@@ -32,8 +33,11 @@
                         <field name="sync_project_id" />
                         <field name="sync_task_id" />
                     </group>
+                </group>
+                <group>
                     <group>
                         <field name="level" />
+                        <field name="name" />
                     </group>
                 </group>
                 <field name="message" />

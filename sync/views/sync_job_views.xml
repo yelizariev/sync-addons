@@ -136,6 +136,7 @@
                                 <field name="id" />
                                 <field name="create_date" />
                                 <field name="level" />
+                                <field name="name" />
                                 <field name="message_short" />
                             </tree>
                             <form>
