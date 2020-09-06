@@ -22,7 +22,7 @@ class SyncMakeModule(models.TransientModel):
     name2 = fields.Char("File Name", readonly=True, compute="_compute_name")
     data = fields.Binary("File", readonly=True, attachment=False)
     data2 = fields.Binary(related="data")
-    copyright_years = fields.Char("Copyright Years", default="2020", required=True)
+    copyright_years = fields.Char("Copyright Year", default="2020", required=True)
     author_name = fields.Char("Author Name", help="e.g. Ivan Yelizariev", required=True)
     author_url = fields.Char("Author URL", help="e.g. https://twitter.com/yelizariev")
     license = fields.Char(
