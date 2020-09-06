@@ -4,13 +4,13 @@
 {
     "name": """Sync Studio""",
     "summary": """Synchronize anything with anything: SystemX↔Odoo, Odoo1↔Odoo2, SystemX↔SystemY""",
-    "category": "Extra Tools",
+    "category": "Localization",
     "images": [],
     "version": "12.0.1.0.0",
     "application": True,
     "author": "IT-Projects LLC, Ivan Yelizariev",
     "support": "apps@it-projects.info",
-    "website": "https://apps.odoo.com/apps/modules/12.0/sync/",
+    "website": "https://github.com/itpp-labs/sync-addons",
     "license": "Other OSI approved licence",  # MIT
     "depends": ["base_automation", "mail", "website", "queue_job"],
     "external_dependencies": {"python": [], "bin": []},

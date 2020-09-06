@@ -13,6 +13,7 @@
                     <field name="author_url" />
                     <field name="license" />
                     <field name="name" invisible="1" />
+                    <field name="name2" invisible="1" />
                 </group>
                 <div states="get">
                     <p>
@@ -37,15 +38,19 @@
                                 <li>an update to existing module</li>
                                 <li>
                                     an issue with the data xml file attached (due to
-                                    github restrictions you need to rename it to txt
-                                    file first)
+                                    github restrictions you need to use file ended with
+                                    .txt:
+                                    <field name="data2" readonly="1" filename="name2" />
+                                    )
                                 </li>
                                 <li>a bug report</li>
                                 <li>a feature request</li>
                             </ul>
                         </p>
                         <p>
-                            Your contribution will make other Odoo users happy :), while
+                            Your contribution will make other Odoo users happy
+                            <span class="fa fa-smile-o" />
+                            , while
                             <a target="_blank" href="https://itpp.dev/">
                                 IT Projects Labs
                             </a>

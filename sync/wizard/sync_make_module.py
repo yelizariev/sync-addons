@@ -18,8 +18,10 @@ class SyncMakeModule(models.TransientModel):
     _name = "sync.make.module"
     _description = "Generating XML data file for a module"
 
-    name = fields.Char("File Name", readonly=True, default="sync_project_data.xml")
+    name = fields.Char("File Name", readonly=True, compute="_compute_name")
+    name2 = fields.Char("File Name", readonly=True, compute="_compute_name")
     data = fields.Binary("File", readonly=True, attachment=False)
+    data2 = fields.Binary(related="data")
     copyright_years = fields.Char("Copyright Years", default="2020", required=True)
     author_name = fields.Char("Author Name", help="e.g. Ivan Yelizariev", required=True)
     author_url = fields.Char("Author URL", help="e.g. https://twitter.com/yelizariev")
@@ -30,6 +32,13 @@ class SyncMakeModule(models.TransientModel):
     )
     state = fields.Selection([("choose", "choose"), ("get", "get")], default="choose")
     project_id = fields.Many2one("sync.project")
+
+    def _compute_name(self):
+        for r in self:
+            name = slugify(r.project_id.name).replace("-", "_")
+            name = "sync_project_{}_data.xml".format(name)
+            r.name = name
+            r.name2 = "{}.txt".format(name)
 
     @api.model
     def default_get(self, fields):
