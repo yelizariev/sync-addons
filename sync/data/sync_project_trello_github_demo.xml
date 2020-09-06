@@ -233,10 +233,10 @@ INTERSECTION: remove labes that are not attached on another side
         <field
             name="code"
         ><![CDATA[
-
 def handle_button():
     if trigger_name == "SETUP_GITHUB":
         github["set_webhook"](webhooks.GITHUB_ISSUE_UPDATES, ["issues"])
+        github["set_webhook"](webhooks.GITHUB_ISSUE_COMMENT, ["issue_comment"])
         github["set_webhook"](webhooks.GITHUB_LABEL_UPDATES, ["label"])
     elif trigger_name == "SETUP_TRELLO":
         TODO
@@ -270,26 +270,46 @@ def handle_button():
         ><![CDATA[
 
 def handle_webhook(httprequest):
-    # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#issues
     data = json.loads(httprequest.data.decode())
     log("Github payload:\n{}".format(json.dumps(data, indent=4, sort_keys=True)))
+    if data.get("zen"):
+        # github sent dummy request to check webhook
+        return "It Works!"
+    if trigger_name == "GITHUB_ISSUE_COMMENT":
+        return handle_webhook_issue_comment(data)
+    elif trigger_name == "GITHUB_ISSUE_UPDATES":
+        return handle_webhook_issues_update(data)
+    else:
+        raise Exception("Unknown trigger_name {}".format(trigger_name))
+
+def handle_webhook_issue_comment(data):
+    # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#issue_comment
+    if data["action"] not in ["created"]:
+        # In this demo project we don't process other events
+        return "thank you!"
+    issue = data["issue"]
+    issue_id = issue["number"]
+    card_id = issue_id2card_id(issue_id)
+    issue_message = data["comment"]["body"]
+    message = "%s\n%s" % (params.MESSAGE_PREFIX, issue_message)
+    trello["card_add_message"](card_id, message)
+
+def handle_webhook_issues_update(data):
+    # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#issues
     if data["action"] not in ["opened", "labeled", "unlabeled"]:
-      # In this demo project we don't process other events
-      return "thank you!"
+        # In this demo project we don't process other events
+        return "thank you!"
     issue = data["issue"]
     issue_id = issue["number"]
     issue_name = issue["title"]
-    elink = get_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: None})
-    card_id = None
-    if elink:
-        card_id = elink.get(TRELLO)[0]
-    else:
+    card_id = issue_id2card_id(issue_id)
+    if not card_id:
         card_id = trello["card_create"](issue_name, issue_id)
-        elink = set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
+        set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
 
     issue_message = issue["body"]
     if issue_message:
-        message = "%s%s" % (params.MESSAGE_PREFIX, issue_message)
+        message = "%s\n%s" % (params.MESSAGE_PREFIX, issue_message)
         trello["card_add_message"](card_id, message)
 
     # attached labels:
@@ -311,6 +331,11 @@ def handle_webhook(httprequest):
 
         if tlabel_ids:
             trello["card_remove_labels"](card_id, tlabel_ids)
+
+def issue_id2card_id(issue_id):
+    elink = get_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: None})
+    if elink:
+        return elink.get(TRELLO)[0]
 
 def handle_button():
     # Sync all existing open github issues to trello
@@ -343,6 +368,12 @@ def process_github_issues():
         <field name="trigger_name">GITHUB_ISSUE_UPDATES</field>
         <field name="active" eval="True" />
         <field name="name">Github Issue updates</field>
+        <field name="sync_task_id" ref="sync.trello-github_task_issues" />
+    </record>
+    <record id="github-issue-comment_webhook-trigger" model="sync.trigger.webhook">
+        <field name="trigger_name">GITHUB_ISSUE_COMMENT</field>
+        <field name="active" eval="True" />
+        <field name="name">Webhook</field>
         <field name="sync_task_id" ref="sync.trello-github_task_issues" />
     </record>
     <record id="trello-github_task_cards" model="sync.task">
