@@ -31,6 +31,53 @@ Roadmap
 * Github<->Trello: implement API via Odoo UI and use button "Export to XML" to package into the module
 * Code widget: add line numbers
 
+Developer Hints
+===============
+
+Public webhook address
+----------------------
+
+If you run Odoo locally and need to test webhook, you can use ssh tunneling:
+
+* Connect your server:
+
+  * Edit file ``/etc/ssh/ssd_config``:
+
+    * Find ``GatewayPorts`` attribute and set value to ``yes``
+
+  * Restart ssh daemon:
+
+        service ssh restart
+
+* Connect to your server with ``-R`` attribute:
+
+      ssh user@yourserver.example -R 0.0.0.0:8069:localhost:8069
+
+Now you can set ``http://yourserver.example:8069`` as a value for ``web.base.url`` in Odoo (menu ``[[ Settings ]] >> System Parameters``). Also, you need to set any value to parameter `web.base.url.freeze <https://odoo-source.com/?q=web.base.url.freeze&i=nope&files=&excludeFiles=po%24%7Cpot%24%7Cyml%24%7Cyaml%24%7Ccss%24%7C%2Fstatic%2Flib%2F&repos=odoo>`__
+
+Few more step requires to use https connection (e.g. telegram api works with https only). In your server do as following:
+
+* Install nginx in your server
+* Add nginx config:
+
+      server {
+             listen 80;
+             server_name yourserver.example;
+             location / {
+                  proxy_set_header Host $host;
+                  proxy_pass http://localhost:8069;
+             }
+      }
+
+* Install `certbot <https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx.html>`__
+* Run
+
+     sudo certbot --nginx
+
+* Done!
+
+Now set corresponding ``https://...`` value for ``web.base.url`` parameter.
+
 Credits
 =======
 
