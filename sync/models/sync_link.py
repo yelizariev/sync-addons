@@ -21,16 +21,18 @@ class SyncLink(models.Model):
 
     _name = "sync.link"
     _description = "Resource Links"
+    _order = "id desc"
 
     relation = fields.Char("Relation Name", required=True)
     system1 = fields.Char("System 1", required=True)
-    system2 = fields.Char("System 2", required=True)
+    # index system2 only to make search "Odoo links"
+    system2 = fields.Char("System 2", required=True, index=True)
     ref1 = fields.Char("Ref 1", required=True)
     ref2 = fields.Char("Ref 2", required=True)
     date = fields.Datetime(
         string="Sync Date", default=fields.Datetime.now, required=True
     )
-    model = fields.Char("Odoo Model")
+    model = fields.Char("Odoo Model", index=True)
 
     @api.model_cr_context
     def _auto_init(self):
@@ -112,7 +114,7 @@ class SyncLink(models.Model):
                 )
 
         if existing:
-            self._log("Use existing link: %s" % vals)
+            self._log("{} Use existing link: {}".format(relation, vals))
             existing.update_links(sync_date)
             return existing
 
