@@ -74,7 +74,7 @@ class SyncTask(models.Model):
     @api.constrains("code")
     def _check_python_code(self):
         for r in self.sudo().filtered("code"):
-            msg = test_python_expr(expr=r.code.strip(), mode="exec")
+            msg = test_python_expr(expr=r.code, mode="exec")
             if msg:
                 raise ValidationError(msg)
 
@@ -121,7 +121,7 @@ class SyncTask(models.Model):
         log = self.project_id._get_log_function(job, function)
         try:
             eval_context = self.project_id._get_eval_context(job, log)
-            code = self.code.strip()
+            code = self.code
             start_time = time.time()
             result = self._eval(code, function, args, kwargs, eval_context)
             log(
