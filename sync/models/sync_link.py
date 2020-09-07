@@ -139,7 +139,9 @@ class SyncLink(models.Model):
         return links
 
     @api.model
-    def _search_links_external(self, relation, external_refs, model=None):
+    def _search_links_external(
+        self, relation, external_refs, model=None, make_logs=False
+    ):
         vals = self.refs2vals(external_refs)
         domain = [("relation", "=", relation)]
         if model:
@@ -150,7 +152,7 @@ class SyncLink(models.Model):
             operator = "in" if isinstance(v, list) else "="
             domain.append((k, operator, v))
         links = self.search(domain)
-        if self.env.context.get("make_logs"):
+        if make_logs:
             self._log("Search links: {} -> {}".format(domain, links))
         return links
 
@@ -201,8 +203,8 @@ class SyncLink(models.Model):
 
     def _search_links_odoo(self, records, relation, refs=None):
         refs = {ODOO: records.ids, EXTERNAL: refs}
-        return self.with_context(make_logs=True)._search_links_external(
-            relation, refs, model=records._name
+        return self._search_links_external(
+            relation, refs, model=records._name, make_logs=True
         )
 
     # Common API
@@ -245,10 +247,8 @@ class SyncLink(models.Model):
 
         def search_links(rel, external_refs):
             # Works for external links only
-            return (
-                env["sync.link"]
-                .with_context(make_logs=True)
-                ._search_links_external(rel, external_refs)
+            return env["sync.link"]._search_links_external(
+                rel, external_refs, make_logs=True
             )
 
         def get_link(rel, ref_info):
