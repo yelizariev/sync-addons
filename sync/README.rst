@@ -28,8 +28,8 @@ Difference with built-in code evaluation:
 Roadmap
 =======
 
-* Github<->Trello: implement API via Odoo UI and use button "Export to XML" to package into the module
 * Code widget: add line numbers
+* Webhooks: add a possibility to retry failed webhook (it's mostly for development purpose)
 
 Developer Hints
 ===============
