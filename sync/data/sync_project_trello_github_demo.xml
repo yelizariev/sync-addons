@@ -99,6 +99,9 @@ def _trello(secrets):
         log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
         TODO
 
+    def get_labels_colors():
+        return dict([(lb.id, lb.color) for lb in board.get_labels()])
+
     return {
         "set_webhook": set_webhook,
         "delete_webhooks": delete_webhooks,
@@ -109,6 +112,7 @@ def _trello(secrets):
         "label_create": label_create,
         "label_delete": label_delete,
         "label_update": label_update,
+        "get_labels_colors": get_labels_colors,
     }
 
 
@@ -138,13 +142,15 @@ def _github(secrets):
         issue = repo.get_issue(int(issue_id))
         labels = ids2labels(glabel_ids)
         log_transmission(GITHUB, "add labels: {}".format([issue_id, labels]))
-        issue.add_to_labels(*labels)
+        for lb in labels:
+            issue.add_to_labels(lb)
 
     def issue_remove_labels(issue_id, glabel_ids):
         issue = repo.get_issue(int(issue_id))
         labels = ids2labels(glabel_ids)
         log_transmission(GITHUB, "remove labels: {}".format([issue_id, labels]))
-        issue.remove_from_labels(*labels)
+        for lb in labels:
+            issue.remove_from_labels(lb)
 
     # Github Labels
     def ids2labels(glabel_ids):
@@ -194,10 +200,10 @@ ISSUES_REL="TRELLO_GITHUB_ISSUES_REL"
 LABELS_REL="TRELLO_GITHUB_LABELS_REL"
 
 def get_related_label(from_id, name, color, from_system, to_system):
-    elink = get_link(LABELS_REL, [(from_system, from_id), (to_system, None)])
+    elink = get_link(LABELS_REL, {from_system: from_id, to_system: None})
 
     if elink:
-        return elink.get(to_system)
+        return elink.get(to_system)[0]
     else:
         to_id = github["label_create"](name, color) if to_system == GITHUB else trello["label_create"](name, color)
         elink = set_link(LABELS_REL, {from_system: from_id, to_system: to_id})
@@ -214,11 +220,13 @@ def github2trello_labels(labels):
     return tlabel_ids
 
 def trello2github_labels(labels):
+    id2color = trello["get_labels_colors"]()
     glabel_ids = []
     for lb in labels:
         label_id = lb["id"]
         label_name = lb["name"]
-        label_color = color2github(lb["color"])
+        color = id2color[lb["id"]]
+        label_color = color2github(color)
         glabel_id = get_related_label(label_id, label_name, label_color, from_system=TRELLO, to_system=GITHUB)
         glabel_ids.append(glabel_id)
     return glabel_ids
@@ -532,15 +540,30 @@ def process_github_issues():
         <field name="project_id" ref="sync.trello-github_project" />
         <field
             name="code"
-        ><![CDATA[
+        ><![CDATA[def handle_webhook(httprequest):
+    if httprequest.method == "HEAD":
+        # trello is checking webhook before setting it up
+        return "it works!"
+    data = json.loads(httprequest.data.decode())
+    log("Trello payload: {}".format(json.dumps(data, indent=4, sort_keys=True)), LOG_DEBUG)
+    action_type = data["action"]["type"]
+    if action_type not in ["addLabelToCard", "removeLabelFromCard"]:
+        # other label events are handled in "Sync labels" task
+        return "thank you"
+    card = data["action"]["data"]["card"]
+    elink = get_link(ISSUES_REL, {GITHUB: None, TRELLO: card["id"]})
+    if not elink:
+        log("Card is not linked to github issue: %s" % card)
+    issue_id = elink.get(GITHUB)[0]
+    labels = [data["action"]["data"]["label"]]
+    glabel_ids = trello2github_labels(labels)
+    if action_type == "addLabelToCard":
+        github["issue_add_labels"](issue_id, glabel_ids)
+    elif action_type == "removeLabelFromCard":
+        github["issue_remove_labels"](issue_id, glabel_ids)
 
-def handle_webhook(httprequest):
-    # Code is similar to github to trello sync
-    data = httprequest.form
-    log(str(data))
-    log("Trello payload:\n{}".format(json.dumps(data, indent=4, sort_keys=True)))
 
-        ]]></field>
+]]></field>
     </record>
     <record
         id="trello-github_task_issues_trigger_webhook_trello"
