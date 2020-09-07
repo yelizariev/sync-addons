@@ -12,6 +12,7 @@ GITHUB="github"
 TRELLO="trello"
 
 
+
 def _trello(secrets):
     for key in ["TRELLO_TOKEN", "TRELLO_KEY", "TRELLO_BOARD_ID"]:
         if not getattr(secrets, key):
@@ -64,6 +65,9 @@ def _trello(secrets):
         card = client.get_card(card_id)
         for label_id in tlabel_ids:
             label = client.get_label(label_id, board.id)
+            if label_id in card.idLabels:
+                log("Label is already in card: %s" % label)
+                continue
             card.add_label(label)
 
     def card_remove_labels(card_id, tlabel_ids):
@@ -71,6 +75,9 @@ def _trello(secrets):
         card = client.get_card(card_id)
         for label_id in tlabel_ids:
             label = client.get_label(label_id, board.id)
+            if label_id not in card.idLabels:
+                log("Label is already removed: %s" % label)
+                continue
             card.remove_label(label)
 
     def card_add_message(card_id, message):
@@ -80,7 +87,7 @@ def _trello(secrets):
 
     # Trello labels
     def label_create(name, color):
-        log_transmission(TRELLO, "create label for: %s" % (name))
+        log_transmission(TRELLO, "create label: %s" % (name))
         label = board.add_label(name, color)
         return label.id
 
@@ -107,7 +114,9 @@ def _trello(secrets):
 
 # Github
 def _github(secrets):
+    # https://pygithub.readthedocs.io/en/latest/
     from github import Github
+    from github.GithubException import UnknownObjectException
     if not secrets.GITHUB_TOKEN:
         raise Exception("github token is not set")
     if not secrets.GITHUB_REPO:
@@ -126,14 +135,37 @@ def _github(secrets):
 
     # Github Issues
     def issue_add_labels(issue_id, glabel_ids):
-        pass
+        issue = repo.get_issue(int(issue_id))
+        labels = ids2labels(glabel_ids)
+        log_transmission(GITHUB, "add labels: {}".format([issue_id, labels]))
+        issue.add_to_labels(*labels)
 
     def issue_remove_labels(issue_id, glabel_ids):
-        pass
+        issue = repo.get_issue(int(issue_id))
+        labels = ids2labels(glabel_ids)
+        log_transmission(GITHUB, "remove labels: {}".format([issue_id, labels]))
+        issue.remove_from_labels(*labels)
 
     # Github Labels
-    def label_create(name):
-        return glabel_id
+    def ids2labels(glabel_ids):
+        res = []
+        for label in repo.get_labels():
+            if label.raw_data["id"] in glabel_ids:
+                res.append(label)
+        return res
+
+    def label_create(name, color):
+        # check first if label already exist:
+        label = None
+        try:
+            log_transmission(GITHUB, "get label: %s" % (name))
+            label = repo.get_label(name)
+        except UnknownObjectException:
+            pass
+        if not label:
+            log_transmission(GITHUB, "create label: %s" % (name))
+            label = repo.create_label(name, color)
+        return label.raw_data["id"]
 
     def label_delete(glabel_id):
         pass
@@ -144,6 +176,7 @@ def _github(secrets):
     return {
         "set_webhook": set_webhook,
         "issue_add_labels": issue_add_labels,
+        "issue_remove_labels": issue_remove_labels,
         "label_create": label_create,
         "label_delete": label_delete,
         "label_update": label_update,
@@ -166,7 +199,7 @@ def get_related_label(from_id, name, color, from_system, to_system):
     if elink:
         return elink.get(to_system)
     else:
-        to_id = githug["label_create"](name, color) if to_system == GITHUB else trello["label_create"](name, color)
+        to_id = github["label_create"](name, color) if to_system == GITHUB else trello["label_create"](name, color)
         elink = set_link(LABELS_REL, {from_system: from_id, to_system: to_id})
         return to_id
 
@@ -180,6 +213,52 @@ def github2trello_labels(labels):
         tlabel_ids.append(tlabel_id)
     return tlabel_ids
 
+def trello2github_labels(labels):
+    glabel_ids = []
+    for lb in labels:
+        label_id = lb["id"]
+        label_name = lb["name"]
+        label_color = color2github(lb["color"])
+        glabel_id = get_related_label(label_id, label_name, label_color, from_system=TRELLO, to_system=GITHUB)
+        glabel_ids.append(glabel_id)
+    return glabel_ids
+
+# colors list is taken from here: https://developer.atlassian.com/cloud/trello/rest/api-group-labels/#api-labels-post
+TRELLO_COLORS = {
+    (255, 255, 0): "yellow",
+    (128, 0, 128): "purple",
+    (0, 0, 255): "blue",
+    (255, 0, 0): "red",
+    (0, 128, 0): "green",
+    (255, 159, 26): "orange",
+    (0, 0, 0): "black",
+    (0, 194, 224): "sky",
+    (255, 120, 203): "pink",
+    (0, 255, 0): "lime",
+}
+
+def hex2rgb(hex):
+    int(hex[0:2], 16), int(hex[2:4], 16), int(hex[4:6], 16)
+
+def rgb2hex(rgb):
+    r, g, b = rgb
+    return "{0:02x}{1:02x}{2:02x}".format(r, g, b)
+
+
+def color2trello(hex):
+    # based on https://stackoverflow.com/a/54242348/222675
+    r, g, b = hex2rgb(hex)
+    color_diffs = []
+    for color in TRELLO_COLORS.keys():
+        cr, cg, cb = color
+        color_diff = sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+        color_diffs.append((color_diff, color))
+    best_color = min(color_diffs)[1]
+    return TRELLO_COLORS[best_color]
+
+def color2github(color_name):
+    GITHUB_COLORS = {name: rgb2hex(rgb) for rgb, name in TRELLO_COLORS.items()}
+    return GITHUB_COLORS[color_name]
 
 def color2trello(hex):
     # colors list is taken from here: https://developer.atlassian.com/cloud/trello/rest/api-group-labels/#api-labels-post
@@ -204,6 +283,7 @@ def color2trello(hex):
         color_diffs.append((color_diff, color))
     best_color = min(color_diffs)[1]
     return TRELLO_COLORS[best_color]
+
 ]]></field>
     </record>
     <record id="trello-github_project_secret_github_token" model="sync.project.secret">
@@ -322,6 +402,11 @@ def handle_button():
     </record>
     <record id="delete-trello-webhooks_manual-trigger" model="sync.trigger.button">
         <field name="trigger_name">DELETE_TRELLO_WEBHOOKS</field>
+        <field name="name" />
+        <field name="sync_task_id" ref="sync.trello-github_task_setup" />
+    </record>
+    <record id="debug_manual-trigger" model="sync.trigger.button">
+        <field name="trigger_name">DEBUG</field>
         <field name="name" />
         <field name="sync_task_id" ref="sync.trello-github_task_setup" />
     </record>
