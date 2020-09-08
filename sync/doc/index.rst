@@ -587,6 +587,12 @@ Usage
 
   * RESULT: once you change them on one side, after short time, you will see the changes on another side
 
+**Labels syncing**
+
+* Open Github or Trello
+* Rename or delete some label
+* RESULT: the same happened in both systems
+
 **Conflict resolving**
 
 * Create a github issue and check that it's syncing to trello

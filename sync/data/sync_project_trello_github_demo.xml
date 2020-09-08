@@ -174,10 +174,17 @@ def _github(secrets):
         return label.raw_data["id"]
 
     def label_delete(glabel_id):
-        pass
+        labels = ids2labels([int(glabel_id)])
+        lb = labels[0]
+        log_transmission(GITHUB, "delete label: {}".format([lb]))
+        lb.delete()
 
-    def label_update(glabel_id, new_name):
-        pass
+    def label_update(glabel_id, new_name, new_color):
+        labels = ids2labels([int(glabel_id)])
+        lb = labels[0]
+        log_transmission(GITHUB, "update label: {}".format([lb, new_name, new_color]))
+        lb.edit(new_name, new_color)
+
 
     return {
         "set_webhook": set_webhook,
@@ -382,7 +389,7 @@ def handle_button():
         github["set_webhook"](webhooks.GITHUB_LABEL_UPDATES, ["label"])
     elif trigger_name == "SETUP_TRELLO":
         trello["set_webhook"](webhooks.TRELLO_CARD_UPDATES)
-        #trello["set_webhook"](webhooks.TRELLO_LABEL_UPDATES)
+        trello["set_webhook"](webhooks.TRELLO_LABEL_UPDATES)
     elif trigger_name == "DELETE_TRELLO_WEBHOOKS":
         trello["delete_webhooks"]()
     else:
@@ -580,44 +587,69 @@ def process_github_issues():
         <field name="project_id" ref="sync.trello-github_project" />
         <field
             name="code"
-        ><![CDATA[
-
-def handle_webhook(httprequest):
-    return
-    glabel_id = None
-    tlabel_id = None
+        ><![CDATA[def handle_webhook(httprequest):
+    data = None
     is_updated = None
     is_deleted = None
-    if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
-        tlabel_id = TODO
-    elif TRIGGER_NAME == "GITHUB_LABEL_UPDATES":
-        is_updated = httprequest.form["action"] == "edited"
-        is_deleted = httprequest.form["action"] == "deleted"
-        glabel_id = httprequest.form["label"]["id"]
+    if trigger_name == "TRELLO_LABEL_UPDATES":
+        if httprequest.method == "HEAD":
+            # trello is checking webhook before setting it up
+            return "It works!"
+        data = json.loads(httprequest.data.decode())
+        log("Trello payload: {}".format(json.dumps(data, indent=4, sort_keys=True)), LOG_DEBUG)
+        action_type = data["action"]["type"]
+        if action_type == "deleteLabel":
+            is_deleted = True
+        elif action_type == "updateLabel":
+            is_updated = True
+        else:
+            # other label events are handled in "Sync Trello Cards to Github" task
+            return "Thank you!"
+    elif trigger_name == "GITHUB_LABEL_UPDATES":
+        data = json.loads(httprequest.data.decode())
+        log("Github payload:\n{}".format(json.dumps(data, indent=4, sort_keys=True)))
+        if data.get("zen"):
+            # github sent dummy request to check webhook
+            return "It Works!"
     else:
        raise Exception("Unknown Event")
 
+    glabel_id = None
+    tlabel_id = None
+    new_color = None
+    new_name = None
+    if trigger_name == "TRELLO_LABEL_UPDATES":
+        label = data["action"]["data"]["label"]
+        tlabel_id = label["id"]
+        new_name = label.get("name")
+        if label.get("color"):
+            new_color = color2github(label["color"])
+    elif trigger_name == "GITHUB_LABEL_UPDATES":
+        is_updated = httprequest.form["action"] == "edited"
+        is_deleted = httprequest.form["action"] == "deleted"
+        glabel_id = httprequest.form["label"]["id"]
+        color = color2trello(TODO)
+
     elinks = search_links(LABELS_REL, {GITHUB: glabel_id, TRELLO: tlabel_id})
     if not elinks:
-        # label is not linked
+        log("Label is not linked")
         return
-    glabel_id = elinks[0].get(GITHUB)
-    tlabel_id = elinks[0].get(TRELLO)
+    glabel_id = elinks.get(GITHUB)[0]
+    tlabel_id = elinks.get(TRELLO)[0]
     if is_updated:
-        if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
-            github_label_update(glabel_id, new_name)
-        else:
-            trello_label_update(tlabel_id, new_name)
+        if trigger_name == "TRELLO_LABEL_UPDATES":
+            github["label_update"](glabel_id, new_name, new_color)
+        elif trigger_name == "GITHUB_LABEL_UPDATES":
+            trello["label_update"](tlabel_id, new_name)
 
     if is_deleted:
         elinks.unlink()
-        if TRIGGER_NAME == "TRELLO_LABEL_UPDATES":
-            github_label_delete(glabel_id)
-        else:
-            trello_label_detele(tlabel_id)
+        if trigger_name == "TRELLO_LABEL_UPDATES":
+            github["label_delete"](glabel_id)
+        elif trigger_name == "GITHUB_LABEL_UPDATES":
+            trello["label_detele"](tlabel_id)
 
-
-        ]]></field>
+]]></field>
     </record>
     <record
         id="trello-github_task_labels_trigger_webhook_trello"
