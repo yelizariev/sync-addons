@@ -176,7 +176,9 @@ class SyncProject(models.Model):
                 function = function.__name__
 
             def f(*args, **kwargs):
-                sub_job = self.env["sync.job"].create({"parent_job_id": job.id})
+                sub_job = self.env["sync.job"].create(
+                    {"parent_job_id": job.id, "function": function}
+                )
                 queue_job = job.task_id.with_delay(**options).run(
                     sub_job, function, args, kwargs
                 )

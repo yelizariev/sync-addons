@@ -42,6 +42,7 @@ class SyncJob(models.Model):
     queue_job_state = fields.Selection(
         related="queue_job_id.state", readonly=True, string="Queue Job State"
     )
+    function = fields.Char(string="Task Function")
     func_string = fields.Char(
         related="queue_job_id.func_string", readonly=True, string="Function"
     )
@@ -78,16 +79,13 @@ class SyncJob(models.Model):
             computed_state = DONE
             has_errors = any(lev in [LOG_CRITICAL, LOG_ERROR] for lev in levels)
             has_warnings = any(lev == LOG_WARNING for lev in levels)
-            if r.job_ids:
-                for s in [FAILED, STARTED, ENQUEUED, PENDING]:
-                    if any(s == ss for ss in states):
-                        computed_state = s
-                        break
-            else:
-                if has_errors:
-                    computed_state = FAILED
-
-            if computed_state == DONE and has_warnings:
+            for s in [FAILED, STARTED, ENQUEUED, PENDING]:
+                if any(s == ss for ss in states):
+                    computed_state = s
+                    break
+            if computed_state == DONE and has_errors:
+                computed_state = FAILED
+            elif computed_state == DONE and has_warnings:
                 computed_state = DONE_WARNING
 
             r.state = computed_state
@@ -113,7 +111,7 @@ class SyncJob(models.Model):
     def _compute_trigger_name(self):
         for r in self:
             if r.parent_job_id:
-                r.trigger_name = "SUB_" + (r.parent_job_id.trigger_name or "")
+                r.trigger_name = (r.parent_job_id.trigger_name or "") + "." + r.function
                 continue
             for f in TRIGGER_FIELDS:
                 t = getattr(r, f)
@@ -122,7 +120,12 @@ class SyncJob(models.Model):
                     break
 
     def create_trigger_job(self, trigger):
-        return self.create({TRIGGER_MODEL2FIELD[trigger._name]: trigger.id})
+        return self.create(
+            {
+                TRIGGER_MODEL2FIELD[trigger._name]: trigger.id,
+                "function": trigger._sync_handler,
+            }
+        )
 
     def refresh_button(self):
         # magic empty method to refresh form content
