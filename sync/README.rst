@@ -28,8 +28,8 @@ Difference with built-in code evaluation:
 Roadmap
 =======
 
-* Code widget: add line numbers
-* Webhooks: add a possibility to retry failed webhook (it's mostly for development purpose)
+* Code widget: show line numbers
+* Webhooks: add a possibility to retry failed webhook (e.g. to debug code)
 
 Developer Hints
 ===============
