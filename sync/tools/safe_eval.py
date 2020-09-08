@@ -35,9 +35,10 @@ _SAFE_OPCODES = _SAFE_OPCODES.union(
             "IMPORT_FROM",
             "LOAD_DEREF",
             "STORE_DEREF",
-            "MAKE_CLOSURE",
+            "MAKE_CLOSURE",  # python 3.5 only. See https://python.readthedocs.io/en/stable/whatsnew/3.6.html
             "LOAD_CLOSURE",
         ]
+        if opmap.get(x)
     }
 )
 
