@@ -199,8 +199,11 @@ def _github(secrets):
         log_transmission(GITHUB, "update label: {}".format([lb, new_name, new_color]))
         lb.edit(new_name, new_color)
 
-    def get_all_issues():
-        return [{"id": issue.number, "labels": issue.raw_data["labels"]} for issue in repo.get_issues()]
+    def get_all_issues(page=None):
+        issues =repo.get_issues()
+        if page is not None:
+            issues = issues.get_page(page)
+        return [{"id": issue.number, "name": issue.title, "labels": issue.raw_data["labels"], "body": issue.body} for issue in issues]
 
     return {
         "set_webhook": set_webhook,
@@ -411,8 +414,7 @@ def handle_button():
         trello["delete_webhooks"]()
     else:
         raise Exception("Unknown button event: %s" % trigger)
-
-        ]]></field>
+]]></field>
     </record>
     <record
         id="trello-github_task_setup_trigger_button_github"
@@ -485,7 +487,7 @@ def handle_webhook_issues_update(data):
     issue_name = issue["title"]
     card_id = issue_id2card_id(issue_id)
     if not card_id:
-        card_id = trello["card_create"](issue_name, issue_id)
+        card_id = trello["card_create"](params.ISSUE_FROM_GITHUB_PREFIX + issue_name, issue_id)
         set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
 
     if data["action"] == "opened":
@@ -529,22 +531,49 @@ def handle_button():
 def fetch_github_issues(page=0):
     CHUNK_SIZE=10
     # fetch page
-    TODO
+    issues = github["get_all_issues"](page)
     if not issues:
+        log("No more issues. Page={}".format(page))
         return
     # split issues into chunks
-    for TODO in TODO:
-        chunk = TODO
-        add_job("process_github_issues")(chunk)
+    for x in range(0, len(issues), CHUNK_SIZE):
+        add_job("process_github_issues")(issues[x:x+CHUNK_SIZE])
     # fetch next page
     add_job("fetch_github_issues")(page+1)
 
-def process_github_issues():
-    # Should be similar to process a single issue (see handle_webhook)
-    TODO
+def process_github_issues(issues):
+    # TODO: can we combine it with handle_webhook_issues_update ?
+    for data in issues:
+        issue_id = data["id"]
+        if issue_id2card_id(issue_id):
+            log("Issue is already pushed: %s" % data["id"])
+            continue
+        issue_name = params.ISSUE_FROM_GITHUB_PREFIX + data["name"]
+        card_id = trello["card_create"](issue_name, issue_id)
+        set_link(ISSUES_REL, {GITHUB: issue_id, TRELLO: card_id})
 
+        issue_message = data["body"]
+        if issue_message:
+            message = "%s\n%s" % (params.MESSAGE_PREFIX, issue_message)
+            trello["card_add_message"](card_id, message)
 
-        ]]></field>
+        labels = data["labels"]
+        tlabel_ids = github2trello_labels(labels)
+
+        if tlabel_ids:
+            trello["card_add_labels"](card_id, tlabel_ids)
+]]></field>
+    </record>
+    <record
+        id="push-all-issues-initial-syncing-of-github-issues-it-pushes-only-issues-without-linked-trello-cards-it-doesn-t-sync-further-updates_manual-trigger"
+        model="sync.trigger.button"
+    >
+        <field name="trigger_name">PUSH_ALL_ISSUES</field>
+        <field name="name">
+            Initial syncing of github issues. It pushes only  issues without linked
+            trello cards. It doesn't sync further updates
+        </field>
+        <field name="sync_task_id" ref="sync.trello-github_task_issues" />
     </record>
     <record
         id="trello-github_task_issues_trigger_webhook_github"

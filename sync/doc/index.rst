@@ -615,8 +615,7 @@ Usage
 
 * Open menu ``[[ Sync Studio ]] >> Projects``
 * Select *Demo Tello-Github Integration* project
-* Choose Button Trigger *Sync all issues*
-* Click button ``[Run Now]``
+* Click button ``[Run Now]`` near to ``PUSH_ALL_ISSUES`` manual trigger
 * It will start asyncronious jobs. You can check progress via button *Jobs*
 * After some time open Trello
 
