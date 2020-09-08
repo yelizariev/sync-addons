@@ -20,6 +20,7 @@ def _trello(secrets):
 
     # https://github.com/sarumont/py-trello/tree/master/trello
     from trello import TrelloClient
+    from trello.exceptions import ResourceUnavailable
     client = TrelloClient(
         api_key=secrets.TRELLO_KEY,
         api_secret=secrets.TRELLO_TOKEN,
@@ -64,7 +65,11 @@ def _trello(secrets):
         log_transmission(TRELLO, "add labels to card#%s: %s" % (card_id, tlabel_ids))
         card = client.get_card(card_id)
         for label_id in tlabel_ids:
-            label = client.get_label(label_id, board.id)
+            try:
+                label = client.get_label(label_id, board.id)
+            except ResourceUnavailable:
+                log("Label is deleted in trello: %s" % label_id, LOG_WARNING)
+                continue
             if label_id in card.idLabels:
                 log("Label is already in card: %s" % label)
                 continue
@@ -106,6 +111,9 @@ def _trello(secrets):
     def get_labels_colors():
         return dict([(lb.id, lb.color) for lb in board.get_labels()])
 
+    def get_all_cards():
+        return [{"id": card.id, "idLabels": card.idLabels} for card in board.all_cards()]
+
     return {
         "set_webhook": set_webhook,
         "delete_webhooks": delete_webhooks,
@@ -117,6 +125,7 @@ def _trello(secrets):
         "label_delete": label_delete,
         "label_update": label_update,
         "get_labels_colors": get_labels_colors,
+        "get_all_cards": get_all_cards,
     }
 
 
@@ -158,9 +167,10 @@ def _github(secrets):
 
     # Github Labels
     def ids2labels(glabel_ids):
+        # the arg is list of str!
         res = []
         for label in repo.get_labels():
-            if label.raw_data["id"] in glabel_ids:
+            if str(label.raw_data["id"]) in glabel_ids:
                 res.append(label)
         return res
 
@@ -189,6 +199,8 @@ def _github(secrets):
         log_transmission(GITHUB, "update label: {}".format([lb, new_name, new_color]))
         lb.edit(new_name, new_color)
 
+    def get_all_issues():
+        return [{"id": issue.number, "labels": issue.raw_data["labels"]} for issue in repo.get_issues()]
 
     return {
         "set_webhook": set_webhook,
@@ -197,6 +209,7 @@ def _github(secrets):
         "label_create": label_create,
         "label_delete": label_delete,
         "label_update": label_update,
+        "get_all_issues": get_all_issues,
     }
 
 github = _github(secrets)
@@ -691,64 +704,71 @@ def handle_cron():
     issue_ids = elinks.get(GITHUB)
     # https://docs.github.com/en/rest/reference/issues#list-repository-issues
     # issue is {id: int, labels: [{id: int, name: str, ...}]}
-    issues = TODO
+    issues = github["get_all_issues"]()
     # issue_id -> issue
-    issues_index = TODO
+    issues_index = {}
+    for issue in issues:
+        if str(issue["id"]) in issue_ids:
+            issues_index[int(issue["id"])] = issue
+    log("GITHUB issues: %s" % ([issue_ids, issues, issues_index]))
 
     card_ids = elinks.get(TRELLO)
     # https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-cards-get
     # https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-get
     # card is dict {id: int, idLabels: [int], ...}
-    cards = TODO
+    cards = trello["get_all_cards"]()
     # card_id -> card
-    cards_index = TODO
+    cards_index = {}
+    for card in cards:
+        if str(card["id"]) in card_ids:
+            cards_index[card["id"]] = card
 
     for el in elinks:
-        card_id = el.get(TRELLO)
-        issue_id = el.get(GITHUB)
+        card_id = el.get(TRELLO)[0]
+        issue_id = int(el.get(GITHUB)[0])
         card = cards_index.get(card_id)
         issue = issues_index.get(issue_id)
         if not (card and issue):
-            log("Linked card or issue is missed: %s" % (card, issue), level=LOG_WARNING)
+            log("Linked card or issue is missed: %s" % ([card, issue]), level=LOG_WARNING)
             continue
         # compare labels
-        tlabel_ids = card.idsLabels
+        tlabel_ids = card["idLabels"]
         glabel_ids = [lbl["id"] for lbl in issue["labels"]]
         tlinks = search_links(LABELS_REL, {GITHUB: None, TRELLO: tlabel_ids})
         glinks = search_links(LABELS_REL, {GITHUB: glabel_ids, TRELLO: None})
         if tlinks == glinks:
             # all fine
+            log("card {} and issue {} are already synced".format(card_id, issue_id), LOG_DEBUG)
             continue
-        logs("Found labels mismatch: issue=%s, card=%s" % (issue["id"], card["id"]), level=LOG_DEBUG)
+        log("Found labels mismatch: issue=%s, card=%s" % (issue["id"], card["id"]), LOG_DEBUG)
 
         tlinks_add = None
         tlinks_remove = None
         glinks_add = None
         glinks_remove = None
-        if LABELS_MERGE_STRATEGY == "USE_TRELLO":
+        if params.LABELS_MERGE_STRATEGY == "USE_TRELLO":
             glinks_add = tlinks - glinks
             glinks_remove = glinks - tlinks
-        elif LABELS_MERGE_STRATEGY == "USE_GITHUB":
+        elif params.LABELS_MERGE_STRATEGY == "USE_GITHUB":
             tlinks_add = glinks - tlinks
             tlinks_remove = tlinks - glinks
-        elif LABELS_MERGE_STRATEGY == "UNION":
+        elif params.LABELS_MERGE_STRATEGY == "UNION":
             tlinks_add = glinks - tlinks
             glinks_add = tlinks - glinks
-        elif LABELS_MERGE_STRATEGY == "INTERSECTION":
+        elif params.LABELS_MERGE_STRATEGY == "INTERSECTION":
             tlinks_remove = tlinks - glinks
             glinks_remove = glinks - tlinks
         else:
             raise Exception("Unknown LABELS_MERGE_STRATEGY: %s" % LABELS_MERGE_STRATEGY, level=LOG_ERROR)
 
         if tlinks_add:
-            trello_card_add_labels(card_id, tlinks_add.get(TRELLO))
+            trello["card_add_labels"](card_id, tlinks_add.get(TRELLO))
         if glinks_add:
-            github_issue_add_labels(card_id, glinks_add.get(GITHUB))
+            github["issue_add_labels"](issue_id, glinks_add.get(GITHUB))
         if tlinks_remove:
-            trello_card_remove_labels(card_id, tlinks_remove.get(TRELLO))
+            trello["card_remove_labels"](card_id, tlinks_remove.get(TRELLO))
         if glinks_remove:
-            github_issue_remove_labels(card_id, glinks_remove.get(GITHUB))
-
+            github["issue_remove_labels"](issue_id, glinks_remove.get(GITHUB))
 
         ]]></field>
     </record>

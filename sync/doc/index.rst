@@ -600,14 +600,15 @@ Usage
 * Make *different* changes of labels both in github issue and trello card
 * Start Odoo
 * Open menu ``[[ Sync Studio ]] >> Projects``
-* Select *Demo Github <-> Trello integration* project
-* Make Cron Trigger run in one of the following ways
+* Select *Demo Trello-Github integration* project
+* Click ``[Edit]`` and open *Labels Conflict Resolving* task in *Available Tasks* tab
+* Make ``CONFLICT_RESOLVING`` Cron Trigger run in one of the following ways
 
   1. Choose Cron Trigger and click ``[Run Manually]``
 
   2. Change **Next Execution Date** to a past time and wait up to 1 minute
 
-* RESULT: the github issue and corresponding trello card the same set of labes. The merging is done according to selected stragegy in ``LABELS_MERGE_STRATEGY`` parameter.
+* RESULT: the github issue and corresponding trello card the same set of labels. The merging is done according to selected stragegy in ``LABELS_MERGE_STRATEGY`` parameter.
 
 
 **Syncing all existing Github issues.**
