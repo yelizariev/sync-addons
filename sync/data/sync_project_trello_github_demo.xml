@@ -93,11 +93,15 @@ def _trello(secrets):
 
     def label_delete(tlabel_id):
         log_transmission(TRELLO, "delete label: %s" % (tlabel_id))
-        TODO
+        board.delete_label(tlabel_id)
 
-    def label_update(tlabel_id, new_name):
-        log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, new_name))
-        TODO
+    def label_update(tlabel_id, new_name, new_color):
+        log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, [new_name, new_color]))
+        res = client.fetch_json(
+			    '/labels/{0}'.format(tlabel_id),
+			    http_method='PUT',
+		    	post_args={'id': tlabel_id, 'name': new_name, 'color': new_color})
+        log("Trello response: {}".format(res))
 
     def get_labels_colors():
         return dict([(lb.id, lb.color) for lb in board.get_labels()])
@@ -491,6 +495,9 @@ def handle_webhook_issues_update(data):
 
     # detached labels:
     if data["action"] == "unlabeled":
+        if not data.get("label"):
+            log("Label is deleted from repository. It's handled in another task")
+            return "ok"
         labels = [data["label"]]
         tlabel_ids = github2trello_labels(labels)
 
@@ -611,6 +618,8 @@ def process_github_issues():
         if data.get("zen"):
             # github sent dummy request to check webhook
             return "It Works!"
+        is_updated = data["action"] == "edited"
+        is_deleted = data["action"] == "deleted"
     else:
        raise Exception("Unknown Event")
 
@@ -625,10 +634,10 @@ def process_github_issues():
         if label.get("color"):
             new_color = color2github(label["color"])
     elif trigger_name == "GITHUB_LABEL_UPDATES":
-        is_updated = httprequest.form["action"] == "edited"
-        is_deleted = httprequest.form["action"] == "deleted"
-        glabel_id = httprequest.form["label"]["id"]
-        color = color2trello(TODO)
+        label = data["label"]
+        glabel_id = label["id"]
+        new_name = label["name"]
+        color = color2trello(label["color"])
 
     elinks = search_links(LABELS_REL, {GITHUB: glabel_id, TRELLO: tlabel_id})
     if not elinks:
@@ -640,14 +649,14 @@ def process_github_issues():
         if trigger_name == "TRELLO_LABEL_UPDATES":
             github["label_update"](glabel_id, new_name, new_color)
         elif trigger_name == "GITHUB_LABEL_UPDATES":
-            trello["label_update"](tlabel_id, new_name)
+            trello["label_update"](tlabel_id, new_name, new_color)
 
     if is_deleted:
         elinks.unlink()
         if trigger_name == "TRELLO_LABEL_UPDATES":
             github["label_delete"](glabel_id)
         elif trigger_name == "GITHUB_LABEL_UPDATES":
-            trello["label_detele"](tlabel_id)
+            trello["label_delete"](tlabel_id)
 
 ]]></field>
     </record>
