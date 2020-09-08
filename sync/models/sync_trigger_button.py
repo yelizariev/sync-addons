@@ -12,7 +12,7 @@ class SyncTriggerButton(models.Model):
     _sync_handler = "handle_button"
 
     name = fields.Char("Description")
-    sync_task_id = fields.Many2one("sync.task")
+    sync_task_id = fields.Many2one("sync.task", name="Task")
     sync_project_id = fields.Many2one(
         "sync.project", related="sync_task_id.project_id", readonly=True
     )
