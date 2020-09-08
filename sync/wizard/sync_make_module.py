@@ -19,9 +19,9 @@ class SyncMakeModule(models.TransientModel):
     _description = "Generating XML data file for a module"
 
     name = fields.Char("File Name", readonly=True, compute="_compute_name")
-    name2 = fields.Char("File Name", readonly=True, compute="_compute_name")
+    name2 = fields.Char("File Name Txt", readonly=True, compute="_compute_name")
     data = fields.Binary("File", readonly=True, attachment=False)
-    data2 = fields.Binary(related="data")
+    data2 = fields.Binary(related="data", string="File Txt")
     copyright_years = fields.Char("Copyright Year", default="2020", required=True)
     author_name = fields.Char("Author Name", help="e.g. Ivan Yelizariev", required=True)
     author_url = fields.Char("Author URL", help="e.g. https://twitter.com/yelizariev")
