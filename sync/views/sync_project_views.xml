@@ -132,33 +132,23 @@
                         </h1>
                     </div>
                     <notebook>
-                        <page name="params" string="Parameters">
-                            <separator string="Parameters" />
-                            <field name="param_ids">
-                                <tree editable="bottom" decoration-danger="not value">
-                                    <field name="key" />
-                                    <field name="value" />
-                                    <field name="description" />
-                                    <field name="url" widget="url" text="Open Link" />
-                                </tree>
-                            </field>
-                            <separator string="Secrets" />
-                            <p class="oe_read_only">
-                                <em>
-                                    Secret parameters values are available for Sync
-                                    Managers only (click on a line to see the value)
-                                </em>
+                        <page name="buttons" string="Manual Triggers">
+                            <p class="oe_edit_only">
+                                <br />
+                                Hint: to add manual triggers nagivate to corresponding
+                                Task via "Available Tasks" tab
                             </p>
-                            <field name="secret_ids">
-                                <tree editable="bottom" decoration-danger="not value">
-                                    <field name="key" />
-                                    <field
-                                        name="value"
-                                        password="True"
-                                        decoration-danger="not value"
+                            <field name="trigger_button_ids">
+                                <tree create="0">
+                                    <field name="sync_task_id" />
+                                    <field name="trigger_name" />
+                                    <button
+                                        name="start_button"
+                                        string="Run Now"
+                                        class="oe_highlight"
+                                        type="object"
                                     />
-                                    <field name="description" />
-                                    <field name="url" widget="url" text="Open Link" />
+                                    <field name="name" />
                                 </tree>
                             </field>
                         </page>
@@ -228,23 +218,33 @@
                                 </em>
                             </p>
                         </page>
-                        <page name="buttons" string="Manual Triggers">
-                            <p class="oe_edit_only">
-                                <br />
-                                Hint: to add manual triggers nagivate to corresponding
-                                Task via "Available Tasks" tab
+                        <page name="params" string="Parameters">
+                            <separator string="Parameters" />
+                            <field name="param_ids">
+                                <tree editable="bottom" decoration-danger="not value">
+                                    <field name="key" />
+                                    <field name="value" />
+                                    <field name="description" />
+                                    <field name="url" widget="url" text="Open Link" />
+                                </tree>
+                            </field>
+                            <separator string="Secrets" />
+                            <p class="oe_read_only">
+                                <em>
+                                    Secret parameters values are available for Sync
+                                    Managers only (click on a line to see the value)
+                                </em>
                             </p>
-                            <field name="trigger_button_ids">
-                                <tree create="0">
-                                    <field name="sync_task_id" />
-                                    <field name="trigger_name" />
-                                    <button
-                                        name="start_button"
-                                        string="Run Now"
-                                        class="oe_highlight"
-                                        type="object"
+                            <field name="secret_ids">
+                                <tree editable="bottom" decoration-danger="not value">
+                                    <field name="key" />
+                                    <field
+                                        name="value"
+                                        password="True"
+                                        decoration-danger="not value"
                                     />
-                                    <field name="name" />
+                                    <field name="description" />
+                                    <field name="url" widget="url" text="Open Link" />
                                 </tree>
                             </field>
                         </page>
