@@ -24,6 +24,9 @@ Difference with built-in code evaluation:
 * Allows to add extra imports to eval context
 * Allows to use json format for incomming webhooks
 * Provides helpers for resource linking. See *Links* section in `<doc/index.rst>`__
+* Uses queue_job module as a job broker
+* Asynchronous calls to split big task into few small ones
+* Allows repeat job on temporarly fails (e.g. when external API is not available)
 
 Roadmap
 =======
