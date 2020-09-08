@@ -13,6 +13,7 @@ class Webhook(http.Controller):
             "/website/action-json/<path_or_xml_id_or_id>/<path:path>",
         ],
         type="json",
+        # type="http",
         auth="public",
         website=True,
         csrf=False,
