@@ -8,7 +8,7 @@
 Installation
 ============
 
-* Make configuration required for `queue_job <https://apps.odoo.com/apps/modules/12.0/queue_job/#id12>`__ module. In partucular:
+* Make configuration required for `queue_job <https://apps.odoo.com/apps/modules/12.0/queue_job/#id12>`__ module. In particular:
 
   * add ``queue_job`` to `server wide modules <https://odoo-development.readthedocs.io/en/latest/admin/server_wide_modules.html>`__, e.g.::
 
@@ -38,26 +38,37 @@ Project
 * Create a project
 
   * **Name**, e.g. *Legacy migration*
-  * **Parameters**
 
-    * **Key**
-    * **Value**
-  * **Secrets**: Parameters with restricted access: key values are visiable for Managers only
-  * **Protected Code**, **Common Code**: code that is executed before running any
-    project's task. Can be used for initialization or for helpers. Secret params
-    and package importing are available in **Protected Code** only. Any variables
-    and functions that don't start with underscore symbol will be available in
-    task's code.
-  * **Tasks**
+  * In the ``Parameters`` tab
+
+    * **Parameters**
+
+      * **Key**
+      * **Value**
+    * **Secrets**: Parameters with restricted access: key values are visiable for Managers only
+
+  * In the ``Shared Code`` tab
+
+    * **Protected Code**, **Common Code**: code that is executed before running any
+      project's task. Can be used for initialization or for helpers. Secret params
+      and package importing are available in **Protected Code** only. Any variables
+      and functions that don't start with underscore symbol will be available in
+      task's code.
+
+  * In the ``Available Tasks`` tab
 
     * **Name**, e.g. *Sync products*
     * **Code**: code with at least one of the following functions
 
       * ``handle_cron()``
       * ``handle_db(records)``
+
         * ``records``: all records on which this task is triggered
+
       * ``handle_webhook(httprequest)``
+
         * ``httprequest``: contains information about request, e.g.
+
           * `httprequest.data <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.data>`__: request data
           * `httprequest.files <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.files>`__: uploaded files
           * `httprequest.remote_addr <https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/#werkzeug.wrappers.BaseRequest.remote_addr>`__: ip address of the caller.
@@ -148,6 +159,7 @@ Links
 ~~~~~
 
 * ``<record>.set_link(relation_name, external, sync_date=None, allow_many2many=False) -> link``: makes link between Odoo and external resource
+
   * ``allow_many2many``: when False raises an error if there is a link for the
     ``record`` and ``relation_name`` or if there is a link for ``relation_name``
     and ``external``;
@@ -188,29 +200,36 @@ You can also link external data with external data on syncing two different syst
 * ``set_link(relation_name, [("github", github_issue_num), ("trello", trello_card_num)], sync_date=None, allow_many2many=False) -> elink``
   * ``refs`` is a dictionary with system name and references pairs, e.g.
 
-          {
-            "github": github_issue_num,
-            "trello": trello_card_num,
-          }
+    .. code-block:: python
+
+      {
+        "github": github_issue_num,
+        "trello": trello_card_num,
+      }
 
 * ``search_links(relation_name, refs) -> elinks``:
   * ``refs`` may contain list of references as values, e.g.
 
-          {
-            "github": [github_issue_num],
-            "trello": [trello_card_num],
-          }
+    .. code-block:: python
+
+      {
+        "github": [github_issue_num],
+        "trello": [trello_card_num],
+      }
 
   * use None values to don't filter by referece value of that system, e.g.
 
-          {
-            "github": None,
-            "trello": [trello_card_num],
-          }
+    .. code-block:: python
+
+      {
+        "github": None,
+        "trello": [trello_card_num],
+      }
 
   * if references for both systems are passed, then elink is added to result
     only when its references are presented in both references lists
 * ``get_link(relation_name, refs) -> elink``
+
   * At least one of the reference should be not Falsy
   * ``get_link`` raise error, if there are few odoo records linked to the
     references. Set work with multiple relations (*one2many*, *many2one*,
@@ -228,6 +247,8 @@ Network
 
 * ``log_transmission(recipient_str, data_str)``: report on data transfer to external recipients; example of a function in *Protected Code*:
 
+  .. code-block:: python
+
     def httpPOST(url, *args, **kwargs):
         import requests
         log_transmission(url, json.dumps([args, kwargs]))
@@ -241,12 +262,14 @@ Project Values
 * ``params.<PARAM_NAME>``: project params
 * ``secrets.<SECRET_NAME>``: available in **Protected Code** only; you need to use closure to use it, for example:
 
-      def _make_request(secrets):
-          import requests
-          def f(data):
-              return requests.post(params.API_URL, data=data, auth=(secrets.API_USER, secrets.API_PASSWORD))
-          return f
-      make_request = _make_request(secrets)
+  .. code-block:: python
+
+    def _make_request(secrets):
+        import requests
+        def f(data):
+            return requests.post(params.API_URL, data=data, auth=(secrets.API_USER, secrets.API_PASSWORD))
+        return f
+    make_request = _make_request(secrets)
 
 * ``webhooks.<WEBHOOK_NAME>``: contains webhook url; only in tasks' code
 
@@ -300,9 +323,9 @@ Depending on Trigger, a job may:
   * if ``RetryableJobError`` is raised, then job is retried automatically in following scheme:
 
     * After first failure wait 5 minute
-    * If it's not succedded again, then wait another 15 minutes
-    * If it's not succedded again, then wait another 60 minutes
-    * If it's not succedded again, then wait another 3 hours
+    * If it's not succeeded again, then wait another 15 minutes
+    * If it's not succeeded again, then wait another 60 minutes
+    * If it's not succeeded again, then wait another 3 hours
     * Try again for the fifth time and stop retrying if it's still failing
 
 Cron
@@ -320,7 +343,7 @@ DB
 Webhook
 -------
 
-* runs immediatly
+* runs immediately
 * failed job cannot be retried via backend UI; the webhook should be called again.
 
 Button
@@ -378,16 +401,17 @@ In Telegram:
 In Odoo:
 
 * `Activate Developer Mode <https://odoo-development.readthedocs.io/en/latest/odoo/usage/debug-mode.html>`__
-* Open menu ``[[ Settings ]] >> Parameters >> System Parameters``
-* Check that parameter ``web.base.url`` is properly set and it's accessable over
+* Open menu ``[[ Settings ]] >> Technical >> Parameters >> System Parameters``
+* Check that parameter ``web.base.url`` is properly set and it's accessible over
   internet (it should not localhost)
-* Open menu ``[[ Sync Studio ]] >> Projects``
+* Open menu ``[[ Sync Studio ]] >> Sync Projects``
 * Select *Demo Telegram Integration* project
+* Go to ``Parameters`` tab
 * Set **Secrets**:
 
   * TELEGRAM_BOT_TOKEN
 
-* Unarchive project
+* Unarchive the project
 * Open *Manual Triggers* Tab
 * Click button ``[Run Now]`` near to *Setup* task
 
@@ -442,8 +466,9 @@ To sync changes on external Odoo we use *Cron trigger*. It runs every 15 minutes
 Configuration
 -------------
 
-* Open menu ``[[ Sync Studio ]] >> Projects``
+* Open menu ``[[ Sync Studio ]] >> Sync Projects``
 * Select *Demo Odoo2odoo integration* project
+* Go to ``Parameters`` tab
 * Set **Params**:
   * URL, e.g. ``https://3674665-12-0.runbot41.odoo.com``
   * DB, e.g. ``odoo``
@@ -451,7 +476,7 @@ Configuration
 
   * USERNAME, e.g. ``admin``
   * PASSWORD, e.g. ``admin``
-* Unarchive project
+* Unarchive the project
 
 Usage
 -----
@@ -468,11 +493,15 @@ Usage
   * RESULT: the partner copy is on the external Odoo
   * Update avatar image on it
 
-* Go back to our Odoo and trigger the syncronization in some of the following ways:
+* Go back to the *Demo Odoo2odoo Integration* project in our Odoo
+* Click ``Available Tasks`` tab
+* Go to ``Sync Remote Partners Updates`` task
+* Click on ``Available Triggers`` tab and go inside ``CHECK_EXTERNAL_ODOO`` trigger
+* Make trigger Active on the upper right corner
 
-  1. Go back to the *Demo Odoo2odoo* project
+* Then you can trigger synchronization in some of the following ways:
 
-     * Choose Cron Trigger and click ``[Run Manually]``
+  1. Click ``[Run Manually]`` inside the trigger
 
   2. Simply wait up to 15 minutes :)
 
@@ -482,9 +511,9 @@ Usage
 
 **Uploading all existing partners.**
 
-* Open menu ``[[ Sync Studio ]] >> Projects``
-* Select *Demo Odoo2odoo* project
-* Choose Button Trigger *Upload All Partners*
+* Open menu ``[[ Sync Studio ]] >> Sync Projects``
+* Select *Demo Odoo2odoo Integration* project
+* Choose Sync Task *Sync Local Partners To Remote Odoo*
 * Click button ``[Run Now]``
 * Open the external Odoo
 
@@ -494,12 +523,12 @@ Demo project: GitHub <-> Trello
 ===============================
 
 In this project we create copies of github issues/pull requests and their
-messages in trello cards. It's one side syncronization: new cards and message in
+messages in trello cards. It's one side synchronization: new cards and message in
 trello are not published in github. Trello and Github labels are
 synchronized in both directions.
 
 To try it, you need to install this module in demo mode. Also, your odoo
-instance must be accessable over internet to receive github and trello webhooks.
+instance must be accessible over internet to receive github and trello webhooks.
 
 How it works
 ------------
@@ -534,39 +563,51 @@ labels mismatch and synchronize them. In ``LABELS_MERGE_STRATEGY`` you can
 choose which strategy to use:
 
 * ``USE_TRELLO`` -- ignore github labels and override them with trello labels
-* ``USE_GITHUB`` -- ignore trello labes and  override them with push github labels
+* ``USE_GITHUB`` -- ignore trello labels and  override them with push github labels
 * ``UNION`` -- add missed labels from both side
 * ``INTERSECTION`` -- remove labels that are not attached on both side
 
 Configuration
 -------------
 
-* Open menu ``[[ Sync Studio ]] >> Projects``
-* Select *Demo Github <-> Trello integration* project
-* Set **Secrets** (check Description and Documentation links near the parameters table about how to get the secret parameters):
+* Open menu ``[[ Sync Studio ]] >> Sync Projects``
+* Select *Demo Github-Trello Integration* project
+* In ``Parameters`` tab set **Secrets** (check Description and Documentation links near the parameters table about how to get the secret parameters):
+
   * ``GITHUB_REPO``
   * ``GITHUB_TOKEN``
   * ``TRELLO_BOARD_ID``
   * ``TRELLO_KEY``
   * ``TRELLO_TOKEN``
+
 * In *Available Tasks* tab:
+
   * Click ``[Edit]``
   * Open *Labels Conflict resolving* task
   * In *Available Triggers* tab:
+
     * Open *CONFLICT_RESOLVING* Cron
-    * Change **Next Execution Date** in webhook to night time
+    * Change **Next Execution Date** in webhook to the night time
+    * Make it active on the upper right corner
+  * Click ``[Save]``
+* Make integration Active on the upper right corner
 * In project's *Manual Triggers* tab:
+
   * Click ``[Run Now]`` buttons in trigger *SETUP_GITHUB*
   * Click ``[Run Now]`` buttons in triggers *SETUP_TRELLO*. Note, that `it doesn't work <https://github.com/odoo/odoo/issues/57133>`_ without one of the following workarounds:
 
-    * open file ``sync/controllers/webhook.py`` and temporarly change ``type="json"`` to ``type="http"``. Revert the changes after successfully setting up trello
+    * open file ``sync/controllers/webhook.py`` and temporarily change ``type="json"`` to ``type="http"``. Revert the changes after successfully setting up trello
     * add header "Content-Type: application/json" via your web server. Example for nginx:
+
+      .. code-block:: nginx
 
             location /website/action-json/ {
                 proxy_set_header Content-Type "application/json";
                 proxy_set_header Host $host;
                 proxy_pass http://localhost:8069;
             }
+
+  * After a successful *SETUP_TRELLO* trigger run, return everything to its original position, otherwise the project will not work correctly
 
 
 

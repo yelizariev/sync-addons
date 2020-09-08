@@ -26,7 +26,7 @@ Difference with built-in code evaluation:
 * Provides helpers for resource linking. See *Links* section in `<doc/index.rst>`__
 * Uses queue_job module as a job broker
 * Asynchronous calls to split big task into few small ones
-* Allows repeat job on temporarly fails (e.g. when external API is not available)
+* Allows repeat job on temporary fails (e.g. when external API is not available)
 
 Roadmap
 =======
@@ -58,7 +58,7 @@ If you run Odoo locally and need to test webhook, you can use ssh tunneling:
 
 Now you can set ``http://yourserver.example:8069`` as a value for ``web.base.url`` in Odoo (menu ``[[ Settings ]] >> System Parameters``). Also, you need to set any value to parameter `web.base.url.freeze <https://odoo-source.com/?q=web.base.url.freeze&i=nope&files=&excludeFiles=po%24%7Cpot%24%7Cyml%24%7Cyaml%24%7Ccss%24%7C%2Fstatic%2Flib%2F&repos=odoo>`__
 
-Few more step requires to use https connection (e.g. telegram api works with https only). In your server do as following:
+Few more steps requires to use https connection (e.g. telegram api works with https only). In your server do as following:
 
 * Install nginx in your server
 * Add nginx config::
