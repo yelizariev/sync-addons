@@ -231,7 +231,7 @@ class SyncProject(models.Model):
                 "secrets": secrets,
                 "webhooks": webhooks,
                 "user": self.env.user,
-                "trigger_name": job.trigger_name,
+                "trigger": job.trigger_name,
                 "add_job": add_job,
                 "json": json,
                 "UserError": UserError,

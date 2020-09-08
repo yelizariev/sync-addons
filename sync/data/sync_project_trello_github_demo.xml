@@ -387,17 +387,17 @@ INTERSECTION: remove labes that are not attached on another side
             name="code"
         ><![CDATA[
 def handle_button():
-    if trigger_name == "SETUP_GITHUB":
+    if trigger == "SETUP_GITHUB":
         github["set_webhook"](webhooks.GITHUB_ISSUE_UPDATES, ["issues"])
         github["set_webhook"](webhooks.GITHUB_ISSUE_COMMENT, ["issue_comment"])
         github["set_webhook"](webhooks.GITHUB_LABEL_UPDATES, ["label"])
-    elif trigger_name == "SETUP_TRELLO":
+    elif trigger == "SETUP_TRELLO":
         trello["set_webhook"](webhooks.TRELLO_CARD_UPDATES)
         trello["set_webhook"](webhooks.TRELLO_LABEL_UPDATES)
-    elif trigger_name == "DELETE_TRELLO_WEBHOOKS":
+    elif trigger == "DELETE_TRELLO_WEBHOOKS":
         trello["delete_webhooks"]()
     else:
-        raise Exception("Unknown button event: %s" % trigger_name)
+        raise Exception("Unknown button event: %s" % trigger)
 
         ]]></field>
     </record>
@@ -443,12 +443,12 @@ def handle_webhook(httprequest):
     if data.get("zen"):
         # github sent dummy request to check webhook
         return "It Works!"
-    if trigger_name == "GITHUB_ISSUE_COMMENT":
+    if trigger == "GITHUB_ISSUE_COMMENT":
         return handle_webhook_issue_comment(data)
-    elif trigger_name == "GITHUB_ISSUE_UPDATES":
+    elif trigger == "GITHUB_ISSUE_UPDATES":
         return handle_webhook_issues_update(data)
     else:
-        raise Exception("Unknown trigger_name {}".format(trigger_name))
+        raise Exception("Unknown trigger {}".format(trigger))
 
 def handle_webhook_issue_comment(data):
     # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#issue_comment
@@ -598,7 +598,7 @@ def process_github_issues():
     data = None
     is_updated = None
     is_deleted = None
-    if trigger_name == "TRELLO_LABEL_UPDATES":
+    if trigger == "TRELLO_LABEL_UPDATES":
         if httprequest.method == "HEAD":
             # trello is checking webhook before setting it up
             return "It works!"
@@ -612,7 +612,7 @@ def process_github_issues():
         else:
             # other label events are handled in "Sync Trello Cards to Github" task
             return "Thank you!"
-    elif trigger_name == "GITHUB_LABEL_UPDATES":
+    elif trigger == "GITHUB_LABEL_UPDATES":
         data = json.loads(httprequest.data.decode())
         log("Github payload:\n{}".format(json.dumps(data, indent=4, sort_keys=True)))
         if data.get("zen"):
@@ -627,13 +627,13 @@ def process_github_issues():
     tlabel_id = None
     new_color = None
     new_name = None
-    if trigger_name == "TRELLO_LABEL_UPDATES":
+    if trigger == "TRELLO_LABEL_UPDATES":
         label = data["action"]["data"]["label"]
         tlabel_id = label["id"]
         new_name = label.get("name")
         if label.get("color"):
             new_color = color2github(label["color"])
-    elif trigger_name == "GITHUB_LABEL_UPDATES":
+    elif trigger == "GITHUB_LABEL_UPDATES":
         label = data["label"]
         glabel_id = label["id"]
         new_name = label["name"]
@@ -646,16 +646,16 @@ def process_github_issues():
     glabel_id = elinks.get(GITHUB)[0]
     tlabel_id = elinks.get(TRELLO)[0]
     if is_updated:
-        if trigger_name == "TRELLO_LABEL_UPDATES":
+        if trigger == "TRELLO_LABEL_UPDATES":
             github["label_update"](glabel_id, new_name, new_color)
-        elif trigger_name == "GITHUB_LABEL_UPDATES":
+        elif trigger == "GITHUB_LABEL_UPDATES":
             trello["label_update"](tlabel_id, new_name, new_color)
 
     if is_deleted:
         elinks.unlink()
-        if trigger_name == "TRELLO_LABEL_UPDATES":
+        if trigger == "TRELLO_LABEL_UPDATES":
             github["label_delete"](glabel_id)
-        elif trigger_name == "GITHUB_LABEL_UPDATES":
+        elif trigger == "GITHUB_LABEL_UPDATES":
             trello["label_delete"](tlabel_id)
 
 ]]></field>
