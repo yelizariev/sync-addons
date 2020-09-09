@@ -48,11 +48,11 @@ If you run Odoo locally and need to test webhook, you can use ssh tunneling:
 
     * Find ``GatewayPorts`` attribute and set value to ``yes``
 
-  * Restart ssh daemon:
+  * Restart ssh daemon::
 
         service ssh restart
 
-* Connect to your server with ``-R`` attribute:
+* Connect to your server with ``-R`` attribute::
 
       ssh user@yourserver.example -R 0.0.0.0:8069:localhost:8069
 
@@ -61,7 +61,7 @@ Now you can set ``http://yourserver.example:8069`` as a value for ``web.base.url
 Few more step requires to use https connection (e.g. telegram api works with https only). In your server do as following:
 
 * Install nginx in your server
-* Add nginx config:
+* Add nginx config::
 
       server {
              listen 80;
@@ -74,6 +74,7 @@ Few more step requires to use https connection (e.g. telegram api works with htt
 
 * Install `certbot <https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx.html>`__
 * Run
+  ::
 
      sudo certbot --nginx
 
