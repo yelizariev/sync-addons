@@ -23,7 +23,7 @@ class SyncTriggerAutomation(models.Model):
     def get_code(self):
         return (
             """
-env["sync.trigger.automation"].browse(%s).start(records)
+env["sync.trigger.automation"].browse(%s).sudo().start(records)
 """
             % self.id
         )
