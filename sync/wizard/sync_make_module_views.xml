@@ -11,7 +11,7 @@
                     <field name="copyright_years" />
                     <field name="author_name" />
                     <field name="author_url" />
-                    <field name="license" />
+                    <field name="license_line" />
                     <field name="name" invisible="1" />
                     <field name="name2" invisible="1" />
                 </group>
