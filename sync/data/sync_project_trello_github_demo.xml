@@ -103,9 +103,9 @@ def _trello(secrets):
     def label_update(tlabel_id, new_name, new_color):
         log_transmission(TRELLO, "label#%s update: %s" % (tlabel_id, [new_name, new_color]))
         res = client.fetch_json(
-			    '/labels/{0}'.format(tlabel_id),
-			    http_method='PUT',
-		    	post_args={'id': tlabel_id, 'name': new_name, 'color': new_color})
+          '/labels/{0}'.format(tlabel_id),
+          http_method='PUT',
+          post_args={'id': tlabel_id, 'name': new_name, 'color': new_color})
         log("Trello response: {}".format(res))
 
     def get_labels_colors():
