@@ -172,7 +172,7 @@ class SyncMakeModule(models.TransientModel):
         if field.type in ["char", "selection", "integer"]:
             xml.text = str(value) if value else ""
         elif field.type == "text":
-            xml.text = etree.CDATA(value)
+            xml.text = etree.CDATA(value or "")
         elif field.type == "many2one":
             xml.set("ref", self.module + "." + self._record2id(value))
         elif field.type == "boolean":
