@@ -8,6 +8,7 @@
             <form>
                 <field invisible="1" name="state" />
                 <group states="choose" string="Export Settings">
+                    <field name="module" />
                     <field name="copyright_years" />
                     <field name="author_name" />
                     <field name="author_url" />

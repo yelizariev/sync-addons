@@ -8,10 +8,10 @@ from odoo import api, fields, models
 
 from odoo.addons.http_routing.models.ir_http import slugify
 
-MODULE = "sync"
 PARAM_NAME = "sync.export_project.author_name"
 PARAM_URL = "sync.export_project.author_url"
 PARAM_LICENSE = "sync.export_project.license"
+PARAM_MODULE = "sync.export_project.module"
 
 
 class SyncMakeModule(models.TransientModel):
@@ -22,6 +22,7 @@ class SyncMakeModule(models.TransientModel):
     name2 = fields.Char("File Name Txt", readonly=True, compute="_compute_name")
     data = fields.Binary("File", readonly=True, attachment=False)
     data2 = fields.Binary("File Txt", related="data")
+    module = fields.Char("Module Technical Name", required=True)
     copyright_years = fields.Char("Copyright Year", default="2020", required=True)
     author_name = fields.Char("Author Name", help="e.g. Ivan Yelizariev", required=True)
     author_url = fields.Char("Author URL", help="e.g. https://twitter.com/yelizariev")
@@ -48,11 +49,22 @@ class SyncMakeModule(models.TransientModel):
         license_line = self.env["ir.config_parameter"].get_param(PARAM_LICENSE)
         if license_line:
             vals["license_line"] = license_line
+        module = self.env["ir.config_parameter"].get_param(PARAM_MODULE)
+        if not module:
+            m = self.env["ir.module.module"].search(
+                [("state", "=", "installed")], limit=1, order="write_date desc"
+            )
+            if m.name.startswith("sync_"):
+                module = m.name
+        if not module:
+            module = "sync_x"
+        vals["module"] = module
         return vals
 
     def act_makefile(self):
         self.env["ir.config_parameter"].set_param(PARAM_NAME, self.author_name)
         self.env["ir.config_parameter"].set_param(PARAM_LICENSE, self.license_line)
+        self.env["ir.config_parameter"].set_param(PARAM_MODULE, self.module)
         if self.author_url:
             self.env["ir.config_parameter"].set_param(PARAM_URL, self.author_url)
 
@@ -128,14 +140,13 @@ class SyncMakeModule(models.TransientModel):
         self.write({"state": "get", "data": data})
         return self.get_wizard()
 
-    @api.model
     def _record2id(self, record):
         existing = self.env["ir.model.data"].search(
             [("model", "=", record._name), ("res_id", "=", record.id)]
         )
         if existing:
             existing = existing[0]
-            if existing.module == MODULE:
+            if existing.module == self.module:
                 return existing.name
             else:
                 return existing.complete_name
@@ -148,13 +159,12 @@ class SyncMakeModule(models.TransientModel):
             {
                 "model": record._name,
                 "res_id": record.id,
-                "module": MODULE,
+                "module": self.module,
                 "name": xmlid,
             }
         )
         return xmlid
 
-    @api.model
     def _field2xml(self, record, fname):
         field = record._fields[fname]
         value = getattr(record, fname)
@@ -164,12 +174,11 @@ class SyncMakeModule(models.TransientModel):
         elif field.type == "text":
             xml.text = etree.CDATA(value)
         elif field.type == "many2one":
-            xml.set("ref", MODULE + "." + self._record2id(value))
+            xml.set("ref", self.module + "." + self._record2id(value))
         elif field.type == "boolean":
             xml.set("eval", str(value))
         return xml
 
-    @api.model
     def _record2xml(self, record, fields):
         xml = etree.Element("record", id=self._record2id(record), model=record._name)
         for fname in fields:
