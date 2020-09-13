@@ -20,13 +20,10 @@
         <field name="model">sync.trigger.automation</field>
         <field name="arch" type="xml">
             <form>
-                <div class="oe_title">
-                    <h1>
-                        <field name="name" placeholder="E.g. On Product Price change" />
-                    </h1>
-                </div>
                 <group>
+                    <field name="trigger_name" />
                     <field name="model_id" />
+                    <field name="model_name" invisible="1" />
                     <field name="trigger" />
                     <field
                         name="filter_pre_domain"
